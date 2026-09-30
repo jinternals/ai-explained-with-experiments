@@ -6,12 +6,13 @@ The rule for every post here: **if a number is on the page, a script in the same
 
 ## Reading order
 
-The three search posts build on each other; the LLM post stands on its own.
+The four search posts build on each other; the LLM post stands on its own.
 
 1. **[BM25](BM25/)**: how keyword search scores a document.
-2. **[Reciprocal Rank Fusion](RRF/)**: merging keyword search and meaning search into one list.
-3. **[Cross-encoder re-ranking](CrossEncoder/)**: re-sorting the top results with a slower, more careful model.
-4. **[Nondeterminism in LLM inference](LLMs/nondeterminism/)**: why temperature 0 can still give different answers.
+2. **[Semantic search](SemanticSearch/)**: how search by meaning works, and when it beats keywords.
+3. **[Reciprocal Rank Fusion](RRF/)**: merging keyword search and meaning search into one list.
+4. **[Cross-encoder re-ranking](CrossEncoder/)**: re-sorting the top results with a slower, more careful model.
+5. **[Nondeterminism in LLM inference](LLMs/nondeterminism/)**: why temperature 0 can still give different answers.
 
 Also in the repository: **[Apple Foundation Model server](apple-foundation-model/)**, a macOS app that lets Open WebUI and other chat apps use the language model built into macOS.
 
@@ -26,7 +27,7 @@ Each project runs on its own, so you only need what the project you want uses:
 
 | To run | You need |
 |---|---|
-| BM25, RRF, CrossEncoder | Docker. The labs bring OpenSearch and download the BEIR datasets and models on the first run. |
+| BM25, SemanticSearch, RRF, CrossEncoder | Docker. The labs bring OpenSearch and download the BEIR datasets and models on the first run. |
 | LLMs/nondeterminism | An Apple Silicon Mac and Python 3.10+ (`lab/rounding.py` runs anywhere). |
 | apple-foundation-model | An Apple Silicon Mac with macOS 27 and Apple Intelligence turned on, and Xcode 27 to build. |
 
@@ -37,6 +38,7 @@ The posts themselves are plain HTML files (`blog/index.html` or `blog/rrf-blog.h
 | Project | Question it answers | Headline result | Stack |
 |---|---|---|---|
 | [**BM25**](BM25/) | How does keyword search score a document, and which of its settings change results? | Rebuilds one real search score, 28.64, word by word. k1 and b moved nDCG@10 by at most 0.005 near the defaults; stemming added up to 0.034, and reproduces the BEIR paper's BM25 on NFCorpus and FiQA exactly. | Java 21, OpenSearch 2.19.1, Docker |
+| [**Semantic search**](SemanticSearch/) | How does search by meaning work, and when does it beat keyword search? | On 1,271 BEIR questions, meaning search won FiQA (0.239 → 0.366 nDCG@10) and lost SciFact (0.656 → 0.624). Shared words decide it: with under a third of the question's words in the answers, it won 229 questions and lost 85. HNSW matched exact search's top 10 for 94% of questions. | Java 21, OpenSearch 2.19.1, Docker |
 | [**Reciprocal Rank Fusion**](RRF/) | How does hybrid search merge a keyword list and a meaning list into one? | On 1,271 BEIR questions, RRF beat both searchers on NFCorpus (+9%) and SciFact (+4%), and lost on FiQA (−5%), where one searcher is much weaker. | Java 21, OpenSearch 2.19.1, Docker |
 | [**Cross-encoder re-ranking**](CrossEncoder/) | Does a slower model that reads the question and each document together improve search results, and what does it cost? | Re-ranking improved all 9 combinations of dataset and first stage (keyword search on FiQA +40%). For RRF, re-ranking the top 20 beat the top 100 at a sixth of the time: 0.67 s vs 4.0 s per question on CPU. | Java 21, OpenSearch 2.19.1, ONNX, Docker |
 | [**Nondeterminism in LLM inference**](LLMs/nondeterminism/) | Why can a model at temperature 0 give different answers to the same question? | The same calculation repeats bit for bit. The batch size changes the order of additions. A 0.5B model gave 8 different answers across 11 batch sizes, and 4 of 4 identical ones with the batch size fixed. | Python, MLX, Apple Silicon |
@@ -57,9 +59,25 @@ docker compose down
 
 Needs Docker. Details are in [BM25/README.md](BM25/README.md).
 
+## Semantic search
+
+`SemanticSearch/` · part 2
+
+An embedding model turns a word, a sentence or a paragraph into 384 numbers, an arrow, through one recipe: split into word pieces, adjust each by its neighbours, average. Cosine similarity compares arrows by direction. The post builds that up with interactive examples, then compares meaning search with BM25 on the same three BEIR datasets, tests HNSW against exact search, and shows that LangChain4j reads only the first 128 word pieces of each document.
+
+```bash
+cd SemanticSearch
+docker compose run --rm --build lab example     # the worked examples
+docker compose run --rm --build lab benchmark   # 1,271 questions, 3 datasets
+docker compose run --rm --build lab length      # how much of each document the model reads
+docker compose down
+```
+
+Needs Docker. Details are in [SemanticSearch/README.md](SemanticSearch/README.md).
+
 ## Reciprocal Rank Fusion
 
-`RRF/` · part 2 · [Read it on Medium](https://medium.com/jinternals/reciprocal-rank-fusion-without-the-scary-math-68421476c505)
+`RRF/` · part 3 · [Read it on Medium](https://medium.com/jinternals/reciprocal-rank-fusion-without-the-scary-math-68421476c505)
 
 Keyword search and meaning search score results on different scales, so their scores can't be added. RRF ignores the scores and adds up points for each result's position in each list. The post works through one real NFCorpus question by hand, then tests the method on three BEIR datasets and sweeps the constant k.
 
@@ -74,7 +92,7 @@ Needs Docker. The first benchmark run downloads about 23 MB of data and embeds a
 
 ## Cross-encoder re-ranking
 
-`CrossEncoder/` · part 3
+`CrossEncoder/` · part 4
 
 Meaning search reads the question and each document separately, so it is fast but never sees them together. A cross-encoder reads the question and one document as a single input and outputs one relevance score. It is used to re-sort the top results of a fast search. The post re-ranks keyword, meaning and RRF lists on the same three BEIR datasets as the RRF post, and measures the gain, the cost, and how far the result is from a perfect order.
 
@@ -137,6 +155,10 @@ AI/
 │   ├── blog/          index.html, page/ (source), build_page.py
 │   ├── lab/           Java 21: OpenSearch BM25, explain and analyze APIs
 │   └── out/           example and benchmark results
+├── SemanticSearch/
+│   ├── blog/          index.html, page/ (source), build_page.py
+│   ├── lab/           Java 21: OpenSearch k-NN, all-MiniLM-L6-v2, BEIR
+│   └── out/           example, benchmark and length results
 ├── RRF/
 │   ├── blog/          rrf-blog.html
 │   ├── medium/        rrf-medium.md, rrf-medium.html, images/, build-images.mjs
@@ -165,7 +187,7 @@ Everything the labs download or rebuild is ignored by `.gitignore`, about 1.2 GB
 | Not committed | Size | Recreated by |
 |---|---|---|
 | `*/data/`: the BEIR datasets | about 64 MB per project | the first lab run |
-| `RRF/cache/`, `CrossEncoder/cache/`: embeddings, models, cross-encoder scores | about 285 MB and 200 MB | the first benchmark run |
+| `RRF/cache/`, `SemanticSearch/cache/`, `CrossEncoder/cache/`: embeddings, models, cross-encoder scores | about 285 MB, 400 MB and 200 MB | the first lab runs |
 | `RRF/out/`: RRF's results JSON | under 1 MB | `docker compose run --rm lab benchmark` in `RRF/` |
 | `LLMs/nondeterminism/.venv/` | about 335 MB | `pip install -r lab/requirements.txt` |
 | `apple-foundation-model/.build/`, `build/` | about 225 MB | `scripts/build-app.sh` |
@@ -175,6 +197,6 @@ To free space, delete any of these; the next run rebuilds them.
 ## How the posts are made
 
 - **Real data only.** Examples use public datasets (BEIR) or real model output, never made-up numbers.
-- **Every figure is rebuilt from results.** The RRF images are rendered from `out/*.json` by `medium/build-images.mjs`. The nondeterminism, cross-encoder and BM25 pages fill their numbers from `out/*.json` when they are built.
+- **Every figure is rebuilt from results.** The RRF images are rendered from `out/*.json` by `medium/build-images.mjs`. The nondeterminism, BM25, semantic search and cross-encoder pages fill their numbers from `out/*.json` when they are built.
 - **Sources are marked.** The nondeterminism post tags every number "ran on Mac" or "paper". The RRF post names the source under each figure, such as "Raw output from OpenSearch" or "Table 1 of Cormack et al. (2009)".
 - **Differences are reported.** When a result disagrees with the paper, the post says so and explains why. For example, Python's `sum()` gives the article's 102 only on Python 3.12 and 3.13.

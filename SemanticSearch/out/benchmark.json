@@ -1,0 +1,1051 @@
+{
+  "opensearch_version" : "2.19.1",
+  "model" : "sentence-transformers/all-MiniLM-L6-v2 (LangChain4j 1.20.0-beta30, ONNX)",
+  "group_edges" : [ 0.3333333333333333, 0.6666666666666666 ],
+  "hnsw_mapping" : {
+    "type" : "knn_vector",
+    "dimension" : 384,
+    "method" : {
+      "engine" : "lucene",
+      "space_type" : "cosinesimil",
+      "name" : "hnsw",
+      "parameters" : { }
+    }
+  },
+  "datasets" : {
+    "nfcorpus" : {
+      "documents" : 3633,
+      "queries" : 323,
+      "keyword" : {
+        "ndcg@10" : 0.3065575461776274,
+        "recall@100" : 0.24432351151736717
+      },
+      "exact" : {
+        "ndcg@10" : 0.3149449318945291,
+        "recall@100" : 0.3094260094121505
+      },
+      "hnsw" : {
+        "ndcg@10" : 0.3147582763656963,
+        "recall@100" : 0.3086529795362314
+      },
+      "hnsw_vs_exact" : {
+        "top10_overlap" : 0.9873065015479875,
+        "same_top10" : 289,
+        "same_top10_share" : 0.8947368421052632
+      },
+      "meaning_vs_keyword" : {
+        "better" : 122,
+        "same" : 105,
+        "worse" : 96
+      },
+      "mean_word_overlap" : 0.1965681555639845,
+      "by_word_overlap" : {
+        "low" : {
+          "queries" : 258,
+          "keyword" : 0.2310835137044422,
+          "meaning" : 0.2639399368990204,
+          "meaning_better" : 105,
+          "meaning_worse" : 68
+        },
+        "middle" : {
+          "queries" : 49,
+          "keyword" : 0.4977243211071365,
+          "meaning" : 0.44677924601630253,
+          "meaning_better" : 16,
+          "meaning_worse" : 19
+        },
+        "high" : {
+          "queries" : 16,
+          "keyword" : 0.9381280715861173,
+          "meaning" : 0.7336578891991753,
+          "meaning_better" : 1,
+          "meaning_worse" : 9
+        }
+      },
+      "biggest_wins" : [ {
+        "query_id" : "PLAIN-3151",
+        "query" : "Too Much Iodine Can Be as Bad as Too Little",
+        "keyword" : 0.0,
+        "meaning" : 0.5735839193800136,
+        "word_overlap" : 0.1111111111111111,
+        "relevant" : [ {
+          "id" : "MED-4666",
+          "title" : "Iodine Status and Thyroid Function of Boston-Area Vegetarians and Vegans",
+          "start" : "Context: Adequate dietary iodine is required for normal thyroid function. The iodine status and thyroid function of U.S. vegetarians and vegans have not been …",
+          "keyword_rank" : 18,
+          "meaning_rank" : 3,
+          "shared_words" : [ "iodine" ]
+        }, {
+          "id" : "MED-4664",
+          "title" : "Iodine toxicity from soy milk and seaweed ingestion is associated with serious thyroid dysfunction.",
+          "start" : "We report a series of cases of thyroid dysfunction in adults associated with ingestion of a brand of soy milk manufactured with kombu (seaweed), and a case of …",
+          "keyword_rank" : 19,
+          "meaning_rank" : 4,
+          "shared_words" : [ "iodine" ]
+        }, {
+          "id" : "MED-4660",
+          "title" : "Variability of iodine content in common commercially available edible seaweeds.",
+          "start" : "Dietary seaweeds, common in Asia and in Asian restaurants, have become established as part of popular international cuisine. To understand the possibility for …",
+          "keyword_rank" : 14,
+          "meaning_rank" : 5,
+          "shared_words" : [ "iodine" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Too much of too little: xylitol, an unusual trigger of a chronic metabolic hyperchloremic acidosis.",
+          "start" : "Homeopathic globules are frequently used in children as a first-line treatment. Most of these globules are coated with sugar substitutes like xylitol; these …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "Some subgroups of reproductive age women in the United States may be at risk for iodine deficiency.",
+          "start" : "Consuming an adequate amount of iodine during pregnancy is critical for fetal neurologic development. Even a mild deficiency can impair cognitive ability. …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "PLAIN-924",
+        "query" : "cocaine",
+        "keyword" : 0.22009176629808017,
+        "meaning" : 0.7788065869851872,
+        "word_overlap" : 0.03125,
+        "relevant" : [ {
+          "id" : "MED-3044",
+          "title" : "Cue-induced cocaine craving: neuroanatomical specificity for drug users and drug stimuli.",
+          "start" : "OBJECTIVE: Cocaine-related cues have been hypothesized to perpetuate drug abuse by inducing a craving response that prompts drug-seeking behavior. However, the …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 1,
+          "shared_words" : [ "cocaine" ]
+        }, {
+          "id" : "MED-3055",
+          "title" : "Food and drug reward: overlapping circuits in human obesity and addiction.",
+          "start" : "Both drug addiction and obesity can be defined as disorders in which the saliency value of one type of reward (drugs and food, respectively) becomes abnormally …",
+          "keyword_rank" : null,
+          "meaning_rank" : 2,
+          "shared_words" : [ ]
+        }, {
+          "id" : "MED-3052",
+          "title" : "Obesity and addiction: neurobiological overlaps.",
+          "start" : "Drug addiction and obesity appear to share several properties. Both can be defined as disorders in which the saliency of a specific type of reward (food or …",
+          "keyword_rank" : null,
+          "meaning_rank" : 3,
+          "shared_words" : [ ]
+        } ],
+        "keyword_first" : {
+          "title" : "Cue-induced cocaine craving: neuroanatomical specificity for drug users and drug stimuli.",
+          "start" : "OBJECTIVE: Cocaine-related cues have been hypothesized to perpetuate drug abuse by inducing a craving response that prompts drug-seeking behavior. However, the …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Cue-induced cocaine craving: neuroanatomical specificity for drug users and drug stimuli.",
+          "start" : "OBJECTIVE: Cocaine-related cues have been hypothesized to perpetuate drug abuse by inducing a craving response that prompts drug-seeking behavior. However, the …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "PLAIN-2970",
+        "query" : "Preventing Cataracts with Diet",
+        "keyword" : 0.0,
+        "meaning" : 0.4990771526693681,
+        "word_overlap" : 0.18518518518518517,
+        "relevant" : [ {
+          "id" : "MED-4382",
+          "title" : "Diet, vegetarianism, and cataract risk.",
+          "start" : "BACKGROUND: Age-related cataract is a major cause of morbidity. Previous studies of diet and cataract risk have focused on specific nutrients or healthy eating …",
+          "keyword_rank" : 86,
+          "meaning_rank" : 1,
+          "shared_words" : [ "diet" ]
+        }, {
+          "id" : "MED-4388",
+          "title" : "Overall diet quality and age-related macular degeneration",
+          "start" : "Objective To examine overall diet quality in relation to advanced age-related macular degeneration (AMD). Methods This case-control study identified 437 …",
+          "keyword_rank" : null,
+          "meaning_rank" : 7,
+          "shared_words" : [ "diet" ]
+        }, {
+          "id" : "MED-4384",
+          "title" : "Glaucoma risk and the consumption of fruits and vegetables among older women in the study of osteoporotic fractures.",
+          "start" : "PURPOSE: To explore the association between the consumption of fruits and vegetables and the presence of glaucoma. DESIGN: Cross-sectional cohort study. …",
+          "keyword_rank" : null,
+          "meaning_rank" : 10,
+          "shared_words" : [ ]
+        } ],
+        "keyword_first" : {
+          "title" : "Cranberries for preventing urinary tract infections.",
+          "start" : "BACKGROUND: Cranberries have been used widely for several decades for the prevention and treatment of urinary tract infections (UTIs). OBJECTIVES: To assess the …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "Diet, vegetarianism, and cataract risk.",
+          "start" : "BACKGROUND: Age-related cataract is a major cause of morbidity. Previous studies of diet and cataract risk have focused on specific nutrients or healthy eating …",
+          "relevance" : 2
+        }
+      }, {
+        "query_id" : "PLAIN-882",
+        "query" : "Chernobyl",
+        "keyword" : 0.3589542101716347,
+        "meaning" : 0.8572048559638626,
+        "word_overlap" : 0.13333333333333333,
+        "relevant" : [ {
+          "id" : "MED-3632",
+          "title" : "An unexpected mortality increase in the United States follows arrival of the radioactive plume from Fukushima: is there a correlation?",
+          "start" : "The multiple nuclear meltdowns at the Fukushima plants beginning on March 11, 2011, are releasing large amounts of airborne radioactivity that has spread …",
+          "keyword_rank" : 2,
+          "meaning_rank" : 1,
+          "shared_words" : [ "chernobyl" ]
+        }, {
+          "id" : "MED-3636",
+          "title" : "Death by polonium-210: lessons learned from the murder of former Soviet spy Alexander Litvinenko.",
+          "start" : "The medical response to radiation--whether the result of radiological warfare, terrorist deployment of improvised radiation dispersal weapons, political …",
+          "keyword_rank" : null,
+          "meaning_rank" : 2,
+          "shared_words" : [ ]
+        }, {
+          "id" : "MED-3630",
+          "title" : "Radioactive fallout in the United States due to the Fukushima nuclear plant accident.",
+          "start" : "The release of radioactivity into the atmosphere from the damaged Fukushima Daiichi nuclear power plant started on March 12th, 2011. Among the various …",
+          "keyword_rank" : null,
+          "meaning_rank" : 3,
+          "shared_words" : [ ]
+        } ],
+        "keyword_first" : {
+          "title" : "Dietary and clastogenic factors in children who immigrated to Israel from regions contaminated by the Chernobyl accident.",
+          "start" : "The authors evaluated the possible association between dietary history and plasma clastogenic factors in children who immigrated to Israel between 1989 and 1993 …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "An unexpected mortality increase in the United States follows arrival of the radioactive plume from Fukushima: is there a correlation?",
+          "start" : "The multiple nuclear meltdowns at the Fukushima plants beginning on March 11, 2011, are releasing large amounts of airborne radioactivity that has spread …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "PLAIN-2600",
+        "query" : "Eggs and Arterial Function",
+        "keyword" : 0.12122913927828419,
+        "meaning" : 0.597903853732228,
+        "word_overlap" : 0.2333333333333333,
+        "relevant" : [ {
+          "id" : "MED-2372",
+          "title" : "Egg consumption and endothelial function: a randomized controlled crossover trial.",
+          "start" : "BACKGROUND: Because of egg cholesterol content, reduction in egg consumption is generally recommended to reduce risk of cardiovascular disease. Recently, …",
+          "keyword_rank" : 20,
+          "meaning_rank" : 1,
+          "shared_words" : [ "eggs", "function" ]
+        }, {
+          "id" : "MED-2371",
+          "title" : "Daily egg consumption in hyperlipidemic adults - Effects on endothelial function and cardiovascular risk",
+          "start" : "Background Limiting consumption of eggs, which are high in cholesterol, is generally recommended to reduce risk of cardiovascular disease. However, recent …",
+          "keyword_rank" : 4,
+          "meaning_rank" : 3,
+          "shared_words" : [ "eggs", "function" ]
+        }, {
+          "id" : "MED-4324",
+          "title" : "Egg yolk consumption and carotid plaque.",
+          "start" : "BACKGROUND: Increasingly the potential harm from high cholesterol intake, and specifically from egg yolks, is considered insignificant. We therefore assessed …",
+          "keyword_rank" : 16,
+          "meaning_rank" : 4,
+          "shared_words" : [ "eggs", "arterial" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Arterial function of carotid and brachial arteries in postmenopausal vegetarians",
+          "start" : "Background: Vegetarianism is associated with a lower risk of cardiovascular disease. However, studies of arterial function in vegetarians are limited. Methods: …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "Egg consumption and endothelial function: a randomized controlled crossover trial.",
+          "start" : "BACKGROUND: Because of egg cholesterol content, reduction in egg consumption is generally recommended to reduce risk of cardiovascular disease. Recently, …",
+          "relevance" : 2
+        }
+      } ],
+      "biggest_losses" : [ {
+        "query_id" : "PLAIN-1473",
+        "query" : "kohlrabi",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 1.0,
+        "relevant" : [ {
+          "id" : "MED-4455",
+          "title" : "Glucoraphanin and 4-hydroxyglucobrassicin contents in seeds of 59 cultivars of broccoli, raab, kohlrabi, radish, cauliflower, brussels sprouts, kal...",
+          "start" : "The importance of dietary sulforaphane in helping maintain good health continues to gain support within the health-care community and awareness among U.S. …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 18,
+          "shared_words" : [ "kohlrabi" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Glucoraphanin and 4-hydroxyglucobrassicin contents in seeds of 59 cultivars of broccoli, raab, kohlrabi, radish, cauliflower, brussels sprouts, kal...",
+          "start" : "The importance of dietary sulforaphane in helping maintain good health continues to gain support within the health-care community and awareness among U.S. …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Hibiscus anthocyanins rich extract-induced apoptotic cell death in human promyelocytic leukemia cells.",
+          "start" : "Hibiscus sabdariffa Linne (Malvaceae), an attractive plant believed to be native to Africa, is cultivated in the Sudan and Eastern Taiwan. Anthocyanins exist …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "PLAIN-2081",
+        "query" : "shelf life",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 1.0,
+        "relevant" : [ {
+          "id" : "MED-4303",
+          "title" : "Oxidative stability and shelf-life evaluation of selected culinary oils.",
+          "start" : "Four out of eight 'healthier' oils-namely, almond oil, avocado oil, hazelnut oil and macadamia nut oil-studied were rich sources of monounsaturated fatty acids …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 11,
+          "shared_words" : [ "shelf", "life" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Oxidative stability and shelf-life evaluation of selected culinary oils.",
+          "start" : "Four out of eight 'healthier' oils-namely, almond oil, avocado oil, hazelnut oil and macadamia nut oil-studied were rich sources of monounsaturated fatty acids …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Longevity and diet. Myth or pragmatism?",
+          "start" : "Longevity is a very complex phenomenon, because many environmental, behavioral, socio-demographic and dietary factors influence the physiological pathways of …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "PLAIN-1288",
+        "query" : "grapes",
+        "keyword" : 0.7381919257729245,
+        "meaning" : 0.06625422345438903,
+        "word_overlap" : 0.05102040816326531,
+        "relevant" : [ {
+          "id" : "MED-2668",
+          "title" : "Concord grape juice supplementation and neurocognitive function in human aging.",
+          "start" : "Polyphenol compounds found in berry fruits, in particular flavonoids, have been associated with health benefits including improvement in cognition and neuronal …",
+          "keyword_rank" : null,
+          "meaning_rank" : 9,
+          "shared_words" : [ ]
+        }, {
+          "id" : "MED-2669",
+          "title" : "Concord grape juice supplementation improves memory function in older adults with mild cognitive impairment.",
+          "start" : "Concord grape juice contains polyphenol compounds, which have antioxidant and anti-inflammatory properties and influence neuronal signalling. Concord grape …",
+          "keyword_rank" : null,
+          "meaning_rank" : 11,
+          "shared_words" : [ ]
+        }, {
+          "id" : "MED-3700",
+          "title" : "Red Versus White Wine as a Nutritional Aromatase Inhibitor in Premenopausal Women: A Pilot Study",
+          "start" : "Background An increased risk of breast cancer is associated with alcohol consumption; however, it is controversial whether red wine increases this risk. …",
+          "keyword_rank" : 13,
+          "meaning_rank" : 12,
+          "shared_words" : [ "grapes" ]
+        } ],
+        "keyword_first" : {
+          "title" : "A premeal snack of raisins decreases mealtime food intake more than grapes in young children.",
+          "start" : "The effect of a premeal snack of grapes, raisins, or a mix of almonds and raisins, compared with a water control, on food intake (FI) was examined in 8- to …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Grape juice, but not orange juice or grapefruit juice, inhibits human platelet aggregation.",
+          "start" : "Coronary artery disease is responsible for much mortality and morbidity around the world. Platelets are involved in atherosclerotic disease development and the …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "PLAIN-1320",
+        "query" : "Harvard Physicians’ Study II",
+        "keyword" : 0.5842273861585908,
+        "meaning" : 0.0,
+        "word_overlap" : 0.5,
+        "relevant" : [ {
+          "id" : "MED-2761",
+          "title" : "Who uses multivitamins? A cross-sectional study in the Physicians' Health Study.",
+          "start" : "PURPOSE: The aim of this study was to examine the prevalence of self-reported multivitamin use in the Physicians' Health Study (PHS) cohort and its association …",
+          "keyword_rank" : 4,
+          "meaning_rank" : 29,
+          "shared_words" : [ "physicians", "study", "ii" ]
+        }, {
+          "id" : "MED-2758",
+          "title" : "Multivitamins in the Prevention of Cardiovascular Disease in Men: The Physicians' Health Study II Randomized Controlled Trial",
+          "start" : "Context Though multivitamins aim to prevent vitamin and mineral deficiency, there is a perception that multivitamins may prevent cardiovascular disease (CVD). …",
+          "keyword_rank" : 3,
+          "meaning_rank" : 36,
+          "shared_words" : [ "physicians", "study", "ii" ]
+        }, {
+          "id" : "MED-2760",
+          "title" : "Multivitamins in the Prevention of Cancer in Men: The Physicians’ Health Study II Randomized Controlled Trial",
+          "start" : "Context Multivitamin preparations are the most common dietary supplement, taken by at least one-third of all US adults. Limited observational studies have not …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 62,
+          "shared_words" : [ "physicians", "study", "ii" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Multivitamins in the Prevention of Cancer in Men: The Physicians’ Health Study II Randomized Controlled Trial",
+          "start" : "Context Multivitamin preparations are the most common dietary supplement, taken by at least one-third of all US adults. Limited observational studies have not …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "The counseling practices of internists.",
+          "start" : "OBJECTIVES: To determine the counseling practices of a group of internists in the areas of smoking, exercise, and alcohol and seat belt use, and to determine …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "PLAIN-792",
+        "query" : "cadaverine",
+        "keyword" : 0.644824486427155,
+        "meaning" : 0.11706259313796354,
+        "word_overlap" : 0.5,
+        "relevant" : [ {
+          "id" : "MED-4546",
+          "title" : "Acute and subacute toxicity of tyramine, spermidine, spermine, putrescine and cadaverine in rats.",
+          "start" : "The acute and subacute toxicity of five biogenic amines-tyramine, spermidine, spermine, putrescine and cadaverine-were examined in Wistar rats. Tyramine and …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 5,
+          "shared_words" : [ "cadaverine" ]
+        }, {
+          "id" : "MED-4960",
+          "title" : "A fishy cause of sudden near fatal hypotension.",
+          "start" : "Seafood-borne illnesses are a common but under recognised source of morbidity. We report the case of an 80-year-old woman who presented to hospital after …",
+          "keyword_rank" : null,
+          "meaning_rank" : 29,
+          "shared_words" : [ ]
+        }, {
+          "id" : "MED-4958",
+          "title" : "Biogenic amines in fish: roles in intoxication, spoilage, and nitrosamine formation--a review.",
+          "start" : "Biogenic amines are non-volatile amines formed by decarboxylation of amino acids. Although many biogenic amines have been found in fish, only histamine, …",
+          "keyword_rank" : 2,
+          "meaning_rank" : 87,
+          "shared_words" : [ "cadaverine" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Acute and subacute toxicity of tyramine, spermidine, spermine, putrescine and cadaverine in rats.",
+          "start" : "The acute and subacute toxicity of five biogenic amines-tyramine, spermidine, spermine, putrescine and cadaverine-were examined in Wistar rats. Tyramine and …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Transfer of spinal cord material to subsequent bovine carcasses at splitting.",
+          "start" : "During the slaughter process, cattle carcasses are split by sawing centrally down the vertebral column, resulting in contamination of each half with spinal cord …",
+          "relevance" : 0
+        }
+      } ],
+      "metrics_agree" : {
+        "queries" : 323,
+        "same_top10" : 323,
+        "vector_length_min" : 0.9999995084180853,
+        "vector_length_max" : 1.0000004925665293
+      },
+      "timing_ms" : {
+        "queries" : 200,
+        "embed_question" : 7.617833,
+        "keyword" : 2.737521,
+        "hnsw" : 1.0647085,
+        "exact" : 1.9425
+      }
+    },
+    "scifact" : {
+      "documents" : 5183,
+      "queries" : 300,
+      "keyword" : {
+        "ndcg@10" : 0.6563018879997289,
+        "recall@100" : 0.8842222222222221
+      },
+      "exact" : {
+        "ndcg@10" : 0.6238596288000934,
+        "recall@100" : 0.9226666666666667
+      },
+      "hnsw" : {
+        "ndcg@10" : 0.624344177582404,
+        "recall@100" : 0.926
+      },
+      "hnsw_vs_exact" : {
+        "top10_overlap" : 0.9976666666666667,
+        "same_top10" : 293,
+        "same_top10_share" : 0.9766666666666667
+      },
+      "meaning_vs_keyword" : {
+        "better" : 68,
+        "same" : 155,
+        "worse" : 77
+      },
+      "mean_word_overlap" : 0.5019380955416559,
+      "by_word_overlap" : {
+        "low" : {
+          "queries" : 77,
+          "keyword" : 0.16479912741013913,
+          "meaning" : 0.334540364890265,
+          "meaning_better" : 31,
+          "meaning_worse" : 9
+        },
+        "middle" : {
+          "queries" : 125,
+          "keyword" : 0.7422765630916919,
+          "meaning" : 0.6631795850067492,
+          "meaning_better" : 30,
+          "meaning_worse" : 42
+        },
+        "high" : {
+          "queries" : 98,
+          "keyword" : 0.9328210530905763,
+          "meaning" : 0.8010289022207546,
+          "meaning_better" : 7,
+          "meaning_worse" : 26
+        }
+      },
+      "biggest_wins" : [ {
+        "query_id" : "1382",
+        "query" : "aPKCz causes tumour enhancement by affecting glutamine metabolism.",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.2857142857142857,
+        "relevant" : [ {
+          "id" : "17755060",
+          "title" : "Control of Nutrient Stress-Induced Metabolic Reprogramming by PKCζ in Tumorigenesis",
+          "start" : "Tumor cells have high-energetic and anabolic needs and are known to adapt their metabolism to be able to survive and keep proliferating under conditions of …",
+          "keyword_rank" : 14,
+          "meaning_rank" : 1,
+          "shared_words" : [ "glutamine", "metabolism" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Glutamine supports pancreatic cancer growth through a Kras-regulated metabolic pathway",
+          "start" : "Cancer cells have metabolic dependencies that distinguish them from their normal counterparts. Among these dependencies is an increased use of the amino acid …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "Control of Nutrient Stress-Induced Metabolic Reprogramming by PKCζ in Tumorigenesis",
+          "start" : "Tumor cells have high-energetic and anabolic needs and are known to adapt their metabolism to be able to survive and keep proliferating under conditions of …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "1279",
+        "query" : "The treatment of cancer patients with co-IR blockade precipitates adverse autoimmune events.",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.2,
+        "relevant" : [ {
+          "id" : "11335781",
+          "title" : "Is autoimmunity the Achilles' heel of cancer immunotherapy?",
+          "start" : "The emergence of immuno-oncology as the first broadly successful strategy for metastatic cancer will require clinicians to integrate this new pillar of medicine …",
+          "keyword_rank" : null,
+          "meaning_rank" : 1,
+          "shared_words" : [ "treatment", "cancer" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Adverse Events Associated With the Treatment of Multidrug-Resistant Tuberculosis: A Systematic Review and Meta-analysis.",
+          "start" : "Multidrug-resistant tuberculosis (MDR-TB) is a growing public health problem. Due to long duration of therapy and concurrent use of multiple second-line drugs, …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "Is autoimmunity the Achilles' heel of cancer immunotherapy?",
+          "start" : "The emergence of immuno-oncology as the first broadly successful strategy for metastatic cancer will require clinicians to integrate this new pillar of medicine …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "1278",
+        "query" : "The treatment of cancer patients with co-IR blockade does not cause any adverse autoimmune events.",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.16666666666666666,
+        "relevant" : [ {
+          "id" : "11335781",
+          "title" : "Is autoimmunity the Achilles' heel of cancer immunotherapy?",
+          "start" : "The emergence of immuno-oncology as the first broadly successful strategy for metastatic cancer will require clinicians to integrate this new pillar of medicine …",
+          "keyword_rank" : null,
+          "meaning_rank" : 1,
+          "shared_words" : [ "treatment", "cancer" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Adverse Events Associated With the Treatment of Multidrug-Resistant Tuberculosis: A Systematic Review and Meta-analysis.",
+          "start" : "Multidrug-resistant tuberculosis (MDR-TB) is a growing public health problem. Due to long duration of therapy and concurrent use of multiple second-line drugs, …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "Is autoimmunity the Achilles' heel of cancer immunotherapy?",
+          "start" : "The emergence of immuno-oncology as the first broadly successful strategy for metastatic cancer will require clinicians to integrate this new pillar of medicine …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "1140",
+        "query" : "Taking 400mg of α-tocopheryl acetate helps to prevent prostate cancer.",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.2222222222222222,
+        "relevant" : [ {
+          "id" : "12009265",
+          "title" : "Vitamins E and C in the prevention of prostate and total cancer in men: the Physicians' Health Study II randomized controlled trial.",
+          "start" : "CONTEXT Many individuals take vitamins in the hopes of preventing chronic diseases such as cancer, and vitamins E and C are among the most common individual …",
+          "keyword_rank" : 13,
+          "meaning_rank" : 1,
+          "shared_words" : [ "prostate", "cancer" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Coactivator SRC-2-dependent metabolic reprogramming mediates prostate cancer survival and metastasis.",
+          "start" : "Metabolic pathway reprogramming is a hallmark of cancer cell growth and survival and supports the anabolic and energetic demands of these rapidly dividing …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "Vitamins E and C in the prevention of prostate and total cancer in men: the Physicians' Health Study II randomized controlled trial.",
+          "start" : "CONTEXT Many individuals take vitamins in the hopes of preventing chronic diseases such as cancer, and vitamins E and C are among the most common individual …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "535",
+        "query" : "Hypertension is frequently observed in type 1 diabetes patients.",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.2857142857142857,
+        "relevant" : [ {
+          "id" : "39368721",
+          "title" : "Glucose tolerance and blood pressure: long term follow up in middle aged men.",
+          "start" : "OBJECTIVE to investigate the role of glucose tolerance in the development of hypertension. DESIGN Retrospective analysis of the results of a health check up in …",
+          "keyword_rank" : null,
+          "meaning_rank" : 1,
+          "shared_words" : [ "hypertension", "1" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Hypoglycemic episodes and risk of dementia in older patients with type 2 diabetes mellitus.",
+          "start" : "CONTEXT Although acute hypoglycemia may be associated with cognitive impairment in children with type 1 diabetes, no studies to date have evaluated whether …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "Glucose tolerance and blood pressure: long term follow up in middle aged men.",
+          "start" : "OBJECTIVE to investigate the role of glucose tolerance in the development of hypertension. DESIGN Retrospective analysis of the results of a health check up in …",
+          "relevance" : 1
+        }
+      } ],
+      "biggest_losses" : [ {
+        "query_id" : "5",
+        "query" : "1/2000 in UK have abnormal PrP positivity.",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.5714285714285714,
+        "relevant" : [ {
+          "id" : "13734012",
+          "title" : "Prevalent abnormal prion protein in human appendixes after bovine spongiform encephalopathy epizootic: large scale survey",
+          "start" : "OBJECTIVES To carry out a further survey of archived appendix samples to understand better the differences between existing estimates of the prevalence of …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 31,
+          "shared_words" : [ "uk", "have", "abnormal", "prp" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Prevalent abnormal prion protein in human appendixes after bovine spongiform encephalopathy epizootic: large scale survey",
+          "start" : "OBJECTIVES To carry out a further survey of archived appendix samples to understand better the differences between existing estimates of the prevalence of …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Patterns of chlamydia testing in different settings and implications for wider STI diagnosis and care: a probability sample survey of the British population",
+          "start" : "BACKGROUND Following widespread rollout of chlamydia testing to non-specialist and community settings in the UK, many individuals receive a chlamydia test …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "70",
+        "query" : "Activation of PPM1D suppresses p53 function.",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.7,
+        "relevant" : [ {
+          "id" : "4414547",
+          "title" : "Mosaic PPM1D mutations are associated with predisposition to breast and ovarian cancer",
+          "start" : "Improved sequencing technologies offer unprecedented opportunities for investigating the role of rare genetic variation in common disease. However, there are …",
+          "keyword_rank" : 2,
+          "meaning_rank" : 15,
+          "shared_words" : [ "ppm1d", "p53", "function" ]
+        }, {
+          "id" : "5956380",
+          "title" : "Exome sequencing identifies somatic gain-of-function PPM1D mutations in brainstem gliomas",
+          "start" : "Gliomas arising in the brainstem and thalamus are devastating tumors that are difficult to surgically resect. To determine the genetic and epigenetic landscape …",
+          "keyword_rank" : 1,
+          "meaning_rank" : null,
+          "shared_words" : [ "activation", "ppm1d", "p53", "function" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Exome sequencing identifies somatic gain-of-function PPM1D mutations in brainstem gliomas",
+          "start" : "Gliomas arising in the brainstem and thalamus are devastating tumors that are difficult to surgically resect. To determine the genetic and epigenetic landscape …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Unravelling mechanisms of p53-mediated tumour suppression",
+          "start" : "p53 is a crucial tumour suppressor that responds to diverse stress signals by orchestrating specific cellular responses, including transient cell cycle arrest, …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "294",
+        "query" : "Crossover hot spots are not found within gene promoters in Saccharomyces cerevisiae.",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.4444444444444444,
+        "relevant" : [ {
+          "id" : "10874408",
+          "title" : "Mapping Meiotic Single-Strand DNA Reveals a New Landscape of DNA Double-Strand Breaks in Saccharomyces cerevisiae",
+          "start" : "DNA double-strand breaks (DSBs), which are formed by the Spo11 protein, initiate meiotic recombination. Previous DSB-mapping studies have used rad50S or sae2Δ …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 18,
+          "shared_words" : [ "hot", "spots", "saccharomyces", "cerevisiae" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Mapping Meiotic Single-Strand DNA Reveals a New Landscape of DNA Double-Strand Breaks in Saccharomyces cerevisiae",
+          "start" : "DNA double-strand breaks (DSBs), which are formed by the Spo11 protein, initiate meiotic recombination. Previous DSB-mapping studies have used rad50S or sae2Δ …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "A comprehensive genomic binding map of gene and chromatin regulatory proteins in Saccharomyces.",
+          "start" : "Hundreds of different proteins regulate and implement transcription in Saccharomyces. Yet their interrelationships have not been investigated on a comprehensive …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "644",
+        "query" : "Insulin increases risk of severe kidney failure.",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.8333333333333334,
+        "relevant" : [ {
+          "id" : "13619127",
+          "title" : "Diabetes treatments and risk of amputation, blindness, severe kidney failure, hyperglycaemia, and hypoglycaemia: open cohort study in primary care",
+          "start" : "OBJECTIVE To assess the risks of amputation, blindness, severe kidney failure, hyperglycaemia, and hypoglycaemia in patients with type 2 diabetes associated …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 33,
+          "shared_words" : [ "insulin", "risk", "severe", "kidney", "failure" ]
+        } ],
+        "keyword_first" : {
+          "title" : "Diabetes treatments and risk of amputation, blindness, severe kidney failure, hyperglycaemia, and hypoglycaemia: open cohort study in primary care",
+          "start" : "OBJECTIVE To assess the risks of amputation, blindness, severe kidney failure, hyperglycaemia, and hypoglycaemia in patients with type 2 diabetes associated …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Mechanisms of progression and regression of renal lesions of chronic nephropathies and diabetes.",
+          "start" : "The incidence of chronic kidney diseases is increasing worldwide, and these conditions are emerging as a major public health problem. While genetic factors …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "691",
+        "query" : "Leukemia associated Rho guanine nucleotide-exchange factor represses RhoA in response to SRC activation.",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.75,
+        "relevant" : [ {
+          "id" : "10991183",
+          "title" : "The Rho GEFs LARG and GEF-H1 regulate the mechanical response to force on integrins",
+          "start" : "How individual cells respond to mechanical forces is of considerable interest to biologists as force affects many aspects of cell behaviour. The application of …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 19,
+          "shared_words" : [ "associated", "rho", "guanine", "nucleotide", "exchange", "rhoa", "response", "src", "activation" ]
+        } ],
+        "keyword_first" : {
+          "title" : "The Rho GEFs LARG and GEF-H1 regulate the mechanical response to force on integrins",
+          "start" : "How individual cells respond to mechanical forces is of considerable interest to biologists as force affects many aspects of cell behaviour. The application of …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "Role of RhoA-specific guanine exchange factors in regulation of endomitosis in megakaryocytes.",
+          "start" : "Polyploidization can precede the development of aneuploidy in cancer. Polyploidization in megakaryocytes (Mks), in contrast, is a highly controlled …",
+          "relevance" : 0
+        }
+      } ],
+      "metrics_agree" : {
+        "queries" : 300,
+        "same_top10" : 300,
+        "vector_length_min" : 0.9999994601436596,
+        "vector_length_max" : 1.0000005032529666
+      },
+      "timing_ms" : {
+        "queries" : 200,
+        "embed_question" : 10.552917,
+        "keyword" : 3.4924795,
+        "hnsw" : 1.157583,
+        "exact" : 2.4898955000000003
+      }
+    },
+    "fiqa" : {
+      "documents" : 57638,
+      "queries" : 648,
+      "keyword" : {
+        "ndcg@10" : 0.23893390127420314,
+        "recall@100" : 0.5060963385037459
+      },
+      "exact" : {
+        "ndcg@10" : 0.3662621799774156,
+        "recall@100" : 0.6938938633383078
+      },
+      "hnsw" : {
+        "ndcg@10" : 0.36149700843358706,
+        "recall@100" : 0.6881711267127933
+      },
+      "hnsw_vs_exact" : {
+        "top10_overlap" : 0.9916666666666667,
+        "same_top10" : 608,
+        "same_top10_share" : 0.9382716049382716
+      },
+      "meaning_vs_keyword" : {
+        "better" : 308,
+        "same" : 227,
+        "worse" : 113
+      },
+      "mean_word_overlap" : 0.41563811792495714,
+      "by_word_overlap" : {
+        "low" : {
+          "queries" : 203,
+          "keyword" : 0.06033734886069069,
+          "meaning" : 0.23440452281340254,
+          "meaning_better" : 93,
+          "meaning_worse" : 8
+        },
+        "middle" : {
+          "queries" : 377,
+          "keyword" : 0.2950320002318292,
+          "meaning" : 0.40004088168716534,
+          "meaning_better" : 187,
+          "meaning_worse" : 86
+        },
+        "high" : {
+          "queries" : 68,
+          "keyword" : 0.46108267822887977,
+          "meaning" : 0.5726229720321068,
+          "meaning_better" : 28,
+          "meaning_worse" : 19
+        }
+      },
+      "biggest_wins" : [ {
+        "query_id" : "810",
+        "query" : "Can I open a bank account in the US remotely? Will I pay taxes for the money on it?",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.8,
+        "relevant" : [ {
+          "id" : "30596",
+          "title" : "",
+          "start" : "Answering for US tax only: The bank account makes absolutely zero difference.  If you are not a US national and not resident in the US, but earn income from a …",
+          "keyword_rank" : 61,
+          "meaning_rank" : 1,
+          "shared_words" : [ "can", "i", "open", "bank", "account", "us", "taxes", "money" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "There's no requirement of US citizenship to open a bank account in the US. Any person, citizen or not, can do that. I don't know where this assumption of yours …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "Answering for US tax only: The bank account makes absolutely zero difference.  If you are not a US national and not resident in the US, but earn income from a …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "5343",
+        "query" : "“International credit report” for French nationals?",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.2,
+        "relevant" : [ {
+          "id" : "2860",
+          "title" : "",
+          "start" : "\"I'm not aware that any US bank has any way to access your credit rating in France (especially as you basically don't have one!). In the US, banks are not the …",
+          "keyword_rank" : null,
+          "meaning_rank" : 1,
+          "shared_words" : [ "credit" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "I found a possible data source. It offers fundamentals i.e. the accounting ratios you listed (P/E, dividend yield, price/book) for international stock indexes. …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "\"I'm not aware that any US bank has any way to access your credit rating in France (especially as you basically don't have one!). In the US, banks are not the …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "699",
+        "query" : "Prepaid Rent (Accrual Based Accounting)",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.4,
+        "relevant" : [ {
+          "id" : "107092",
+          "title" : "",
+          "start" : "Your account entries are generally correct, but do note that the last transaction is a mixture of the balance sheet and income statement.  If Quickbooks doesn't …",
+          "keyword_rank" : 14,
+          "meaning_rank" : 1,
+          "shared_words" : [ "prepaid", "rent" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "Both US GAAP and IFRS are accrual basis frameworks. 99.9% of businesses report under those frameworks (or their local gaaps, but still accrual based). Usually …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "Your account entries are generally correct, but do note that the last transaction is a mixture of the balance sheet and income statement.  If Quickbooks doesn't …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "15",
+        "query" : "Can I send a money order from USPS as a business?",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.625,
+        "relevant" : [ {
+          "id" : "325273",
+          "title" : "",
+          "start" : "Sure you can.  You can fill in whatever you want in the From section of a money order, so your business name and address would be fine. The price only includes …",
+          "keyword_rank" : 21,
+          "meaning_rank" : 1,
+          "shared_words" : [ "can", "money", "order", "from", "business" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "On your end of the deal, the biggest risk is probably counterfeiting. That said, I'd think that most of the downside would be for the buyer since they would …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "Sure you can.  You can fill in whatever you want in the From section of a money order, so your business name and address would be fine. The price only includes …",
+          "relevance" : 1
+        }
+      }, {
+        "query_id" : "6625",
+        "query" : "What does a high theta mean for an option position?",
+        "keyword" : 0.0,
+        "meaning" : 1.0,
+        "word_overlap" : 0.42857142857142855,
+        "relevant" : [ {
+          "id" : "88892",
+          "title" : "",
+          "start" : "Option prices consist of two parts: the intrinsic value (the difference between the strike and the current price of the stock) and a time premium, representing …",
+          "keyword_rank" : 58,
+          "meaning_rank" : 1,
+          "shared_words" : [ "theta", "option", "position" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "Think of options as insurance. An insurance company makes money by selling the policies at a rate slightly higher than the average payout.  Most options expire …",
+          "relevance" : 0
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "Option prices consist of two parts: the intrinsic value (the difference between the strike and the current price of the stock) and a time premium, representing …",
+          "relevance" : 1
+        }
+      } ],
+      "biggest_losses" : [ {
+        "query_id" : "3357",
+        "query" : "Why big clients want the contractor to be incorporated before giving them work",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.6,
+        "relevant" : [ {
+          "id" : "209974",
+          "title" : "",
+          "start" : "They believe that it reduces the risk that Revenue Canada will deem you to be an employee and make them pay a whole pile of tax, EI, CPP and so on that should …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 80,
+          "shared_words" : [ "clients", "want", "incorporated", "before", "them", "work" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "They believe that it reduces the risk that Revenue Canada will deem you to be an employee and make them pay a whole pile of tax, EI, CPP and so on that should …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "It's the result of many companies now outsourcing production to the same contractors.  It's easy to see in electronics (Foxconn, Blackberry Playbook/KindleFire, …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "4447",
+        "query" : "Should I always hold short term bonds till maturity?",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.8888888888888888,
+        "relevant" : [ {
+          "id" : "286226",
+          "title" : "",
+          "start" : "Risk is reduced but isn't zero The default risk is still there, the issuer can go bankrupt, and you can still loose all or some of your money if restructuring …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 68,
+          "shared_words" : [ "should", "i", "always", "hold", "short", "term", "till", "maturity" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "Risk is reduced but isn't zero The default risk is still there, the issuer can go bankrupt, and you can still loose all or some of your money if restructuring …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "As others have pointed out your bond funds should have short durations, preferably not more than about 2 years. If you are in a bond fund for the long haul …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "1198",
+        "query" : "What are the consequences of IRS “reclassification” on both employer and employee?",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.42857142857142855,
+        "relevant" : [ {
+          "id" : "56718",
+          "title" : "",
+          "start" : "\"You are confusing entirely unrelated things. First the \"\"profit distribution\"\" issue with Bob's S-Corp which is in fact tax evasion and will probably trigger a …",
+          "keyword_rank" : 1,
+          "meaning_rank" : null,
+          "shared_words" : [ "irs", "reclassification", "employee" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "\"You are confusing entirely unrelated things. First the \"\"profit distribution\"\" issue with Bob's S-Corp which is in fact tax evasion and will probably trigger a …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "To answer your question directly, this is a taxable benefit that they are providing for you in lieu of higher wages. It is taxable to the employee as income and …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "9643",
+        "query" : "Is there any public data available to determine an ETF's holdings?",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.5,
+        "relevant" : [ {
+          "id" : "112208",
+          "title" : "",
+          "start" : "You can check the website for the company that manages the fund. For example, take the iShares Nasdaq Biotechnology ETF (IBB). iShares publishes the complete …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 11,
+          "shared_words" : [ "available", "etf", "s", "holdings" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "You can check the website for the company that manages the fund. For example, take the iShares Nasdaq Biotechnology ETF (IBB). iShares publishes the complete …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "\"Assuming that the ETF is tracking an index, is there a reason for not looking at using details on the index?  Typically the exact constituents of an index are …",
+          "relevance" : 0
+        }
+      }, {
+        "query_id" : "9556",
+        "query" : "How does pre-market trading work?",
+        "keyword" : 1.0,
+        "meaning" : 0.0,
+        "word_overlap" : 0.5,
+        "relevant" : [ {
+          "id" : "37040",
+          "title" : "",
+          "start" : "\"First of all, not all brokers allow trading during pre-market and post-market.  Some brokers only allow trading during the regular hours (9:30am - 4pm ET). …",
+          "keyword_rank" : 1,
+          "meaning_rank" : 35,
+          "shared_words" : [ "pre", "market", "trading" ]
+        } ],
+        "keyword_first" : {
+          "title" : "",
+          "start" : "\"First of all, not all brokers allow trading during pre-market and post-market.  Some brokers only allow trading during the regular hours (9:30am - 4pm ET). …",
+          "relevance" : 1
+        },
+        "meaning_first" : {
+          "title" : "",
+          "start" : "the data source is the same as the live market trading. pre and after market trading are active markets and there are actual buyers and sellers getting their …",
+          "relevance" : 0
+        }
+      } ],
+      "metrics_agree" : {
+        "queries" : 648,
+        "same_top10" : 648,
+        "vector_length_min" : 0.999999356840547,
+        "vector_length_max" : 1.0000007702842069
+      },
+      "timing_ms" : {
+        "queries" : 200,
+        "embed_question" : 4.7777085,
+        "keyword" : 3.8099165,
+        "hnsw" : 1.0666250000000002,
+        "exact" : 16.7227495
+      }
+    }
+  }
+}

@@ -1,0 +1,1583 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Semantic Search, Without the Scary Math</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* ape-present base stylesheet. Copy verbatim into <style>, then add
+   per-document rules beneath it. Every colour in the document must be one
+   of these tokens; grep for '#' outside the :root blocks and expect zero hits.
+
+   The document is a long-form reading page, not a deck: one prose column,
+   real headings, figures inline. Theme follows the OS or present-md; `t` flips it.
+   Width has a comfortable measure constraint (--measure) with visual elements
+   allowed to break out beyond it (--wide, --max-width). Layout is centered by
+   default; data-layout="left" on <html> switches the whole document to a
+   left-margin layout so breakouts extend rightward instead of symmetrically. */
+
+/* ---- Theme: midnight (dark) -------------------------------- */
+:root[data-theme="midnight"],
+:root[data-theme="dark"],
+:root[data-theme="mocha"] {
+  --crust:            #11111b;
+  --mantle:           #181825;
+  --base:             #1e1e2e;
+  --surface0:         #313244;
+  --surface1:         #45475a;
+  --surface2:         #585b70;
+  --overlay0:         #6c7086;
+  --overlay1:         #7f849c;
+  --subtext0:         #a6adc8;
+  --subtext1:         #bac2de;
+  --text:             #cdd6f4;
+  --lavender:         #b4befe;
+  --blue:             #89b4fa;
+  --sapphire:         #74c7ec;
+  --sky:              #89dceb;
+  --teal:             #94e2d5;
+  --green:            #a6e3a1;
+  --yellow:           #f9e2af;
+  --peach:            #fab387;
+  --red:              #f38ba8;
+  --mauve:            #cba6f7;
+  --pink:             #f5c2e7;
+  --accent:           #cba6f7;
+  --accent-2:         #89b4fa;
+  --accent-3:         #89dceb;
+  --accent-soft:      color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-line:      color-mix(in srgb, var(--accent) 42%, transparent);
+  --glow:             color-mix(in srgb, var(--accent) 34%, transparent);
+  --gradient:         linear-gradient(115deg, #cba6f7, #89b4fa 58%, #89dceb);
+  --accent-fade:      linear-gradient(90deg, #cba6f7, rgba(203, 166, 247, 0.45) 62%, transparent);
+  --surface-soft:     rgba(49, 50, 68, 0.34);
+  --crust-overlay:    rgba(17, 17, 27, 0.84);
+  --scrim:            rgba(0, 0, 0, 0.5);
+  --hairline:         rgba(205, 214, 244, 0.09);
+  --shadow-md:        0 8px 28px rgba(0, 0, 0, 0.42);
+  --shadow-lg:        0 24px 68px rgba(0, 0, 0, 0.52);
+  --code-shadow:      0 6px 26px rgba(0, 0, 0, 0.4);
+  --font-display:     'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-body:        'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:        'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display-weight:   700;
+  --display-tracking: -0.025em;
+  --display-case:     none;
+  --body-tracking:    0;
+  --decor-line:       rgba(205, 214, 244, 0.05);
+  --decor-dot:        rgba(205, 214, 244, 0.085);
+  --decor-glow-1:     rgba(203, 166, 247, 0.2);
+  --decor-glow-2:     rgba(137, 180, 250, 0.16);
+  --decor-glow-3:     rgba(137, 220, 235, 0.13);
+  --bg:               #1e1e2e;
+  --surface:          #181825;
+  --line:             #313244;
+  --muted:            #a6adc8;
+  --grid:             rgba(205, 214, 244, 0.06);
+  --err:              #f38ba8;
+  --ok:               #a6e3a1;
+  --code-k:           #cba6f7;
+  --code-s:           #a6e3a1;
+  --code-c:           #6c7086;
+  --code-n:           #89b4fa;
+  --serif:            'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono:             'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans:             'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --ease:             cubic-bezier(0.22, 1, 0.36, 1);
+  --measure:          44rem;
+  --wide:             64rem;
+  --max-width:        72rem;
+  color-scheme: dark;
+}
+
+/* ---- Theme: daylight (light) -------------------------------- */
+:root, :root[data-theme="daylight"],
+:root[data-theme="light"],
+:root[data-theme="latte"] {
+  --crust:            #ebebeb;
+  --mantle:           #f5f5f5;
+  --base:             #fafaf8;
+  --surface0:         #ccd0da;
+  --surface1:         #9ca0b0;
+  --surface2:         #8c8fa1;
+  --overlay0:         #6c6f85;
+  --overlay1:         #5c5f77;
+  --subtext0:         #4c4f69;
+  --subtext1:         #3a3c52;
+  --text:             #1e2030;
+  --lavender:         #7287fd;
+  --blue:             #1e66f5;
+  --sapphire:         #209fb5;
+  --sky:              #04a5e5;
+  --teal:             #179299;
+  --green:            #40a02b;
+  --yellow:           #df8e1d;
+  --peach:            #fe640b;
+  --red:              #d20f39;
+  --mauve:            #8839ef;
+  --pink:             #ea76cb;
+  --accent:           #8839ef;
+  --accent-2:         #1e66f5;
+  --accent-3:         #179299;
+  --accent-soft:      color-mix(in srgb, var(--accent) 9%, transparent);
+  --accent-line:      color-mix(in srgb, var(--accent) 34%, transparent);
+  --glow:             color-mix(in srgb, var(--accent) 22%, transparent);
+  --gradient:         linear-gradient(115deg, #8839ef, #1e66f5 58%, #179299);
+  --accent-fade:      linear-gradient(90deg, #8839ef, rgba(136, 57, 239, 0.45) 62%, transparent);
+  --surface-soft:     rgba(204, 208, 218, 0.42);
+  --crust-overlay:    rgba(235, 235, 235, 0.88);
+  --scrim:            rgba(30, 32, 48, 0.26);
+  --hairline:         rgba(30, 32, 48, 0.11);
+  --shadow-md:        0 8px 28px rgba(30, 32, 48, 0.17639999999999997);
+  --shadow-lg:        0 24px 68px rgba(30, 32, 48, 0.2184);
+  --code-shadow:      0 6px 26px rgba(30, 32, 48, 0.168);
+  --font-display:     'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-body:        'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:        'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display-weight:   700;
+  --display-tracking: -0.025em;
+  --display-case:     none;
+  --body-tracking:    0;
+  --decor-line:       rgba(30, 32, 48, 0.07);
+  --decor-dot:        rgba(30, 32, 48, 0.1);
+  --decor-glow-1:     rgba(136, 57, 239, 0.15);
+  --decor-glow-2:     rgba(30, 102, 245, 0.12);
+  --decor-glow-3:     rgba(23, 146, 153, 0.1);
+  --bg:               #fafaf8;
+  --surface:          #f5f5f5;
+  --line:             #ccd0da;
+  --muted:            #4c4f69;
+  --grid:             rgba(30, 32, 48, 0.08);
+  --err:              #d20f39;
+  --ok:               #40a02b;
+  --code-k:           #8839ef;
+  --code-s:           #40a02b;
+  --code-c:           #6c6f85;
+  --code-n:           #1e66f5;
+  --serif:            'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono:             'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans:             'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --ease:             cubic-bezier(0.22, 1, 0.36, 1);
+  --measure:          44rem;
+  --wide:             64rem;
+  --max-width:        72rem;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+  --crust:            #11111b;
+  --mantle:           #181825;
+  --base:             #1e1e2e;
+  --surface0:         #313244;
+  --surface1:         #45475a;
+  --surface2:         #585b70;
+  --overlay0:         #6c7086;
+  --overlay1:         #7f849c;
+  --subtext0:         #a6adc8;
+  --subtext1:         #bac2de;
+  --text:             #cdd6f4;
+  --lavender:         #b4befe;
+  --blue:             #89b4fa;
+  --sapphire:         #74c7ec;
+  --sky:              #89dceb;
+  --teal:             #94e2d5;
+  --green:            #a6e3a1;
+  --yellow:           #f9e2af;
+  --peach:            #fab387;
+  --red:              #f38ba8;
+  --mauve:            #cba6f7;
+  --pink:             #f5c2e7;
+  --accent:           #cba6f7;
+  --accent-2:         #89b4fa;
+  --accent-3:         #89dceb;
+  --accent-soft:      color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-line:      color-mix(in srgb, var(--accent) 42%, transparent);
+  --glow:             color-mix(in srgb, var(--accent) 34%, transparent);
+  --gradient:         linear-gradient(115deg, #cba6f7, #89b4fa 58%, #89dceb);
+  --accent-fade:      linear-gradient(90deg, #cba6f7, rgba(203, 166, 247, 0.45) 62%, transparent);
+  --surface-soft:     rgba(49, 50, 68, 0.34);
+  --crust-overlay:    rgba(17, 17, 27, 0.84);
+  --scrim:            rgba(0, 0, 0, 0.5);
+  --hairline:         rgba(205, 214, 244, 0.09);
+  --shadow-md:        0 8px 28px rgba(0, 0, 0, 0.42);
+  --shadow-lg:        0 24px 68px rgba(0, 0, 0, 0.52);
+  --code-shadow:      0 6px 26px rgba(0, 0, 0, 0.4);
+  --font-display:     'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-body:        'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:        'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display-weight:   700;
+  --display-tracking: -0.025em;
+  --display-case:     none;
+  --body-tracking:    0;
+  --decor-line:       rgba(205, 214, 244, 0.05);
+  --decor-dot:        rgba(205, 214, 244, 0.085);
+  --decor-glow-1:     rgba(203, 166, 247, 0.2);
+  --decor-glow-2:     rgba(137, 180, 250, 0.16);
+  --decor-glow-3:     rgba(137, 220, 235, 0.13);
+  --bg:               #1e1e2e;
+  --surface:          #181825;
+  --line:             #313244;
+  --muted:            #a6adc8;
+  --grid:             rgba(205, 214, 244, 0.06);
+  --err:              #f38ba8;
+  --ok:               #a6e3a1;
+  --code-k:           #cba6f7;
+  --code-s:           #a6e3a1;
+  --code-c:           #6c7086;
+  --code-n:           #89b4fa;
+  --serif:            'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono:             'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans:             'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --ease:             cubic-bezier(0.22, 1, 0.36, 1);
+  --measure:          44rem;
+  --wide:             64rem;
+  --max-width:        72rem;
+    color-scheme: dark;
+  }
+}
+
+/* ---- Reset + page ----------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  /* Permanent graph-paper ground: 32px squares in faint accent. Ties the diagrams' grid to the page. */
+  background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+  font: 1rem/1.7 var(--mono);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); text-underline-offset: 0.15em; }
+a:hover { text-decoration-color: var(--accent); }
+svg { display: block; max-width: 100%; height: auto; }
+svg text { font-family: var(--mono); fill: var(--text); }
+code, pre, .num { font-family: var(--mono); }
+p code, li code, td code { font-size: 0.95em; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 0.05em 0.35em; }
+
+/* ---- Document column & width limits ------------------------------------------ */
+.doc { max-width: var(--measure); margin: 0 auto; padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 2.5rem) 6rem; }
+.doc > *, .doc section > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+
+/* Visual elements breakout: permitted to go beyond the prose column up to --wide or --max-width */
+figure.wide, .wide, .breakout {
+  width: min(var(--wide), 100vw - 2.5rem);
+  max-width: none;
+  margin-left: 50%;
+  transform: translate(-50%, 12px);
+}
+.full-bleed {
+  width: min(var(--max-width), 100vw - 2.5rem);
+  max-width: none;
+  margin-left: 50%;
+  transform: translate(-50%, 12px);
+}
+
+/* Layout mode: data-layout="left" on <html> shifts the whole document off a left
+   margin instead of true center, freeing the right side for breakouts throughout
+   the doc. Default (no attribute) keeps the centered column above. Figures then
+   anchor to that same left edge and grow rightward instead of centering on the
+   viewport. Collapses back to the default full-width column below the mobile
+   breakpoint (see Responsive). */
+:root[data-layout="left"] { --doc-left-margin: clamp(2rem, 8vw, 6rem); }
+:root[data-layout="left"] .doc { margin: 0 0 0 var(--doc-left-margin); }
+:root[data-layout="left"] figure.wide,
+:root[data-layout="left"] .wide,
+:root[data-layout="left"] .breakout {
+  width: min(var(--wide), 100vw - var(--doc-left-margin) - 2rem);
+  margin-left: 0;
+  transform: translateY(12px);
+}
+:root[data-layout="left"] .full-bleed {
+  width: min(var(--max-width), 100vw - var(--doc-left-margin) - 2rem);
+  margin-left: 0;
+  transform: translateY(12px);
+}
+:root[data-layout="left"] figure.wide.in,
+:root[data-layout="left"] .wide.in,
+:root[data-layout="left"] .breakout.in,
+:root[data-layout="left"] .full-bleed.in { transform: none !important; }
+
+/* Chrome bar: running head above the title. Mono, uppercase, hairline. */
+.chrome { display: flex; justify-content: space-between; gap: 1rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-bottom: 0.6rem; border-bottom: 1.5px solid var(--text); margin-bottom: 2.5rem; }
+.chrome b { color: var(--text); font-weight: 500; }
+.tag { display: inline-block; border: 1px solid var(--accent); color: var(--accent); border-radius: 3px; padding: 0.15em 0.55em; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; vertical-align: middle; }
+
+/* Header: direct, clean first screen. Staggers in once on load. */
+.doc-header { padding-bottom: 1.75rem; border-bottom: 1px solid var(--line); margin-bottom: 2.25rem; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.chrome, .doc-header > * { animation: rise 700ms var(--ease) both; }
+.chrome { animation-delay: 0ms; }
+.doc-header > :nth-child(1) { animation-delay: 80ms; }
+.doc-header > :nth-child(2) { animation-delay: 200ms; }
+.doc-header > :nth-child(3) { animation-delay: 320ms; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.75rem; }
+h1 { font-family: var(--serif); font-weight: var(--display-weight, 700); font-size: clamp(2.25rem, 4.5vw, 3.25rem); line-height: 1.08; letter-spacing: var(--display-tracking, -0.01em); text-transform: var(--display-case, none); margin: 0 0 0.9rem; }
+.dek { font-family: var(--serif); font-style: italic; font-size: 1.35rem; line-height: 1.45; color: var(--muted); margin: 0; }
+.meta { color: var(--muted); font-size: 0.9rem; margin-top: 0.75rem; }
+
+h2 { font-family: var(--serif); font-weight: var(--display-weight, 700); font-size: 1.75rem; line-height: 1.2; letter-spacing: var(--display-tracking, 0); margin: 3rem 0 1rem; position: relative; }
+h3 { font-family: var(--serif); font-weight: var(--display-weight, 700); font-size: 1.3rem; line-height: 1.3; margin: 2rem 0 0.75rem; position: relative; }
+/* Stub rule: the 36px accent hairline under every idea heading. The system's small punctuation mark. */
+h2::after, h3::after { content: ""; display: block; width: 36px; height: 2px; background: var(--accent); margin-top: 0.6rem; }
+/* Folio: idea number in the left margin, mono. <h2 data-n="03"> */
+[data-n]::before { content: attr(data-n); white-space: nowrap; position: absolute; right: 100%; margin-right: 1rem; top: 0.45em; font-family: var(--mono); font-weight: 400; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--accent); }
+@media (max-width: 64rem) { [data-n]::before { position: static; display: block; margin: 0 0 0.35rem; } }
+/* Drop cap on the first paragraph of the context section. */
+.dropcap::first-letter { font-family: var(--serif); font-weight: 700; font-size: 3.4em; line-height: 0.8; float: left; margin: 0.08em 0.12em 0 0; color: var(--accent); }
+/* Magazine end mark after the last idea. */
+.end-mark { text-align: center; color: var(--accent); font-size: 0.9rem; margin: 3rem 0 0; letter-spacing: 0.4em; }
+h2 + p, h3 + p { margin-top: 0; }
+p { margin: 0 0 1.1rem; letter-spacing: var(--body-tracking, normal); }
+ul, ol { padding-left: 1.4rem; margin: 0 0 1.1rem; }
+li { margin: 0.3rem 0; }
+ul { list-style: none; padding-left: 1.4rem; }
+ul > li { position: relative; }
+ul > li::before { content: "\2014"; position: absolute; left: -1.4rem; color: var(--accent); font-family: var(--mono); }   /* newspaper dash, never a dot */
+ol li::marker { color: var(--accent); font-family: var(--mono); }
+mark { background: var(--accent-soft); color: var(--text); padding: 0 0.15em; border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0; }
+
+/* Summary block (TL;DR). */
+.summary { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1.1rem 1.4rem; margin: 0 0 2rem; box-shadow: var(--shadow-md); }
+.summary p:last-child { margin-bottom: 0; }
+
+/* Aside: a caveat, an "only when". */
+.aside { margin: 1.25rem 0; padding: 0.8rem 1.1rem; border-left: 3px solid var(--accent); background: var(--accent-soft); font-size: 0.98rem; border-radius: 0 6px 6px 0; }
+.aside.err { border-color: var(--err); background: color-mix(in srgb, var(--err) 12%, transparent); }
+.aside p:last-child { margin-bottom: 0; }
+
+/* Callouts: key insights & alerts */
+.callout { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1.1rem 1.4rem; margin: 1.5rem 0; box-shadow: var(--shadow-md); }
+.callout.insight { border-left-color: var(--accent); background: var(--accent-soft); }
+.callout.warn { border-left-color: var(--err); background: color-mix(in srgb, var(--err) 10%, transparent); }
+.callout.ok { border-left-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, transparent); }
+.callout h4 { margin: 0 0 0.4rem; font-size: 0.82rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
+.callout.warn h4 { color: var(--err); }
+.callout.ok h4 { color: var(--ok); }
+.callout p:last-child { margin-bottom: 0; }
+
+/* Inline inspection pills & badges */
+.inspect-node { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.1em 0.45em; background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: 4px; color: var(--text); cursor: pointer; font-size: 0.9em; font-family: var(--mono); transition: all 200ms var(--ease); text-decoration: none; }
+.inspect-node:hover, .inspect-node.inspecting { background: var(--accent); color: var(--bg); border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+.hl-pill { display: inline-block; padding: 0.08em 0.45em; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-line); border-radius: 999px; font-size: 0.85em; font-family: var(--mono); font-weight: 500; vertical-align: middle; }
+.delta { display: inline-flex; align-items: center; font-size: 0.82rem; font-family: var(--mono); padding: 0.15em 0.5em; border-radius: 4px; font-weight: 600; }
+.delta.up { color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); }
+.delta.down { color: var(--err); background: color-mix(in srgb, var(--err) 15%, transparent); }
+
+/* SVG Inspect Dimming/Highlighting */
+svg.inspect-active [data-node] { opacity: 0.25; transition: opacity 250ms var(--ease); }
+svg.inspect-active .inspected, svg.inspect-active [data-node].inspected { opacity: 1 !important; filter: drop-shadow(0 0 8px var(--accent)); }
+
+/* ---- Figures -------------------------------------------------------------------- */
+figure { margin: 2rem 0; }
+figure > svg { width: 100%; }                 /* viewBox-only SVGs otherwise render at 300px */
+figcaption { color: var(--muted); font-size: 0.95rem; line-height: 1.5; margin-top: 0.75rem; text-align: center; max-width: 40rem; margin-left: auto; margin-right: auto; }
+figcaption strong { color: var(--text); font-weight: 600; }
+
+/* ---- Reveal (gentle; figures only) --------------------------------------------- */
+figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels { opacity: 0; transform: translateY(12px); transition: opacity 500ms var(--ease), transform 500ms var(--ease); }
+.in { opacity: 1 !important; transform: translateY(0) !important; }
+figure.wide.in, .wide.in, .breakout.in, .full-bleed.in { transform: translateX(-50%) !important; }
+/* Arrows draw themselves once the figure is in. */
+.draw { stroke-dasharray: 1000; stroke-dashoffset: 1000; transition: stroke-dashoffset 800ms var(--ease); transition-delay: calc(var(--i, 0) * 120ms + 200ms); }
+.in .draw { stroke-dashoffset: 0; }
+/* .pop animates opacity only: a CSS transform would override the SVG transform attribute. */
+.pop { opacity: 0; transition: opacity 400ms var(--ease); transition-delay: calc(var(--i, 0) * 120ms); }
+.in .pop { opacity: 1; }
+.grow { transform: scaleY(0); transform-origin: bottom; transition: transform 700ms var(--ease); transition-delay: calc(var(--i, 0) * 100ms + 200ms); transform-box: fill-box; }
+.in .grow { transform: none; }
+.grow-x { transform: scaleX(0); transform-origin: left; transition: transform 700ms var(--ease); transition-delay: calc(var(--i, 0) * 100ms + 200ms); transform-box: fill-box; }
+.in .grow-x { transform: none; }
+
+/* ---- Live motion (loops only while the figure is on screen: .live) ------------- */
+.packet { fill: var(--accent); }
+.packet.err { fill: var(--err); }
+.packet.ok { fill: var(--ok); }
+@keyframes pulse { 0%, 100% { stroke-width: 1.5; } 50% { stroke-width: 3.5; } }
+.live .pulse > rect, .live .pulse > circle, .live .pulse > path { animation: pulse 1.8s var(--ease) infinite; stroke: var(--accent); }
+.live .pulse-glow { animation: glowPulse 2s ease-in-out infinite; }
+@keyframes glowPulse { 0%, 100% { filter: drop-shadow(0 0 2px var(--accent)); } 50% { filter: drop-shadow(0 0 10px var(--accent)); } }
+.lit > rect, .lit > circle, .lit > path.node { stroke: var(--accent) !important; fill: var(--accent-soft) !important; }
+.lit > text { fill: var(--text); }
+.step.lit strong, .cell.lit { color: var(--accent); }
+.cell.lit { background: var(--accent-soft); border-color: var(--accent); }
+[data-cycle] > * { transition: fill 300ms var(--ease), stroke 300ms var(--ease), color 300ms var(--ease), background 300ms var(--ease), border-color 300ms var(--ease); }
+[data-cycle] > * > rect, [data-cycle] > * > circle { transition: fill 300ms var(--ease), stroke 300ms var(--ease); }
+@keyframes dash { to { stroke-dashoffset: -24; } }
+.live .flowing { stroke-dasharray: 6 6; animation: dash 1s linear infinite; }
+@keyframes streamFlow { to { stroke-dashoffset: -28; } }
+.live .stream-channel { stroke-dasharray: 8 6; animation: streamFlow 1.1s linear infinite; }
+
+/* ---- Components ------------------------------------------------------------------ */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+figure .stats { margin: 0 0 1.5rem 0; }
+figure.wide .stats, .stats.wide { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.stat { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.5rem 1.25rem; box-shadow: var(--shadow-md); }
+.stat .num { font-family: var(--serif); font-size: clamp(2.5rem, 4.5vw, 3.75rem); line-height: 1; color: var(--accent); font-weight: 700; letter-spacing: -0.02em; }
+.stat .unit { color: var(--muted); font-size: 0.95rem; margin-top: 0.5rem; text-align: center; }
+
+/* Meters / Progress Gauges */
+.meter { display: grid; gap: 0.4rem; margin: 1.2rem 0; }
+.meter-head { display: flex; justify-content: space-between; font-size: 0.85rem; font-family: var(--mono); color: var(--muted); }
+.meter-head strong { color: var(--text); }
+.meter-bar { height: 10px; background: var(--surface0); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+.meter-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width 900ms var(--ease); }
+.meter-fill.filled { width: var(--target-pct, 0%); }
+
+/* Race Bars (Comparison Benchmarks) */
+.race-bars { display: grid; gap: 0.9rem; margin: 1.5rem 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; box-shadow: var(--shadow-md); }
+.race-item { display: grid; grid-template-columns: clamp(5rem, 20%, 9rem) 1fr clamp(3rem, 15%, 5rem); gap: 0.8rem; align-items: center; font-size: 0.88rem; font-family: var(--mono); }
+.race-label { color: var(--text); font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.race-track { height: 18px; background: var(--surface0); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.race-fill { height: 100%; width: 0%; background: var(--muted); border-radius: 3px; transition: width 1000ms var(--ease); }
+.race-fill.accent { background: var(--accent); box-shadow: 0 0 10px var(--glow); }
+.race-fill.filled { width: var(--target-pct, 0%); }
+.race-val { color: var(--text); font-weight: 600; text-align: left; }
+
+/* Quadrant Chart & 2x2 Matrix */
+.quadrant { width: 100%; margin: 2rem 0; }
+.quadrant-node { transition: transform 300ms var(--ease), filter 300ms var(--ease); cursor: pointer; }
+.quadrant-node:hover { filter: drop-shadow(0 0 8px var(--accent)); }
+
+/* Interactive Step-by-Step Stepper */
+.stepper { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; margin: 1.5rem 0; box-shadow: var(--shadow-md); }
+.stepper-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 0.75rem; }
+.stepper-title { font-family: var(--mono); font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.stepper-nav { display: flex; align-items: center; gap: 0.75rem; }
+.step-count { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+.step-btn { background: var(--surface0); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 0.3em 0.75em; font-family: var(--mono); font-size: 0.8rem; cursor: pointer; transition: all 150ms var(--ease); }
+.step-btn:hover:not(:disabled) { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.step-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.step-pane { display: none; font-size: 0.95rem; line-height: 1.6; }
+.step-pane.active { display: block; animation: rise 300ms var(--ease) both; }
+[data-step] { opacity: 0.35; transition: opacity 300ms var(--ease), filter 300ms var(--ease); }
+[data-step].active-step { opacity: 1 !important; filter: drop-shadow(0 0 6px var(--accent)); }
+
+.quote { font-family: var(--serif); font-style: italic; font-size: 1.45rem; line-height: 1.4; margin: 2rem 0; padding-left: 1.25rem; border-left: 3px solid var(--accent); }
+.quote em { color: var(--accent); font-style: normal; }
+
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.panels.three { grid-template-columns: repeat(3, 1fr); }
+.panel { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.25rem; box-shadow: var(--shadow-md); }
+.panel h4 { margin: 0 0 0.6rem; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.panel.after { border-color: var(--accent); }
+.panel .hl { color: var(--accent); }
+.panel p:last-child, .panel ul:last-child { margin-bottom: 0; }
+
+/* Steps: ordered, sequential. Rules: unordered principles/requirements. Same shape, different marker. */
+.steps, .rules { display: grid; gap: 0.9rem; counter-reset: step; padding: 0; margin: 0; list-style: none; }
+.step, .rule { display: grid; grid-template-columns: 2.25rem 1fr; column-gap: 0.75rem; align-items: start; }
+.step::before { counter-increment: step; content: counter(step, decimal-leading-zero); }
+.rule::before { content: "\2014"; }
+.step::before, .rule::before { grid-column: 1; grid-row: 1 / span 2; font-family: var(--mono); color: var(--accent); font-size: 0.95rem; padding-top: 0.2rem; }
+.step > *, .rule > * { grid-column: 2; }
+.step strong, .rule strong { display: block; }
+.step span, .rule span { color: var(--muted); }
+
+.cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: 4px; }
+/* Record / byte layout: one row of labelled fields, widths proportional to content. */
+.cells.row { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(3.5rem, auto); }
+.cells.row .cell { aspect-ratio: auto; padding: 0.55rem 0.8rem; font-size: 0.8rem; white-space: nowrap; }
+.cells.row .cell.var { min-width: 8rem; }
+.cell { aspect-ratio: 1; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
+.cell.on { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+.cell.bad { background: color-mix(in srgb, var(--err) 16%, transparent); border-color: var(--err); color: var(--text); }
+
+/* Pixel-stack bars: a bar chart built from grid cells; cells light bottom-up on reveal. */
+.pixbars { display: flex; align-items: flex-end; justify-content: center; gap: clamp(1rem, 4vw, 2.5rem); padding: 0.5rem 0 0; }
+.pixbar { display: flex; flex-direction: column-reverse; gap: 3px; align-items: stretch; width: clamp(2.5rem, 7vw, 4rem); }
+.pixbar .px { height: 10px; background: var(--grid); border-radius: 2px; transition: background 300ms var(--ease); transition-delay: calc(var(--i, 0) * 60ms); }
+.in .pixbar .px.on { background: var(--muted); }
+.in .pixbar.accent .px.on { background: var(--accent); }
+.pixbar .val { order: 1; text-align: center; font-family: var(--mono); font-size: 0.95rem; margin-bottom: 0.4rem; color: var(--text); }
+.pixbar .lbl { order: -1; text-align: center; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 0.5rem; }
+
+pre {
+  text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 1.1rem 1.25rem; overflow-x: auto; font-size: 0.92rem; line-height: 1.6; margin: 0; box-shadow: var(--code-shadow);
+}
+pre .k { color: var(--code-k); } pre .s { color: var(--code-s); } pre .c { color: var(--code-c); } pre .n { color: var(--code-n); }
+pre .hl { display: inline-block; width: 100%; background: var(--accent-soft); box-shadow: -1.25rem 0 0 var(--accent-soft), 1.25rem 0 0 var(--accent-soft); }
+
+/* Diff: the exact code change. The author types the +/- prefixes; CSS only tints. */
+pre.diff .add { display: inline-block; width: 100%; background: color-mix(in srgb, var(--ok) 13%, transparent); box-shadow: -1.25rem 0 0 color-mix(in srgb, var(--ok) 13%, transparent), 1.25rem 0 0 color-mix(in srgb, var(--ok) 13%, transparent); }
+pre.diff .del { display: inline-block; width: 100%; background: color-mix(in srgb, var(--err) 11%, transparent); box-shadow: -1.25rem 0 0 color-mix(in srgb, var(--err) 11%, transparent), 1.25rem 0 0 color-mix(in srgb, var(--err) 11%, transparent); opacity: 0.85; }
+
+/* Terminal session: a command and what it printed. */
+pre.term { background: var(--crust); }
+pre.term .prompt { color: var(--accent); font-weight: 600; user-select: none; }
+pre.term .out { color: var(--muted); }
+
+/* Deep-dive: optional depth a skimmer can skip. Nothing load-bearing goes inside. */
+details.deep-dive { margin: 1.25rem 0; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--surface-soft); }
+details.deep-dive > summary { cursor: pointer; padding: 0.7rem 1rem; font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+details.deep-dive > summary:hover { color: var(--text); }
+details.deep-dive[open] > summary { border-bottom: 1px solid var(--line); color: var(--text); }
+details.deep-dive > :not(summary) { margin-left: 1rem; margin-right: 1rem; }
+details.deep-dive > :last-child { margin-bottom: 0.9rem; }
+
+/* Heatmap intensity: three steps of the one accent hue. */
+.cell.heat-1 { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: var(--accent-line); color: var(--text); }
+.cell.heat-2 { background: color-mix(in srgb, var(--accent) 32%, transparent); border-color: var(--accent); color: var(--text); }
+.cell.heat-3 { background: color-mix(in srgb, var(--accent) 60%, transparent); border-color: var(--accent); color: var(--text); }
+
+figure:has(> .matrix), .matrix-wrap { overflow-x: auto; }
+.matrix { border-collapse: collapse; width: 100%; font-size: 0.98rem; overflow-wrap: normal; }
+.matrix th, .matrix td { padding: 0.7rem 0.9rem; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
+.matrix thead th { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+.matrix tbody th { font-weight: 500; }
+.matrix td { font-family: var(--mono); font-size: 0.9rem; color: var(--muted); }
+.matrix tr.chosen { background: var(--accent-soft); }
+.matrix tr.chosen th, .matrix tr.chosen td { color: var(--text); }
+.matrix tr.chosen th::after { content: "chosen"; color: var(--accent); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; margin-left: 0.6rem; }
+
+.formula { font-size: clamp(1.25rem, 2.2vw, 1.75rem); line-height: 1.4; text-align: center; padding: 1rem 0; }
+.formula mjx-container { color: var(--text); }
+.formula mjx-container[display="true"] { display: block !important; text-align: center !important; margin: 0 auto !important; max-width: 100%; overflow-x: auto; }
+mjx-container > svg { display: inline-block; max-width: 100%; height: auto; }   /* base svg{display:block} would pin it left */
+.formula .term { color: var(--accent); }
+.formula-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 1.5rem; color: var(--muted); font-size: 0.95rem; margin-top: 0.5rem; }
+.formula-legend code { color: var(--text); }
+.formula:not(.typeset)::after { content: attr(data-plain); display: block; font-family: var(--mono); font-size: 0.65em; color: var(--muted); }
+.formula.typeset::after { display: none; }
+
+.sources { font-size: 0.95rem; color: var(--muted); }
+.sources li { margin: 0.35rem 0; }
+
+/* ---- Responsive -------------------------------------------------------------------- */
+@media (max-width: 48rem) {
+  .panels, .panels.three, .stats, figure.wide .stats, .stats.wide { grid-template-columns: 1fr; }
+  figure.wide, .wide, .breakout, .full-bleed { width: 100%; margin-left: 0; transform: none; }
+  figure.wide.in, .wide.in, .breakout.in, .full-bleed.in { transform: none !important; }
+  :root[data-layout="left"] .doc { margin-left: 0; }
+}
+
+/* ---- Print ------------------------------------------------------------------------- */
+@media print {
+  body { background-image: none; }
+  .chrome, .doc-header > * { animation: none; }
+  figure, .stats, .summary, .pop { opacity: 1 !important; transform: none !important; }
+  .draw { stroke-dashoffset: 0 !important; }
+  .grow, .grow-x { transform: none !important; }
+  details.deep-dive { border-left-color: var(--line); }
+  details.deep-dive > summary::after { content: " (collapsed)"; }
+  details.deep-dive[open] > summary::after { content: ""; }
+  .doc { padding: 0; max-width: 100%; margin: 0; }
+  figure.wide, .wide, .breakout, .full-bleed { width: 100%; margin-left: 0; transform: none !important; }
+}
+
+/* ---- Reduced motion: everything visible, nothing moves --------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  figure, .stats, .summary, .pop, .grow, .grow-x, .callout, .race-bars, .quadrant, .stepper { opacity: 1 !important; transform: none !important; }
+  .chrome, .doc-header > * { animation: none; opacity: 1; }
+  :root:not([data-layout="left"]) figure.wide,
+  :root:not([data-layout="left"]) .wide,
+  :root:not([data-layout="left"]) .breakout,
+  :root:not([data-layout="left"]) .full-bleed { transform: translateX(-50%) !important; }
+  :root[data-layout="left"] figure.wide,
+  :root[data-layout="left"] .wide,
+  :root[data-layout="left"] .breakout,
+  :root[data-layout="left"] .full-bleed { transform: none !important; }
+  .draw { stroke-dashoffset: 0 !important; }
+  html { scroll-behavior: auto; }
+}
+/* Document-specific refinements */
+.eyebrow { margin-top: 3rem; margin-bottom: 0.25rem; }
+.eyebrow + h2 { margin-top: 0.35rem; }
+
+
+
+/* ---- This document --------------------------------------------------------- */
+/* Visible at rest: the reveal only adds motion, it never hides content. */
+figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels { opacity: 1; transform: none; }
+figure.wide, .wide, .breakout, .full-bleed { transform: translateX(-50%); }
+@media (max-width: 48rem) { figure.wide, .wide, .breakout, .full-bleed { transform: none; } }
+h1, h2, h3 { text-wrap: balance; }
+.doc p, .doc li { text-wrap: pretty; }
+.term { font-weight: 600; color: var(--text); border-bottom: 1px dotted var(--accent-line); }
+.src { color: var(--muted); font-size: 0.85rem; margin: 0.6rem 0 0; }
+mark.pending { background: color-mix(in srgb, var(--err) 18%, transparent); color: var(--err); padding: 0 0.3em; border-radius: 3px; }
+.stats { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 30rem) { .stats { grid-template-columns: 1fr; } }
+pre { margin: 1.25rem 0 1.5rem; }
+figure svg text { font-family: var(--mono); fill: var(--text); }
+
+/* Widgets */
+.widget { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 1.1rem 1.25rem 1.2rem; margin: 1.25rem 0 1.6rem; box-shadow: var(--shadow-md); }
+.widget > .cap { font-size: 0.85rem; color: var(--muted); margin: 0.9rem 0 0; }
+.widget .label { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.6rem; }
+.seg { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; background: var(--bg); border: 1px solid var(--line); border-radius: 9px; padding: 0.25rem; margin-bottom: 1rem; }
+.seg button { font: inherit; font-size: 0.85rem; border: 0; border-radius: 6px; padding: 0.4rem 0.75rem; background: transparent; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--text); box-shadow: inset 0 0 0 1px var(--accent-line); font-weight: 600; }
+.seg button:focus-visible, .nav button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.panel[hidden] { display: none; }
+
+/* Horizontal bars: --v is the value, --max the scale of the chart */
+.bars { display: grid; gap: 0.55rem; }
+.bar-row { display: grid; grid-template-columns: minmax(7rem, 11rem) 1fr; gap: 0.75rem; align-items: center; font-size: 0.9rem; }
+.bar-row > span { color: var(--muted); }
+.bar { position: relative; height: 1.5rem; background: color-mix(in srgb, var(--line) 45%, transparent); border-radius: 5px; overflow: hidden; }
+.bar i { position: absolute; inset: 0 auto 0 0; width: calc(max(var(--v), 0) / var(--max, 1) * 100%); background: color-mix(in srgb, var(--accent-2) 42%, transparent); border-radius: 5px; transition: width 0.5s ease; }
+.bar.kw i { background: color-mix(in srgb, var(--muted) 38%, transparent); }
+.bar.good i { background: color-mix(in srgb, var(--ok) 42%, transparent); }
+.bar b { position: absolute; left: 0.5rem; top: 50%; transform: translateY(-50%); font-family: var(--mono); font-size: 0.8rem; font-weight: 600; color: var(--text); }
+.legend { display: flex; gap: 1rem; font-size: 0.8rem; color: var(--muted); margin: 0 0 0.8rem; }
+.legend i { display: inline-block; width: 0.8rem; height: 0.8rem; border-radius: 3px; vertical-align: -0.1rem; margin-right: 0.35rem; background: color-mix(in srgb, var(--accent-2) 42%, transparent); }
+.legend i.kw { background: color-mix(in srgb, var(--muted) 38%, transparent); }
+
+/* Stacked better / same / worse */
+.stack { display: flex; height: 1.5rem; border-radius: 5px; overflow: hidden; font-family: var(--mono); font-size: 0.75rem; font-weight: 600; }
+.stack > span { display: flex; align-items: center; justify-content: center; min-width: 2rem; color: var(--bg); }
+.stack .better { background: var(--ok); }
+.stack .same { background: color-mix(in srgb, var(--muted) 55%, transparent); }
+.stack .worse { background: var(--err); }
+
+/* Section 01: ranked list */
+ol.rank { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.5rem; position: relative; }
+ol.rank > li { margin: 0; display: grid; grid-template-columns: 1.6rem 1fr 7.5rem; gap: 0.6rem; align-items: center; padding: 0.55rem 0.7rem; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+ol.rank > li::before { content: none; }
+ol.rank .pos { font-family: var(--mono); font-weight: 700; color: var(--accent); }
+ol.rank .txt { font-size: 0.92rem; }
+.chips { display: flex; flex-wrap: wrap; gap: 0.3rem; list-style: none; margin: 0.3rem 0 0; padding: 0; }
+.chips li { margin: 0; overflow-wrap: normal; white-space: nowrap; font-family: var(--mono); font-size: 0.75rem; padding: 0.05em 0.45em; border: 1px solid var(--line); border-radius: 4px; color: var(--muted); }
+.chips li::before { content: none; }
+.chips li.none { border-style: dashed; }
+ol.rank[data-sort="words"] .bar i { background: color-mix(in srgb, var(--muted) 38%, transparent); }
+@media (max-width: 34rem) { ol.rank > li { grid-template-columns: 1.4rem 1fr; } ol.rank .bar { grid-column: 2; } }
+
+/* Section 03: cosine playground */
+.try-grid { display: grid; grid-template-columns: minmax(0, 280px) 1fr; gap: 1.25rem; align-items: start; }
+.try-grid svg { width: 100%; height: auto; }
+.try-panel label { display: grid; grid-template-columns: 1fr auto; gap: 0.2rem 0.6rem; font-size: 0.88rem; color: var(--muted); margin-bottom: 0.7rem; }
+.try-panel input { grid-column: 1 / -1; width: 100%; accent-color: var(--accent-2); }
+.try-panel output { font-family: var(--mono); color: var(--text); font-weight: 600; }
+ol.try-steps { list-style: none; padding: 0; margin: 0.4rem 0 0; display: grid; gap: 0.3rem; }
+ol.try-steps li { display: grid; grid-template-columns: 5.8rem 1fr; gap: 0.5rem; margin: 0; font-size: 0.86rem; }
+ol.try-steps li::before { content: none; }
+ol.try-steps span { color: var(--muted); }
+ol.try-steps b { font-family: var(--mono); font-weight: 500; color: var(--text); }
+ol.try-steps li:last-child b { font-weight: 700; color: var(--accent-2); font-size: 0.95rem; }
+@media (max-width: 36rem) { .try-grid { grid-template-columns: 1fr; } .try-grid svg { max-width: 250px; margin: 0 auto; } }
+
+/* Formula */
+.formula-box { background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 1rem 1.2rem; margin: 1rem 0 1.25rem; display: grid; gap: 1rem; overflow-x: auto; }
+.eq { display: flex; align-items: center; flex-wrap: nowrap; gap: 0.5rem; font-family: var(--mono); font-size: 0.95rem; white-space: nowrap; }
+.eq .name { font-weight: 700; }
+.eq .c1 { color: var(--accent); }
+.eq .c2 { color: var(--accent-2); }
+.eq .note { color: var(--muted); font-size: 0.8rem; }
+.frac { display: inline-flex; flex-direction: column; align-items: stretch; vertical-align: middle; }
+.frac > span { display: flex; align-items: center; justify-content: center; gap: 0.4rem; text-align: center; }
+.frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 0.35em 0.25em; }
+.frac > span:last-child { padding: 0.25em 0.35em 0; }
+details.more { border: 1px solid var(--line); border-radius: 10px; padding: 0.7rem 1rem; margin: 1rem 0 1.4rem; background: var(--surface); }
+details.more summary { cursor: pointer; font-weight: 600; }
+details.more[open] summary { margin-bottom: 0.6rem; }
+
+/* Section 04: the recipe */
+.recipe svg { width: 100%; height: auto; display: block; }
+.recipe .step-text { min-height: 4.2rem; margin: 0.6rem 0 0; }
+.recipe .step-text strong { color: var(--accent); }
+.nav { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.6rem; }
+.nav button { font: inherit; font-size: 0.85rem; border: 1px solid var(--line); border-radius: 7px; padding: 0.35rem 0.8rem; background: var(--bg); color: var(--text); cursor: pointer; }
+.nav button:disabled { opacity: 0.4; cursor: default; }
+.nav .dots { display: flex; gap: 0.3rem; margin-left: auto; }
+.nav .dots span { width: 0.5rem; height: 0.5rem; border-radius: 50%; background: var(--line); }
+.nav .dots span.on { background: var(--accent); }
+.levels { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; margin: 1rem 0 1.4rem; }
+.level { border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1rem; background: var(--surface); }
+.level h4 { margin: 0 0 0.2rem; font-size: 1rem; }
+.level .what { font-size: 0.85rem; color: var(--muted); margin: 0 0 0.7rem; }
+.level .pair { font-size: 0.82rem; margin: 0 0 0.25rem; }
+.level .bar { height: 1.25rem; margin-bottom: 0.6rem; }
+@media (max-width: 48rem) { .levels { grid-template-columns: 1fr; } }
+.myths { display: grid; gap: 0.8rem; margin: 1rem 0 1.4rem; }
+.myth { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.2rem; border: 1px solid var(--line); border-radius: 10px; padding: 0.9rem 1.1rem; background: var(--surface); }
+.myth .wrong { font-weight: 600; text-decoration: line-through; text-decoration-color: var(--err); text-decoration-thickness: 2px; margin: 0 0 0.35rem; grid-column: 1 / -1; }
+.myth .right { margin: 0; font-size: 0.92rem; }
+.myth .proof { margin: 0; font-size: 0.85rem; color: var(--muted); border-left: 2px solid var(--accent-line); padding-left: 0.8rem; }
+.myth .proof b { color: var(--text); font-family: var(--mono); }
+@media (max-width: 40rem) { .myth { grid-template-columns: 1fr; gap: 0.6rem; } }
+.card-model { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.6rem; margin: 1rem 0 1.2rem; }
+.card-model div { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.8rem; background: var(--surface); }
+.card-model b { display: block; font-family: var(--mono); font-size: 1.05rem; }
+.card-model span { font-size: 0.8rem; color: var(--muted); }
+.vec { font-family: var(--mono); font-size: 0.85rem; overflow-x: auto; white-space: nowrap; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 0.7rem 0.9rem; margin: 0.8rem 0 0; }
+
+/* Section 05: meter cards */
+.meters { display: grid; grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr)); gap: 0.7rem; margin: 1rem 0 1.4rem; }
+.meter { border: 1px solid var(--line); border-radius: 10px; padding: 0.8rem 0.9rem; background: var(--surface); }
+.meter .ab { font-size: 0.88rem; margin: 0 0 0.5rem; min-height: 2.6rem; }
+.meter .ab span { color: var(--muted); }
+.meter .bar { height: 1.25rem; }
+.meter .tag { display: inline-block; margin-top: 0.5rem; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700; }
+.meter .tag.ok { color: var(--ok); }
+.meter .tag.bad { color: var(--err); }
+
+/* Section 06: two lists */
+.twolists { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.twolists ol { margin: 0; padding: 0; list-style: none; display: grid; gap: 0.4rem; counter-reset: r; }
+.twolists li { margin: 0; font-size: 0.86rem; padding: 0.45rem 0.6rem 0.45rem 2rem; border: 1px solid var(--line); border-radius: 7px; position: relative; background: var(--bg); counter-increment: r; }
+.twolists li::before { content: counter(r); position: absolute; left: 0.6rem; top: 0.45rem; font-family: var(--mono); font-weight: 700; color: var(--muted); }
+.twolists li.rel { border-color: var(--ok); box-shadow: inset 3px 0 0 var(--ok); }
+.twolists li.rel::after { content: "marked relevant"; display: block; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ok); font-weight: 700; margin-top: 0.15rem; }
+.twolists li em { display: block; font-style: normal; font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+@media (max-width: 40rem) { .twolists { grid-template-columns: 1fr; } }
+
+/* Section 08: example carousel */
+.slides .slide[hidden] { display: none; }
+.slide .kind { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700; }
+.slide .kind.win { color: var(--ok); }
+.slide .kind.loss { color: var(--err); }
+.slide h4 { margin: 0.2rem 0 0.6rem; font-size: 1.05rem; }
+.slide .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; font-size: 0.86rem; }
+.slide .cols div { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.75rem; background: var(--bg); }
+.slide .cols b { display: block; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
+.slide .why { margin: 0.7rem 0 0; font-size: 0.9rem; }
+@media (max-width: 40rem) { .slide .cols { grid-template-columns: 1fr; } }
+
+/* Section 10: HNSW */
+.hnsw svg { width: 100%; height: auto; display: block; }
+.hnsw .edge { stroke: var(--line); stroke-width: 1.2; }
+.hnsw .node { fill: var(--bg); stroke: var(--muted); stroke-width: 1.5; transition: fill 0.3s, stroke 0.3s; }
+.hnsw .node.seen { fill: color-mix(in srgb, var(--accent-2) 30%, var(--bg)); stroke: var(--accent-2); }
+.hnsw .node.here { fill: var(--accent); stroke: var(--accent); }
+.hnsw .hop { stroke: var(--accent); stroke-width: 3; fill: none; opacity: 0; transition: opacity 0.3s; }
+.hnsw .hop.on { opacity: 1; }
+.hnsw .target { fill: var(--ok); }
+.hnsw .layer-name { font-size: 12px; fill: var(--muted); }
+
+/* Section 11: metric switch */
+ol.metric { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.35rem; }
+ol.metric li { margin: 0; display: grid; grid-template-columns: 1fr 5rem; gap: 0.8rem; font-size: 0.88rem; padding: 0.4rem 0.6rem; border: 1px solid var(--line); border-radius: 7px; background: var(--bg); }
+ol.metric li::before { content: none; }
+ol.metric b { font-family: var(--mono); text-align: right; }
+</style>
+
+<article class="doc">
+
+<header class="doc-header">
+  <div class="chrome">
+    <span>How search works, part 2</span>
+    <span><b>OpenSearch 2.19.1</b> · all-MiniLM-L6-v2 · BEIR</span>
+  </div>
+  <h1>Semantic Search, Without the Scary Math</h1>
+  <p class="dek">"Eating less salt helps reduce hypertension" shares no words with "How can I lower my blood pressure?". Keyword search can't connect them. Semantic search scored them 0.647 out of 1. Here is where that number comes from, and when it beats keyword search on 1,271 real questions.</p>
+  <p class="meta">Part 1 covered keyword search (BM25). Every number on this page was printed by the Java lab in section 13, unless it names a paper.</p>
+</header>
+
+<div class="stats">
+  <div class="stat"><span class="num">+0.127</span><span class="unit">nDCG@10 on FiQA, meaning search over keyword search</span></div>
+  <div class="stat"><span class="num">−0.032</span><span class="unit">on SciFact, where questions reuse the papers' own terms</span></div>
+  <div class="stat"><span class="num">229 : 85</span><span class="unit">questions won : lost, when the answers share few of the question's words</span></div>
+  <div class="stat"><span class="num">94%</span><span class="unit">of questions got the same top 10 from fast approximate search as from checking every document</span></div>
+</div>
+
+<section>
+
+  <h2 data-n="01">Two ways to rank the same five sentences</h2>
+  <p>Part 1 showed that keyword search scores a document by the words it shares with the question. A document that says the same thing in other words scores nothing. Switch between the two rankings:</p>
+  <div class="widget" id="w-rank">
+    <div class="seg" role="group" aria-label="Ranking">
+      <button type="button" data-sort="words" aria-pressed="true">By shared words</button>
+      <button type="button" data-sort="cos" aria-pressed="false">By meaning</button>
+    </div>
+    <p class="label">Question: "How can I lower my blood pressure?"</p>
+    <ol class="rank" data-sort="words">
+      <li data-cos="0.647"><span class="pos"></span><div class="txt">Eating less salt helps reduce hypertension.<ul class="chips"><li class="none">none</li></ul></div><div class="bar" style="--v:0.647"><i></i><b>0.647</b></div></li>
+      <li data-cos="0.853"><span class="pos"></span><div class="txt">Ways to bring down high blood pressure without medication.<ul class="chips"><li>blood</li><li>pressure</li></ul></div><div class="bar" style="--v:0.853"><i></i><b>0.853</b></div></li>
+      <li data-cos="0.323"><span class="pos"></span><div class="txt">Blood pressure is measured in millimetres of mercury.<ul class="chips"><li>blood</li><li>pressure</li></ul></div><div class="bar" style="--v:0.323"><i></i><b>0.323</b></div></li>
+      <li data-cos="0.294"><span class="pos"></span><div class="txt">Lower the tyre pressure before driving on sand.<ul class="chips"><li>lower</li><li>pressure</li></ul></div><div class="bar" style="--v:0.294"><i></i><b>0.294</b></div></li>
+      <li data-cos="0.11"><span class="pos"></span><div class="txt">The stock market fell sharply today.<ul class="chips"><li class="none">none</li></ul></div><div class="bar" style="--v:0.11"><i></i><b>0.110</b></div></li>
+    </ol>
+    <p class="cap">Chips: words shared with the question, ignoring "the", "to" and other very common words. Bars: similarity by meaning, from 0 to 1.</p>
+  </div>
+  <p>By words, the tyre sentence ties for the top and the salt sentence ties for last, with the stock market. By meaning, the salt sentence is second and the tyre sentence drops below the one about measuring blood pressure. The rest of this post is about that bar: what it measures, how it is made, and how far to trust it.</p>
+
+  <h2 data-n="02">Meaning as a direction</h2>
+  <p>Linguists noticed in the 1950s that words with similar meanings turn up in similar company. J. R. Firth's version: "You shall know a word by the company it keeps". Record that company as numbers and you get a list, and a list of numbers can be drawn as an arrow. (4, 3) means 4 steps right and 3 up.</p>
+  <figure>
+    <svg viewBox="0 0 640 290" role="img" aria-label="Four arrows from the same starting point. a = (4, 3) points up and to the right. b = (3, 4) points in almost the same direction. c = (−3, 4) is at a right angle to a. d = (−4, −3) points the opposite way.">
+      <defs>
+        <marker id="tip-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker>
+        <marker id="tip-o" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent-2)"/></marker>
+      </defs>
+      <line x1="70" y1="150" x2="370" y2="150" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="220" y1="20" x2="220" y2="275" stroke="var(--line)" stroke-width="1.5"/>
+      <line x1="220" y1="150" x2="332" y2="66" stroke="var(--accent)" stroke-width="3" marker-end="url(#tip-a)"/>
+      <line x1="220" y1="150" x2="304" y2="38" stroke="var(--accent-2)" stroke-width="2" marker-end="url(#tip-o)"/>
+      <line x1="220" y1="150" x2="136" y2="38" stroke="var(--accent-2)" stroke-width="2" marker-end="url(#tip-o)"/>
+      <line x1="220" y1="150" x2="108" y2="234" stroke="var(--accent-2)" stroke-width="2" marker-end="url(#tip-o)"/>
+      <text x="340" y="70" font-size="14" font-weight="600">a (4, 3)</text>
+      <text x="300" y="30" font-size="14">b (3, 4)</text>
+      <text x="92" y="30" font-size="14">c (−3, 4)</text>
+      <text x="40" y="254" font-size="14">d (−4, −3)</text>
+      <text x="420" y="80" font-size="13">a, b: 16° apart</text>
+      <text x="420" y="102" font-size="13" fill="var(--muted)">similar</text>
+      <text x="420" y="142" font-size="13">a, c: 90° apart</text>
+      <text x="420" y="164" font-size="13" fill="var(--muted)">unrelated</text>
+      <text x="420" y="204" font-size="13">a, d: 180° apart</text>
+      <text x="420" y="226" font-size="13" fill="var(--muted)">opposite</text>
+    </svg>
+    <figcaption><strong>Similarity is the angle between arrows,</strong> not their length.</figcaption>
+  </figure>
+
+  <h2 data-n="03">Cosine similarity, one step at a time</h2>
+  <p>With 384 numbers there is nothing to draw, so the angle has to come from the numbers alone. <span class="term">Cosine similarity</span> does that in four steps and turns the angle into a score: 1 for the same direction, 0 for a right angle, −1 for opposite. Move b, or pick one of the arrows above, and watch each step:</p>
+  <div class="widget" id="w-cos">
+    <div class="seg" role="group" aria-label="Pick b">
+      <button type="button" data-b="3,4" aria-pressed="true">b (3, 4)</button>
+      <button type="button" data-b="-3,4" aria-pressed="false">c (−3, 4)</button>
+      <button type="button" data-b="-4,-3" aria-pressed="false">d (−4, −3)</button>
+      <button type="button" data-b="8,6" aria-pressed="false">e (8, 6): a, twice as long</button>
+    </div>
+    <div class="try-grid">
+      <svg viewBox="0 0 300 300" role="img" aria-label="Arrow a fixed at (4, 3) and the arrow you choose.">
+        <defs>
+          <marker id="try-tip-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker>
+          <marker id="try-tip-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent-2)"/></marker>
+        </defs>
+        <g stroke="var(--line)" stroke-width="1"><line x1="20" y1="150" x2="280" y2="150"/><line x1="150" y1="20" x2="150" y2="280"/></g>
+        <line id="cos-b" x1="150" y1="150" x2="195" y2="90" stroke="var(--accent-2)" stroke-width="3" marker-end="url(#try-tip-b)"/>
+        <line x1="150" y1="150" x2="210" y2="105" stroke="var(--accent)" stroke-width="3" marker-end="url(#try-tip-a)"/>
+        <text x="214" y="122" font-size="13" font-weight="600">a</text>
+        <text id="cos-b-label" x="200" y="84" font-size="13" font-weight="600">b</text>
+      </svg>
+      <div class="try-panel">
+        <label>first number <output id="cos-x-out">3</output><input id="cos-x" type="range" min="-8" max="8" step="1" value="3"></label>
+        <label>second number <output id="cos-y-out">4</output><input id="cos-y" type="range" min="-8" max="8" step="1" value="4"></label>
+        <ol class="try-steps" aria-live="polite">
+          <li><span>1. Multiply</span><b id="cos-s1"></b></li>
+          <li><span>2. Add</span><b id="cos-s2"></b></li>
+          <li><span>3. Lengths</span><b id="cos-s3"></b></li>
+          <li><span>4. Divide</span><b id="cos-s4"></b></li>
+        </ol>
+      </div>
+    </div>
+    <p class="cap">a stays at (4, 3). Step 1 multiplies matching positions, step 2 adds them (the <em>dot product</em>), step 3 measures each arrow's length with Pythagoras, step 4 divides.</p>
+  </div>
+  <p>Try e. It points exactly where a points, only twice as long, and the cosine is 1.00: same direction, whatever the length. Compared with b, e's dot product is 48, twice a's 24, but step 4 divides by e's length of 10 instead of 5, and the cosine comes back to 0.96, the same as a's. Without step 4, long arrows would score high against everything. The formula, for when you meet it elsewhere:</p>
+  <div class="formula-box">
+    <div class="eq"><span class="name">cosine</span> = <span class="frac"><span class="c1">a · b</span><span><span class="c2">length of a</span> × <span class="c2">length of b</span></span></span></div>
+    <div class="eq"><span class="name c1">a · b</span> = a₁ × b₁ + a₂ × b₂ + … <span class="note">steps 1 and 2</span></div>
+    <div class="eq"><span class="name c2">length of a</span> = √( a₁² + a₂² + … ) <span class="note">step 3</span></div>
+  </div>
+  <details class="more">
+    <summary>The same four steps with 384 numbers</summary>
+    <p>For "How can I lower my blood pressure?" and "Eating less salt helps reduce hypertension.", the first four multiplications are −0.0321 × −0.0238, 0.1206 × 0.1193, −0.0035 × 0.0537 and 0.0289 × 0.0068. After 380 more, the total is 0.6474. Both arrows have length 1.0000 (section 04 explains why), so step 4 divides by 1 and the cosine is 0.647: the bar in section 01. No single product matters much. The score is hundreds of small agreements added up.</p>
+  </details>
+
+  <h2 data-n="04">Words, sentences, paragraphs: one recipe</h2>
+  <p>"Word embeddings", "sentence embeddings" and "document embeddings" sound like three different things. In a model like ours they are one recipe applied to different amounts of text, and they all come out as 384 numbers in the same space. Get this part right and the rest of semantic search makes sense. The model here is <strong>all-MiniLM-L6-v2</strong>. Step through what it does with one sentence:</p>
+  <div class="widget recipe" id="w-recipe" data-pieces="[&quot;[CLS]&quot;, &quot;she&quot;, &quot;sat&quot;, &quot;on&quot;, &quot;the&quot;, &quot;bank&quot;, &quot;of&quot;, &quot;the&quot;, &quot;river&quot;, &quot;and&quot;, &quot;watched&quot;, &quot;the&quot;, &quot;water&quot;, &quot;.&quot;, &quot;[SEP]&quot;]">
+    <svg viewBox="0 0 720 250" role="img" aria-label="The sentence split into word pieces, each with a small arrow, the arrows adjusting to each other, and then averaged into one arrow."></svg>
+    <p class="step-text" aria-live="polite"></p>
+    <div class="nav"><button type="button" data-go="-1">Back</button><button type="button" data-go="1">Next step</button><div class="dots"><span></span><span></span><span></span><span></span></div></div>
+    <p class="cap">The pieces are the model's real ones. The small arrows are drawn to show the idea: the real ones have 384 numbers each.</p>
+  </div>
+  <p>The same four steps run for any text. What changes is how many pieces there are to adjust and to average:</p>
+  <div class="levels">
+    <div class="level">
+      <h4>A word</h4>
+      <p class="what">One piece (or a few, for rare words: "hypertension" becomes hyper, ##tension). Nothing to adjust against, so "bank" can't pick a meaning: it is about as close to "river" as to "money".</p>
+      <p class="pair">bank · river</p><div class="bar" style="--v:0.5"><i></i><b>0.500</b></div>
+      <p class="pair">bank · money</p><div class="bar" style="--v:0.469"><i></i><b>0.469</b></div>
+      <p class="pair">river · money</p><div class="bar" style="--v:0.358"><i></i><b>0.358</b></div>
+    </div>
+    <div class="level">
+      <h4>A sentence</h4>
+      <p class="what">Every piece is adjusted by its neighbours before averaging, so "bank" by a river and "bank" with a savings account end up in different places.</p>
+      <p class="pair">river bank · savings bank</p><div class="bar" style="--v:0.262"><i></i><b>0.262</b></div>
+      <p class="pair">river bank · picnic by the stream</p><div class="bar" style="--v:0.394"><i></i><b>0.394</b></div>
+      <p class="pair">savings bank · salary into an account</p><div class="bar" style="--v:0.412"><i></i><b>0.412</b></div>
+    </div>
+    <div class="level">
+      <h4>A paragraph</h4>
+      <p class="what">More pieces in the same average, so the arrow is a blend of what its sentences say. Against the average of its three sentences' arrows: 0.915.</p>
+      <p class="pair">question · whole paragraph</p><div class="bar" style="--v:0.507"><i></i><b>0.507</b></div>
+      <p class="pair">question · the parking sentence</p><div class="bar good" style="--v:0.743"><i></i><b>0.743</b></div>
+      <p class="pair">question · the canteen sentence</p><div class="bar" style="--v:0.003"><i></i><b>0.003</b></div>
+    </div>
+  </div>
+  <p class="src">Sentences: "She sat on the bank of the river and watched the water.", "He opened a savings account at the bank.", "They had a picnic beside the stream.", "She paid her salary into her current account.". Paragraph: "Our office moved to a new building on Park Street in March. The canteen on the ground floor now serves vegetarian meals every day. Parking permits must be renewed online before the end of June." Question: "How do I renew my parking permit?"</p>
+  <h3>Three things people get wrong</h3>
+  <div class="myths">
+    <div class="myth">
+      <p class="wrong">A sentence's arrow is the average of its words' arrows.</p>
+      <p class="right">The words are adjusted by each other first. Only then are they averaged. That adjusting is where word order, and which "bank" you mean, get in at all.</p>
+      <p class="proof">Averaging the words' own arrows, the river-bank and savings-bank sentences score <b>0.874</b>, nearly the same. The model's real sentence arrows score <b>0.262</b>. Plain word averages made all three sentence pairs look alike, between 0.82 and 0.88.</p>
+    </div>
+    <div class="myth">
+      <p class="wrong">A longer text gives a richer, more detailed arrow.</p>
+      <p class="right">It gives a more blended one. Every text ends up as 384 numbers, however long it is, and our setup reads only the first 128 pieces, about 100 words. The rest has no effect at all (section 09).</p>
+      <p class="proof">The question about parking permits scores <b>0.743</b> against the parking sentence alone and <b>0.507</b> against the paragraph that contains it. This is why search systems split long documents into chunks of a few sentences and embed each chunk.</p>
+    </div>
+    <div class="myth">
+      <p class="wrong">Word, sentence and document embeddings are different kinds of thing.</p>
+      <p class="right">Same model, same 384 numbers, same space. That is what lets a seven-word question be compared directly with a 200-word abstract, which is all semantic search does.</p>
+      <p class="proof">The question and every document in section 07 went through the same model. Arrows from two <em>different</em> models, though, can't be compared at all.</p>
+    </div>
+  </div>
+  <p>What makes the adjusting useful is training. The model's makers showed it about 1.17 billion pairs of texts that belong together: a Stack Exchange question and its accepted answer, a paper's title and its abstract, a Reddit comment and its reply. Training pulled each pair's arrows together and pushed unrelated texts apart. Its vital statistics:</p>
+  <div class="card-model">
+    <div><b>384</b><span>numbers per text</span></div>
+    <div><b>1.000</b><span>length of every arrow</span></div>
+    <div><b>128</b><span>word pieces read, at most, in our setup</span></div>
+    <div><b>6</b><span>rounds of adjusting</span></div>
+    <div><b>8 ms</b><span>to embed a question, on a laptop CPU</span></div>
+  </div>
+  <div class="vec">"How can I lower my blood pressure?" → [ −0.0321, 0.1206, −0.0035, 0.0289, −0.0166, 0.0010, … 378 more ]</div>
+  <p>No single number means "blood" or "health". Only the direction of the whole arrow means anything. Documents are embedded once, when they are added to the search engine. At search time only the question is embedded, and the engine looks for the stored arrows pointing most nearly the same way. Because the two are embedded separately, this setup is called a <span class="term">bi-encoder</span>. The Sentence-BERT paper puts the saving in numbers: finding the most similar pair among 10,000 sentences takes about 65 hours if a model reads every pair together, and about 5 seconds if each sentence is embedded once.</p>
+
+  <h2 data-n="05">What the arrows capture, and what they miss</h2>
+  <div class="meters">
+    <div class="meter"><p class="ab">car <span>vs</span> automobile</p><div class="bar good" style="--v:0.865"><i></i><b>0.865</b></div><span class="tag ok">Synonyms: close</span></div>
+    <div class="meter"><p class="ab">car <span>vs</span> truck</p><div class="bar good" style="--v:0.689"><i></i><b>0.689</b></div><span class="tag ok">Related: fairly close</span></div>
+    <div class="meter"><p class="ab">car <span>vs</span> banana</p><div class="bar good" style="--v:0.39"><i></i><b>0.390</b></div><span class="tag ok">Unrelated: far</span></div>
+    <div class="meter"><p class="ab">hot <span>vs</span> cold</p><div class="bar" style="--v:0.519"><i></i><b>0.519</b></div><span class="tag bad">Opposites look related</span></div>
+    <div class="meter"><p class="ab">The dog bit the man. <span>vs</span> The man bit the dog.</p><div class="bar" style="--v:0.978"><i></i><b>0.978</b></div><span class="tag bad">Who bit whom: lost</span></div>
+    <div class="meter"><p class="ab">I love this film. <span>vs</span> I do not love this film.</p><div class="bar" style="--v:0.743"><i></i><b>0.743</b></div><span class="tag bad">"Not" barely counts</span></div>
+    <div class="meter"><p class="ab">Order 4471 has shipped. <span>vs</span> Order 9012 has shipped.</p><div class="bar" style="--v:0.647"><i></i><b>0.647</b></div><span class="tag bad">Different orders blur</span></div>
+  </div>
+  <p>The arrows measure "about the same thing", which is close to "means the same thing" but not equal to it. "Hot" and "cold" appear in the same kinds of sentences, so they sit fairly close. A researcher testing negation (NevIR, 2024) found most retrieval models do no better than chance at telling a document from its negated version. And to the model, order 4471 is just "an order number", while the person searching wants that one order.</p>
+
+  <h2 data-n="06">Part 1's question, searched by meaning</h2>
+  <p>Part 1 took apart one keyword search on <strong>NFCorpus</strong>, 3,633 medical papers with real questions: "Neurobiology of Artificial Sweeteners". The same question, both ways:</p>
+  <div class="widget">
+    <div class="twolists">
+      <div><p class="label">Keyword search (BM25)</p><ol>
+        <li>The potential toxicity of artificial sweeteners.</li>
+        <li class="rel">Sucrose activates human taste pathways differently from artificial sweetener.</li>
+        <li>Sugar substitutes: Health controversy over perceived benefits</li>
+        <li>Artificial sweetener consumption and urinary tract tumors in Cordoba, Argentina.</li>
+        <li>Artificial food dyes and attention deficit hyperactivity disorder.</li>
+      </ol></div>
+      <div><p class="label">Meaning search (cosine)</p><ol>
+        <li>Direct and indirect cellular effects of aspartame on the brain.<em>keyword search: #24</em></li>
+        <li>Possible neurologic effects of aspartame, a widely used food additive.<em>keyword search: #21</em></li>
+        <li>Sugar substitutes: Health controversy over perceived benefits</li>
+        <li class="rel">Sucrose activates human taste pathways differently from artificial sweetener.</li>
+        <li>Sweet and sour cherry phenolics and their protective effects on neuronal cells.</li>
+      </ol></div>
+    </div>
+  </div>
+  <p>Keyword search wants "artificial" and "sweeteners", and gets a paper on urinary tract tumours for it. Meaning search puts two papers on aspartame and the brain first: aspartame is an artificial sweetener and the brain is what neurobiology studies, yet neither title shares a word with the question. The test set doesn't mark them relevant, though. NFCorpus labels come from which papers a NutritionFacts.org article cited, so by those labels keyword search wins this one, nDCG@10 0.403 against 0.275. One question settles nothing. Next, all of them.</p>
+
+  <h2 data-n="07">1,271 questions: keyword against meaning</h2>
+  <p>The same three BEIR test sets as part 1: <strong>NFCorpus</strong> (medical research), <strong>SciFact</strong> (scientific claims) and <strong>FiQA</strong> (finance questions answered on a forum). <span class="term">nDCG@10</span> scores the top 10 from 0 to 1, rewarding relevant documents near the top. <span class="term">Recall@100</span> is the share of relevant documents found anywhere in the top 100.</p>
+  <div class="widget tabs" id="w-datasets">
+    <div class="seg" role="group" aria-label="Dataset">
+      <button type="button" data-tab="fiqa" aria-pressed="true">FiQA</button>
+      <button type="button" data-tab="scifact" aria-pressed="false">SciFact</button>
+      <button type="button" data-tab="nfcorpus" aria-pressed="false">NFCorpus</button>
+    </div>
+    <p class="legend"><span><i class="kw"></i>keyword (BM25)</span><span><i></i>meaning</span></p>
+    <div class="panel" data-panel="fiqa">
+      <div class="bars" style="--max:1">
+        <div class="bar-row"><span>nDCG@10</span><div class="bar kw" style="--v:0.23893390127420314"><i></i><b>0.239</b></div></div>
+        <div class="bar-row"><span></span><div class="bar" style="--v:0.3662621799774156"><i></i><b>0.366</b></div></div>
+        <div class="bar-row"><span>Recall@100</span><div class="bar kw" style="--v:0.5060963385037459"><i></i><b>0.506</b></div></div>
+        <div class="bar-row"><span></span><div class="bar" style="--v:0.6938938633383078"><i></i><b>0.694</b></div></div>
+        <div class="bar-row"><span>Per question</span><div class="stack"><span class="better" style="flex:308">308</span><span class="same" style="flex:227">227</span><span class="worse" style="flex:113">113</span></div></div>
+      </div>
+      <p class="cap">57,638 forum answers, 648 questions. People ask about money in everyday words and get answered in other everyday words. Meaning search wins by half as much again.</p>
+    </div>
+    <div class="panel" data-panel="scifact" hidden>
+      <div class="bars" style="--max:1">
+        <div class="bar-row"><span>nDCG@10</span><div class="bar kw" style="--v:0.6563018879997289"><i></i><b>0.656</b></div></div>
+        <div class="bar-row"><span></span><div class="bar" style="--v:0.6238596288000934"><i></i><b>0.624</b></div></div>
+        <div class="bar-row"><span>Recall@100</span><div class="bar kw" style="--v:0.8842222222222221"><i></i><b>0.884</b></div></div>
+        <div class="bar-row"><span></span><div class="bar" style="--v:0.9226666666666667"><i></i><b>0.923</b></div></div>
+        <div class="bar-row"><span>Per question</span><div class="stack"><span class="better" style="flex:68">68</span><span class="same" style="flex:155">155</span><span class="worse" style="flex:77">77</span></div></div>
+      </div>
+      <p class="cap">5,183 abstracts, 300 claims. The claims use the abstracts' own technical terms, which is where word matching is strongest. Keyword search wins the top 10; meaning search still finds more in the top 100.</p>
+    </div>
+    <div class="panel" data-panel="nfcorpus" hidden>
+      <div class="bars" style="--max:1">
+        <div class="bar-row"><span>nDCG@10</span><div class="bar kw" style="--v:0.3065575461776274"><i></i><b>0.307</b></div></div>
+        <div class="bar-row"><span></span><div class="bar" style="--v:0.3149449318945291"><i></i><b>0.315</b></div></div>
+        <div class="bar-row"><span>Recall@100</span><div class="bar kw" style="--v:0.24432351151736717"><i></i><b>0.244</b></div></div>
+        <div class="bar-row"><span></span><div class="bar" style="--v:0.3094260094121505"><i></i><b>0.309</b></div></div>
+        <div class="bar-row"><span>Per question</span><div class="stack"><span class="better" style="flex:122">122</span><span class="same" style="flex:105">105</span><span class="worse" style="flex:96">96</span></div></div>
+      </div>
+      <p class="cap">3,633 papers, 323 questions. About even at the top; meaning search finds more of the relevant papers in its top 100.</p>
+    </div>
+    <p class="cap">Per question: green, meaning search better; grey, the same (mostly both 0); red, worse.</p>
+  </div>
+  <p>Published results show the same split. In the BEIR paper, the meaning-search model TAS-B scored 0.319 against BM25's 0.325 on NFCorpus, 0.643 against 0.665 on SciFact, and 0.300 against 0.236 on FiQA. The MTEB leaderboard lists our model at 0.316, 0.645 and 0.369. Section 09 explains why our SciFact number is lower.</p>
+
+  <h2 data-n="08">When meaning search wins</h2>
+  <p>For each question we measured what share of its words appear in its relevant documents ("cataract" and "cataracts" count as different words), and grouped the 1,271 questions by that share:</p>
+  <div class="widget">
+    <p class="legend"><span><i class="kw"></i>keyword nDCG@10</span><span><i></i>meaning nDCG@10</span></p>
+    <div class="bars" style="--max:1">
+      <div class="bar-row"><span>Under ⅓ of the words<br>538 questions</span><div><div class="bar kw" style="--v:0.15717018803912083"><i></i><b>0.157</b></div><div class="bar" style="--v:0.2629000556647182; margin-top:0.25rem"><i></i><b>0.263</b></div></div></div>
+      <div class="bar-row"><span>⅓ to ⅔<br>551 questions</span><div><div class="bar kw" style="--v:0.4145192853141756"><i></i><b>0.415</b></div><div class="bar" style="--v:0.4638930010466494; margin-top:0.25rem"><i></i><b>0.464</b></div></div></div>
+      <div class="bar-row"><span>⅔ or more<br>182 questions</span><div><div class="bar kw" style="--v:0.7570337058671329"><i></i><b>0.757</b></div><div class="bar" style="--v:0.7097676963901322; margin-top:0.25rem"><i></i><b>0.710</b></div></div></div>
+    </div>
+    <p class="cap">All three datasets together. Questions won : lost by meaning search: 229 : 85 in the first group, 233 : 147 in the second, 36 : 54 in the third.</p>
+  </div>
+  <p>Few shared words: meaning search wins. Most words shared: keyword search is very hard to beat. Four questions from the extremes:</p>
+  <div class="widget slides" id="w-slides">
+    <div class="slide">
+      <span class="kind win">Meaning search wins · NFCorpus</span>
+      <h4>"Preventing Cataracts with Diet"</h4>
+      <div class="cols">
+        <div><b>Keyword search, #1</b>Cranberries for preventing urinary tract infections.</div>
+        <div><b>Meaning search, #1 (relevant)</b>Diet, vegetarianism, and cataract risk.</div>
+      </div>
+      <p class="why">Keyword search matched "preventing". The relevant paper says "cataract", not "cataracts", and keyword search had it at #86.</p>
+    </div>
+    <div class="slide" hidden>
+      <span class="kind win">Meaning search wins · SciFact</span>
+      <h4>"Hypertension is frequently observed in type 1 diabetes patients."</h4>
+      <div class="cols">
+        <div><b>Keyword search, #1</b>Hypoglycemic episodes and risk of dementia in older patients with type 2 diabetes mellitus.</div>
+        <div><b>Meaning search, #1 (relevant)</b>Glucose tolerance and blood pressure: long term follow up in middle aged men.</div>
+      </div>
+      <p class="why">The evidence talks about "blood pressure" and "glucose tolerance" where the claim says "hypertension" and "diabetes". Keyword search didn't have it in its top 100.</p>
+    </div>
+    <div class="slide" hidden>
+      <span class="kind loss">Keyword search wins · NFCorpus</span>
+      <h4>"kohlrabi"</h4>
+      <div class="cols">
+        <div><b>Keyword search, #1 (relevant)</b>Glucoraphanin and 4-hydroxyglucobrassicin contents in seeds of 59 cultivars of broccoli, raab, kohlrabi, radish, cauliflower, brussels sprouts, kal...</div>
+        <div><b>Meaning search, #1</b>Hibiscus anthocyanins rich extract-induced apoptotic cell death in human promyelocytic leukemia cells.</div>
+      </div>
+      <p class="why">One rare word. To the model, "kohlrabi" is roughly "some plant", so it returned hibiscus and had the relevant paper at #18.</p>
+    </div>
+    <div class="slide" hidden>
+      <span class="kind loss">Keyword search wins · SciFact</span>
+      <h4>"Activation of PPM1D suppresses p53 function."</h4>
+      <div class="cols">
+        <div><b>Keyword search, #1 (relevant)</b>Exome sequencing identifies somatic gain-of-function PPM1D mutations in brainstem gliomas</div>
+        <div><b>Meaning search, #1</b>Unravelling mechanisms of p53-mediated tumour suppression</div>
+      </div>
+      <p class="why">PPM1D is a gene name. Meaning search drifted to p53, the better-known gene in the claim, and missed both relevant papers in its top 10.</p>
+    </div>
+    <div class="nav"><button type="button" data-go="-1">Previous</button><button type="button" data-go="1">Next</button><div class="dots"><span></span><span></span><span></span><span></span></div></div>
+  </div>
+  <p>Names, codes, gene symbols and rare terms are keyword search's strength and meaning search's weakness (a 2021 study found the same for questions about less common people and places). That is why most production systems run both and merge the two lists. Merging is part 3.</p>
+
+  <h2 data-n="09">How much of each document the model reads</h2>
+  <p>We found this one by accident. The model card says it reads up to 256 word pieces. LangChain4j, the Java library we run it with, ships a tokenizer file that stops at 128, so everything after roughly the first 100 words is ignored. We checked on the longest FiQA document: its arrow and the arrow of its first 126 pieces have a cosine of 1.0000. Identical. Then we re-embedded every document with the limit raised:</p>
+  <div class="widget">
+    <p class="legend"><span><i class="kw"></i>first 128 pieces (as shipped)</span><span><i></i>first 256</span><span><i style="background:color-mix(in srgb, var(--ok) 42%, transparent)"></i>whole document</span></p>
+    <div class="bars" style="--max:1">
+      <div class="bar-row"><span>NFCorpus<br>97% longer than 128</span><div><div class="bar kw" style="--v:0.3149449318945292"><i></i><b>0.315</b></div><div class="bar" style="--v:0.31667312754717813; margin-top:0.25rem"><i></i><b>0.317</b></div><div class="bar good" style="--v:0.3104995487092089; margin-top:0.25rem"><i></i><b>0.310</b></div></div></div>
+      <div class="bar-row"><span>SciFact<br>98% longer than 128</span><div><div class="bar kw" style="--v:0.6238596288000929"><i></i><b>0.624</b></div><div class="bar" style="--v:0.6450816521455768; margin-top:0.25rem"><i></i><b>0.645</b></div><div class="bar good" style="--v:0.6540837346606101; margin-top:0.25rem"><i></i><b>0.654</b></div></div></div>
+      <div class="bar-row"><span>FiQA<br>47% longer than 128</span><div><div class="bar kw" style="--v:0.36626217997741567"><i></i><b>0.366</b></div><div class="bar" style="--v:0.36867136984071575; margin-top:0.25rem"><i></i><b>0.369</b></div><div class="bar good" style="--v:0.36103016333795235; margin-top:0.25rem"><i></i><b>0.361</b></div></div></div>
+    </div>
+    <p class="cap">nDCG@10, meaning search, same model and questions. "Whole document" lets LangChain4j cut long texts into parts of up to 510 pieces and average them.</p>
+  </div>
+  <p>Two results. First, with 256 pieces all three datasets match the scores the MTEB leaderboard publishes for this model: 0.317, 0.645 and 0.369, against 0.316, 0.645 and 0.369. The model is fine; the 128 cut was the whole gap. Second, reading more is not automatically better. SciFact's abstracts gained +0.030 from being read in full. NFCorpus and FiQA did slightly <em>worse</em> read in full than at 256 pieces, and NFCorpus ended below the 128 cut. A whole long document becomes one average of several parts, the blending from section 04, and the model was trained on at most 128 pieces. We didn't measure which of the two matters more.</p>
+  <p>The practical rule: find out how many pieces your library actually reads, don't trust the model card, and test the limit on your own data. For long documents, splitting them into chunks, each with its own arrow, avoids both the cut and the blending.</p>
+  <p>Other libraries can do the same. Spring AI's <code>TransformersEmbeddingModel</code> (2.0.1) loads a tokenizer file with the same 128 cut and doesn't scale its arrows to length 1. We read that in its source code; we didn't run it.</p>
+
+  <h2 data-n="10">Finding the nearest arrows fast</h2>
+  <p>Comparing the question with every document is <span class="term">exact</span> search. On FiQA that is 57,638 comparisons of 384 numbers each, for every question. Vector databases skip most of them with an <span class="term">HNSW</span> index (Hierarchical Navigable Small World): each document is linked to a few of its nearest neighbours, in layers from sparse to complete. Step through a search:</p>
+  <div class="widget hnsw" id="w-hnsw">
+    <svg viewBox="0 0 720 330" role="img" aria-label="Three layers of linked points. A search starts in the sparse top layer, hops toward the target, drops a layer, and repeats until it reaches the nearest point in the bottom layer."></svg>
+    <p class="step-text" aria-live="polite"></p>
+    <div class="nav"><button type="button" data-go="-1">Back</button><button type="button" data-go="1">Next hop</button><div class="dots"></div></div>
+    <p class="cap">An illustration of the idea, not our data. OpenSearch's defaults: each document keeps up to m = 16 links, and 100 candidates are considered while building (ef_construction).</p>
+  </div>
+  <div class="widget">
+    <p class="legend"><span><i class="kw"></i>exact: compare with every document</span><span><i></i>HNSW</span></p>
+    <div class="bars" style="--max:16.7227495">
+      <div class="bar-row"><span>NFCorpus, 3,633 docs</span><div><div class="bar kw" style="--v:1.9425"><i></i><b>1.9 ms</b></div><div class="bar" style="--v:1.0647085; margin-top:0.25rem"><i></i><b>1.1 ms</b></div></div></div>
+      <div class="bar-row"><span>SciFact, 5,183 docs</span><div><div class="bar kw" style="--v:2.4898955000000003"><i></i><b>2.5 ms</b></div><div class="bar" style="--v:1.157583; margin-top:0.25rem"><i></i><b>1.2 ms</b></div></div></div>
+      <div class="bar-row"><span>FiQA, 57,638 docs</span><div><div class="bar kw" style="--v:16.7227495"><i></i><b>16.7 ms</b></div><div class="bar" style="--v:1.0666250000000002; margin-top:0.25rem"><i></i><b>1.1 ms</b></div></div></div>
+    </div>
+    <p class="cap">Median time per question, top 10, both inside OpenSearch. Same top 10 as exact search: 89%, 98% and 94% of questions.</p>
+  </div>
+  <p>HNSW gave the same top 10 as exact search for 1,190 of 1,271 questions; where it differed, it was by 1.3 documents on average, and nDCG@10 fell by at most 0.005. FiQA has 16 times as many documents as NFCorpus and exact search took 9 times as long, while HNSW stayed near 1 ms. For a few thousand documents, exact search is fine. For millions, it isn't.</p>
+
+  <h2 data-n="11">Cosine, dot product or distance?</h2>
+  <p>Vector databases make you choose how to compare arrows. OpenSearch offers cosine (<code>cosinesimil</code>), dot product (<code>innerproduct</code>) and straight-line distance (<code>l2</code>). Switch between them for the five sentences from section 01:</p>
+  <div class="widget" id="w-metric">
+    <div class="seg" role="group" aria-label="Measure">
+      <button type="button" data-m="cos" aria-pressed="true">Cosine</button>
+      <button type="button" data-m="dot" aria-pressed="false">Dot product</button>
+      <button type="button" data-m="dist" aria-pressed="false">Distance</button>
+    </div>
+    <ol class="metric">
+      <li data-cos="0.853" data-dot="0.853" data-dist="0.542">Ways to bring down high blood pressure without medication.<b></b></li>
+      <li data-cos="0.647" data-dot="0.647" data-dist="0.840">Eating less salt helps reduce hypertension.<b></b></li>
+      <li data-cos="0.323" data-dot="0.323" data-dist="1.164">Blood pressure is measured in millimetres of mercury.<b></b></li>
+      <li data-cos="0.294" data-dot="0.294" data-dist="1.188">Lower the tyre pressure before driving on sand.<b></b></li>
+      <li data-cos="0.110" data-dot="0.110" data-dist="1.334">The stock market fell sharply today.<b></b></li>
+    </ol>
+    <p class="cap" id="w-metric-cap">Highest cosine first.</p>
+  </div>
+  <p>The order never changes. Because every arrow has length 1, the dot product <em>is</em> the cosine (step 4 divides by 1), and distance falls exactly as cosine rises: distance² = 2 − 2 × cosine (0.542² = 0.294 = 2 − 2 × 0.853). Across all 1,271 questions and every document, the three gave the same top 10 1,271 times out of 1,271. So with length-1 arrows, use dot product: it is the cheapest. With other arrows, use cosine, because dot product favours long arrows. And when reading OpenSearch scores, note that <code>cosinesimil</code> reports (1 + cosine) ÷ 2: a cosine of 0.853 shows as 0.927.</p>
+
+  <h2 data-n="12">In code</h2>
+  <p>With LangChain4j the model runs inside the Java process, with no server and no API key:</p>
+<pre><span class="k">EmbeddingModel</span> model = <span class="k">new</span> AllMiniLmL6V2EmbeddingModel();
+<span class="k">float</span>[] vector = model.embed(<span class="s">"How can I lower my blood pressure?"</span>).content().vector();  <span class="c">// 384 numbers</span></pre>
+  <p>In OpenSearch, the arrows sit in a <code>knn_vector</code> field next to the text, so one index serves both kinds of search:</p>
+<pre><span class="k">PUT</span> /nfcorpus
+{
+  <span class="s">"settings"</span>: { <span class="s">"index"</span>: { <span class="s">"knn"</span>: <span class="n">true</span> } },
+  <span class="s">"mappings"</span>: {
+    <span class="s">"properties"</span>: {
+      <span class="s">"title"</span>:     { <span class="s">"type"</span>: <span class="s">"text"</span> },
+      <span class="s">"text"</span>:      { <span class="s">"type"</span>: <span class="s">"text"</span> },
+      <span class="s">"embedding"</span>: {
+        <span class="s">"type"</span>: <span class="s">"knn_vector"</span>, <span class="s">"dimension"</span>: <span class="n">384</span>,
+        <span class="s">"method"</span>: { <span class="s">"name"</span>: <span class="s">"hnsw"</span>, <span class="s">"engine"</span>: <span class="s">"lucene"</span>, <span class="s">"space_type"</span>: <span class="s">"cosinesimil"</span> }
+      }
+    }
+  }
+}
+
+<span class="k">POST</span> /nfcorpus/_search
+{ <span class="s">"size"</span>: <span class="n">10</span>, <span class="s">"query"</span>: { <span class="s">"knn"</span>: { <span class="s">"embedding"</span>: { <span class="s">"vector"</span>: [<span class="n">-0.0321</span>, <span class="n">0.1206</span>, …], <span class="s">"k"</span>: <span class="n">10</span> } } } }</pre>
+  <p>Exact search uses a <code>script_score</code> query with <code>"source": "knn_score"</code>. The lab's whole client is <code>SearchIndex.java</code>.</p>
+
+  <h2>Summary</h2>
+  <ol class="steps">
+    <li class="step"><strong>An embedding is an arrow of 384 numbers.</strong><span>Cosine similarity compares directions: multiply, add, divide by the lengths. (02, 03)</span></li>
+    <li class="step"><strong>Words, sentences and paragraphs go through one recipe.</strong><span>Split into pieces, adjust each by its neighbours, average. Longer text means a more blended arrow, not a richer one. (04)</span></li>
+    <li class="step"><strong>It finds answers in other words, and blurs names, numbers and "not".</strong><span>(01, 05)</span></li>
+    <li class="step"><strong>It wins when the answers share few of the question's words.</strong><span>FiQA +0.127, SciFact −0.032. 229 : 85 when few words are shared. (07, 08)</span></li>
+    <li class="step"><strong>Check how much text your model reads.</strong><span>Ours read 128 pieces, not the 256 its card promises. (09)</span></li>
+    <li class="step"><strong>HNSW is nearly free.</strong><span>Same top 10 as exact search for 94% of questions, in about 1 ms. (10)</span></li>
+  </ol>
+
+  <h2 data-n="13">Run it yourself</h2>
+  <p>Java 21 with OpenSearch in Docker. The first run downloads the three test sets; the model is bundled in LangChain4j, so there's nothing else to install and no API key.</p>
+<pre class="term"><span class="prompt">$</span> docker compose run --rm --build lab example     <span class="out"># sections 01–06, about a minute</span>
+<span class="prompt">$</span> docker compose run --rm --build lab benchmark   <span class="out"># sections 07, 08, 10, 11</span>
+<span class="prompt">$</span> docker compose run --rm --build lab length      <span class="out"># section 09, re-embeds every document twice</span>
+<span class="prompt">$</span> docker compose down
+<span class="prompt">$</span> python3 blog/build_page.py                      <span class="out"># rebuild this page from out/*.json</span></pre>
+
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li>D. Jurafsky and J. H. Martin, <a href="https://web.stanford.edu/~jurafsky/slp3/5.pdf">Speech and Language Processing</a> (3rd ed. draft), chapter "Embeddings": the distributional hypothesis, cosine similarity, and why the raw dot product favours long vectors.</li>
+    <li>J. R. Firth, "A Synopsis of Linguistic Theory 1930–55", 1957. The attribution is traced by <a href="https://quoteinvestigator.com/2022/09/18/word-company/">Quote Investigator</a>.</li>
+    <li>T. Mikolov et al., <a href="https://arxiv.org/abs/1301.3781">Efficient Estimation of Word Representations in Vector Space</a>, 2013: word2vec, and "King" − "Man" + "Woman" landing closest to "Queen".</li>
+    <li>N. Reimers and I. Gurevych, <a href="https://arxiv.org/abs/1908.10084">Sentence-BERT</a>, EMNLP 2019: the bi-encoder, and 65 hours against about 5 seconds for 10,000 sentences.</li>
+    <li><a href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2">sentence-transformers/all-MiniLM-L6-v2</a> model card: 384 dimensions, 1,170,060,424 training pairs, mean pooling, a 256-piece input limit.</li>
+    <li>N. Thakur et al., <a href="https://arxiv.org/abs/2104.08663">BEIR</a>, NeurIPS 2021 Datasets and Benchmarks, Table 2 (BM25 and TAS-B nDCG@10).</li>
+    <li><a href="https://github.com/embeddings-benchmark/results/tree/main/results/sentence-transformers__all-MiniLM-L6-v2">MTEB results for all-MiniLM-L6-v2</a>: NFCorpus 0.316, SciFact 0.645, FiQA 0.369. N. Muennighoff et al., <a href="https://arxiv.org/abs/2210.07316">MTEB</a>, 2022.</li>
+    <li>Y. Malkov and D. Yashunin, <a href="https://arxiv.org/abs/1603.09320">Hierarchical Navigable Small World graphs</a>, IEEE TPAMI 2018.</li>
+    <li>OpenSearch documentation: <a href="https://github.com/opensearch-project/documentation-website/blob/2.19/_field-types/supported-field-types/knn-methods-engines.md">k-NN methods and engines</a>, <a href="https://github.com/opensearch-project/documentation-website/blob/2.19/_field-types/supported-field-types/knn-spaces.md">spaces</a>, <a href="https://github.com/opensearch-project/documentation-website/blob/2.19/_vector-search/vector-search-techniques/knn-score-script.md">exact k-NN with a scoring script</a>.</li>
+    <li>O. Weller, D. Lawrie and B. Van Durme, <a href="https://arxiv.org/abs/2305.07614">NevIR: Negation in Neural Information Retrieval</a>, EACL 2024.</li>
+    <li>C. Sciavolino et al., <a href="https://arxiv.org/abs/2109.08535">Simple Entity-Centric Questions Challenge Dense Retrievers</a>, EMNLP 2021.</li>
+    <li>Sentence Transformers, <a href="https://www.sbert.net/examples/sentence_transformer/applications/semantic-search/README.html">Semantic Search</a> and <a href="https://www.sbert.net/docs/sentence_transformer/pretrained_models.html">Pretrained Models</a>.</li>
+    <li>Spring AI, <a href="https://docs.spring.io/spring-ai/reference/api/vectordbs/understand-vectordbs.html">Understanding Vectors</a>.</li>
+    <li>Further reading: Simon Willison, <a href="https://simonwillison.net/2023/Oct/23/embeddings/">Embeddings: What they are and why they matter</a>; Jay Alammar, <a href="https://jalammar.github.io/illustrated-word2vec/">The Illustrated Word2vec</a>; Pinecone, <a href="https://www.pinecone.io/learn/series/faiss/hnsw/">HNSW</a>.</li>
+  </ul>
+</section>
+
+</article>
+
+<script>
+(function () {
+  "use strict";
+  var MINUS = "−", TIMES = "×";
+  function num(v, d) { return (d === undefined ? String(v) : v.toFixed(d)).replace("-", MINUS); }
+  function press(group, button) {
+    group.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", b === button ? "true" : "false"); });
+  }
+  function stepper(root, count, render) {
+    var i = 0, back = root.querySelector('[data-go="-1"]'), next = root.querySelector('[data-go="1"]');
+    var dots = root.querySelector(".dots");
+    if (dots && !dots.children.length) { for (var k = 0; k < count; k++) dots.appendChild(document.createElement("span")); }
+    function go(n) {
+      i = Math.max(0, Math.min(count - 1, n));
+      back.disabled = i === 0; next.disabled = i === count - 1;
+      if (dots) Array.prototype.forEach.call(dots.children, function (d, k) { d.classList.toggle("on", k === i); });
+      render(i);
+    }
+    back.addEventListener("click", function () { go(i - 1); });
+    next.addEventListener("click", function () { go(i + 1); });
+    go(0);
+  }
+
+  // 01: re-rank by shared words or by meaning, animating rows to their new places.
+  var rank = document.getElementById("w-rank");
+  if (rank) {
+    var list = rank.querySelector("ol.rank");
+    var rows = Array.prototype.slice.call(list.children);
+    rows.forEach(function (r, k) { r.dataset.i = k; });
+    function order(by) {
+      var first = new Map(rows.map(function (r) { return [r, r.getBoundingClientRect().top]; }));
+      var sorted = rows.slice().sort(function (a, b) {
+        if (by === "cos") return Number(b.dataset.cos) - Number(a.dataset.cos);
+        var sa = a.querySelectorAll(".chips li:not(.none)").length, sb = b.querySelectorAll(".chips li:not(.none)").length;
+        return sb - sa || a.dataset.i - b.dataset.i;
+      });
+      sorted.forEach(function (r, k) { list.appendChild(r); r.querySelector(".pos").textContent = k + 1; });
+      list.dataset.sort = by;
+      sorted.forEach(function (r) {
+        var dy = first.get(r) - r.getBoundingClientRect().top;
+        if (!dy || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+        r.animate([{ transform: "translateY(" + dy + "px)" }, { transform: "none" }], { duration: 450, easing: "ease-out" });
+      });
+    }
+    rank.querySelectorAll("[data-sort]").forEach(function (b) {
+      b.addEventListener("click", function () { press(rank.querySelector(".seg"), b); order(b.dataset.sort); });
+    });
+    order("words");
+  }
+
+  // 03: the four steps of cosine similarity, live.
+  var cos = document.getElementById("w-cos");
+  if (cos) {
+    var xIn = cos.querySelector("#cos-x"), yIn = cos.querySelector("#cos-y"), unit = 15, o = 150;
+    function show(id, t) { cos.querySelector(id).textContent = t; }
+    function update() {
+      var bx = Number(xIn.value), by = Number(yIn.value);
+      show("#cos-x-out", num(bx)); show("#cos-y-out", num(by));
+      var line = cos.querySelector("#cos-b"), label = cos.querySelector("#cos-b-label");
+      line.setAttribute("x2", o + bx * unit); line.setAttribute("y2", o - by * unit);
+      line.style.visibility = bx === 0 && by === 0 ? "hidden" : "visible";
+      label.setAttribute("x", o + bx * unit + (bx >= 0 ? 6 : -16)); label.setAttribute("y", o - by * unit + (by >= 0 ? -6 : 16));
+      var p1 = 4 * bx, p2 = 3 * by, dot = p1 + p2, lb = Math.sqrt(bx * bx + by * by);
+      show("#cos-s1", "4 " + TIMES + " " + num(bx) + " = " + num(p1) + ",  3 " + TIMES + " " + num(by) + " = " + num(p2));
+      show("#cos-s2", num(p1) + " + " + num(p2) + " = " + num(dot));
+      show("#cos-s3", "a: 5,  b: " + (Number.isInteger(lb) ? lb : num(lb, 2)));
+      if (lb === 0) { show("#cos-s4", "b has no direction at (0, 0)"); return; }
+      var c = dot / (5 * lb), deg = Math.round(Math.acos(Math.max(-1, Math.min(1, c))) * 180 / Math.PI);
+      show("#cos-s4", num(dot) + " ÷ (5 " + TIMES + " " + (Number.isInteger(lb) ? lb : num(lb, 2)) + ") = " + num(c, 2) + "   (" + deg + "°)");
+    }
+    cos.querySelectorAll("[data-b]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var v = b.dataset.b.split(","); xIn.value = v[0]; yIn.value = v[1]; press(cos.querySelector(".seg"), b); update();
+      });
+    });
+    [xIn, yIn].forEach(function (el) {
+      el.addEventListener("input", function () { press(cos.querySelector(".seg"), null); update(); });
+    });
+    update();
+  }
+
+  // 04: the recipe, step by step, on the model's real word pieces.
+  var recipe = document.getElementById("w-recipe");
+  if (recipe) {
+    var pieces = [];
+    try { pieces = JSON.parse(recipe.dataset.pieces || "[]"); } catch (e) { pieces = []; }
+    if (!pieces.length) pieces = ["[CLS]", "(run", "the", "lab)", "[SEP]"];
+    var svg = recipe.querySelector("svg"), NS = "http://www.w3.org/2000/svg";
+    var W = 720, n = pieces.length, gap = (W - 40) / n;
+    // Illustrative directions: each piece starts pointing its own way; after adjusting, they lean together.
+    function hash(s) { var h = 7; for (var k = 0; k < s.length; k++) h = (h * 31 + s.charCodeAt(k)) % 997; return h; }
+    var start = pieces.map(function (p) { return -150 + (hash(p) % 120); });
+    var mixed = start.map(function (a) { return -60 + (a + 90) * 0.25; });
+    function el(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; }
+    el("defs", {}).innerHTML = '<marker id="rtip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent-2)"/></marker>' +
+      '<marker id="rtip2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker>';
+    var chips = [], arrows = [];
+    pieces.forEach(function (p, k) {
+      var x = 20 + gap * k + gap / 2;
+      var t = el("text", { x: x, y: 40, "text-anchor": "middle", "font-size": Math.min(13, gap / (p.length * 0.62)) });
+      t.textContent = p; chips.push(t);
+      arrows.push(el("line", { x1: x, y1: 120, x2: x, y2: 120, stroke: "var(--accent-2)", "stroke-width": 2, "marker-end": "url(#rtip)", opacity: 0 }));
+    });
+    var avg = el("line", { x1: 360, y1: 225, x2: 360, y2: 225, stroke: "var(--accent)", "stroke-width": 4, "marker-end": "url(#rtip2)", opacity: 0 });
+    var avgLabel = el("text", { x: 400, y: 215, "font-size": 13, opacity: 0 }); avgLabel.textContent = "one arrow for the whole sentence";
+    function point(line, x, y, deg, len) {
+      var r = deg * Math.PI / 180;
+      line.setAttribute("x1", x); line.setAttribute("y1", y);
+      line.setAttribute("x2", x + Math.cos(r) * len); line.setAttribute("y2", y + Math.sin(r) * len);
+    }
+    var bank = pieces.indexOf("bank");
+    var texts = [
+      "<strong>1. Split.</strong> The text is cut into word pieces the model knows. [CLS] and [SEP] are markers it adds at the start and end. Rare words become several pieces.",
+      "<strong>2. Start.</strong> Each piece gets its own starting arrow from a fixed table, the same arrow wherever the piece appears. This is the \"word embedding\" level: \"bank\" here starts exactly as it would next to \"money\".",
+      "<strong>3. Adjust.</strong> Six times over, every piece looks at every other piece and shifts its arrow toward what the context says. After this, \"bank\" next to \"river\" and \"water\" points somewhere different from \"bank\" in a sentence about savings.",
+      "<strong>4. Average.</strong> All the piece arrows are averaged into one, then scaled to length 1. A word, a sentence and a paragraph all end here: one arrow of 384 numbers."
+    ];
+    stepper(recipe, 4, function (s) {
+      recipe.querySelector(".step-text").innerHTML = texts[s];
+      pieces.forEach(function (p, k) {
+        var x = 20 + gap * k + gap / 2;
+        arrows[k].setAttribute("opacity", s >= 1 ? (s === 3 ? 0.35 : 1) : 0);
+        point(arrows[k], x, 120, s >= 2 ? mixed[k] : start[k], Math.min(34, gap * 0.9));
+        arrows[k].setAttribute("stroke-width", k === bank && s >= 1 && s < 3 ? 3.5 : 2);
+        chips[k].setAttribute("font-weight", k === bank && s >= 1 ? 700 : 400);
+      });
+      var mean = mixed.reduce(function (a, b) { return a + b; }, 0) / n;
+      point(avg, 330, 230, mean, 60);
+      avg.setAttribute("opacity", s === 3 ? 1 : 0); avgLabel.setAttribute("opacity", s === 3 ? 1 : 0);
+    });
+  }
+
+  // 07: dataset tabs.
+  var tabs = document.getElementById("w-datasets");
+  if (tabs) {
+    tabs.querySelectorAll("[data-tab]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        press(tabs.querySelector(".seg"), b);
+        tabs.querySelectorAll("[data-panel]").forEach(function (p) { p.hidden = p.dataset.panel !== b.dataset.tab; });
+      });
+    });
+  }
+
+  // 08: example carousel.
+  var slides = document.getElementById("w-slides");
+  if (slides) {
+    var all = slides.querySelectorAll(".slide");
+    stepper(slides, all.length, function (s) { all.forEach(function (sl, k) { sl.hidden = k !== s; }); });
+  }
+
+  // 10: an HNSW search, hop by hop (illustration).
+  var hnsw = document.getElementById("w-hnsw");
+  if (hnsw) {
+    var hs = hnsw.querySelector("svg"), NS2 = "http://www.w3.org/2000/svg";
+    function add(tag, attrs, parent) { var e = document.createElementNS(NS2, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); (parent || hs).appendChild(e); return e; }
+    var layers = [
+      { y: 60, name: "top layer: few documents, long links", nodes: [[90, 0], [330, 0], [590, 0]] },
+      { y: 165, name: "middle layer", nodes: [[90, 0], [200, 0], [330, 0], [450, 0], [530, 0], [590, 0], [660, 0]] },
+      { y: 270, name: "bottom layer: every document", nodes: [[60, 0], [90, 0], [140, 0], [200, 0], [260, 0], [330, 0], [390, 0], [450, 0], [500, 0], [530, 0], [560, 0], [590, 0], [630, 0], [660, 0]] }
+    ];
+    var target = [548, 300];
+    layers.forEach(function (L) {
+      add("text", { x: 20, y: L.y - 22, class: "layer-name" }).textContent = L.name;
+      for (var k = 0; k + 1 < L.nodes.length; k++) add("line", { x1: L.nodes[k][0], y1: L.y, x2: L.nodes[k + 1][0], y2: L.y, class: "edge" });
+    });
+    // Every document in a layer is also in the layers below it.
+    [[90, 60, 165], [330, 60, 165], [590, 60, 165], [90, 165, 270], [200, 165, 270], [330, 165, 270], [450, 165, 270], [530, 165, 270], [590, 165, 270], [660, 165, 270]].forEach(function (v) {
+      add("line", { x1: v[0], y1: v[1], x2: v[0], y2: v[2], class: "edge", "stroke-dasharray": "3 4" });
+    });
+    var nodeEls = {};
+    layers.forEach(function (L, li) {
+      L.nodes.forEach(function (nd) { nodeEls[li + ":" + nd[0]] = add("circle", { cx: nd[0], cy: L.y, r: 9, class: "node" }); });
+    });
+    add("path", { d: "M" + target[0] + " " + (target[1] - 9) + " l3 6 7 1 -5 5 1 7 -6 -3 -6 3 1 -7 -5 -5 7 -1z", class: "target" });
+    add("text", { x: target[0] + 16, y: target[1] + 4, "font-size": 12 }).textContent = "the question";
+    var path = [
+      { at: "0:90", hop: null, text: "Start at the entry point in the top layer. Only a few documents live here, far apart." },
+      { at: "0:330", hop: [90, 60, 330, 60], text: "Compare the question with this document's linked neighbours, and move to the closest." },
+      { at: "0:590", hop: [330, 60, 590, 60], text: "Again. Long links cover a lot of ground in one hop." },
+      { at: "1:590", hop: [590, 60, 590, 165], text: "No neighbour up here is closer. Drop to the layer below, at the same document." },
+      { at: "1:530", hop: [590, 165, 530, 165], text: "More documents, shorter links. Keep moving toward the question." },
+      { at: "2:530", hop: [530, 165, 530, 270], text: "Drop to the bottom layer, where every document lives." },
+      { at: "2:560", hop: [530, 270, 560, 270], text: "One more hop, and no neighbour is closer: this is the answer. A few comparisons per layer, instead of one per document." }
+    ];
+    var hops = path.map(function (p) { return p.hop ? add("line", { x1: p.hop[0], y1: p.hop[1], x2: p.hop[2], y2: p.hop[3], class: "hop" }) : null; });
+    stepper(hnsw, path.length, function (s) {
+      Object.keys(nodeEls).forEach(function (k) { nodeEls[k].setAttribute("class", "node"); });
+      for (var k = 0; k <= s; k++) {
+        nodeEls[path[k].at].setAttribute("class", k === s ? "node here" : "node seen");
+        if (hops[k]) hops[k].classList.add("on");
+      }
+      for (var j = s + 1; j < path.length; j++) if (hops[j]) hops[j].classList.remove("on");
+      hnsw.querySelector(".step-text").textContent = path[s].text;
+    });
+  }
+
+  // 11: the same order under three measures.
+  var metric = document.getElementById("w-metric");
+  if (metric) {
+    var caps = { cos: "Highest cosine first.", dot: "Highest dot product first. Same numbers as cosine: every arrow has length 1.", dist: "Smallest distance first. Different numbers, same order." };
+    function showMetric(m) {
+      metric.querySelectorAll("ol.metric li").forEach(function (li) { li.querySelector("b").textContent = li.dataset[m].replace("-", MINUS); });
+      metric.querySelector("#w-metric-cap").textContent = caps[m];
+    }
+    metric.querySelectorAll("[data-m]").forEach(function (b) {
+      b.addEventListener("click", function () { press(metric.querySelector(".seg"), b); showMetric(b.dataset.m); });
+    });
+    showMetric("cos");
+  }
+})();
+</script>
+
+<script>
+// ape-present runtime. Copy verbatim into the <script> at the end of <body>.
+// Covers: figure reveals, stat counters, live diagram motion (packets, pulses,
+// cycles, streaming channels), meter animations, inspect-node cross-highlighting,
+// interactive step-by-step walkthroughs, and theme switching.
+(() => {
+  if (window.__apePresent) return;
+  window.__apePresent = true;
+
+  const root = document.documentElement;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // --- Theme --------------------------------------------------------------
+  {
+    // The theme the document was built with (data-theme on <html>, or none = follow OS).
+    const builtTheme = root.getAttribute('data-theme');
+    const DARK = ['midnight', 'dark', 'mocha', 'tokyo', 'tokyo-night', 'nord', 'dracula',
+      'gruvbox', 'rosepine', 'rose-pine', 'forest', 'neon'];
+    // Scoped per document so toggling one doc never restyles another on the same origin.
+    const KEY = 'ape-theme:' + (location.pathname.split('/').pop() || 'doc');
+
+    const applyTheme = (t) => {
+      if (!t) return;
+      root.setAttribute('data-theme', t);
+      try { localStorage.setItem(KEY, t); } catch (_) {}
+    };
+
+    try {
+      const saved = localStorage.getItem(KEY);
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (_) {}
+
+    window.addEventListener('message', (e) => {
+      if (e && e.data && e.data.type === 'theme' && e.data.theme) {
+        applyTheme(e.data.theme);
+      }
+    });
+
+    try {
+      if (window.parent && window.parent !== window && window.parent.document && window.parent.document.documentElement) {
+        const parentTheme = window.parent.document.documentElement.getAttribute('data-theme');
+        if (parentTheme) root.setAttribute('data-theme', parentTheme);
+      }
+    } catch (_) {}
+
+    // `t` flips polarity but remembers the built theme: a nord document goes
+    // nord -> daylight -> nord, not nord -> midnight.
+    addEventListener('keydown', (e) => {
+      if (e.key !== 't' || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+      const cur = root.getAttribute('data-theme');
+      const isDark = cur ? DARK.includes(cur)
+        : matchMedia('(prefers-color-scheme: dark)').matches;
+      const darkHome = builtTheme && DARK.includes(builtTheme) ? builtTheme : 'midnight';
+      const lightHome = builtTheme && !DARK.includes(builtTheme) ? builtTheme : 'daylight';
+      applyTheme(isDark ? lightHome : darkHome);
+    });
+  }
+
+  // --- Counters -----------------------------------------------------------
+  const countUp = (el) => {
+    if (el.dataset.done) return;
+    el.dataset.done = '1';
+    const to = parseFloat(el.dataset.to);
+    const decimals = parseInt(el.dataset.decimals || '0', 10);
+    const fmt = (v) => (el.dataset.prefix || '') + v.toLocaleString(undefined, {
+      minimumFractionDigits: decimals, maximumFractionDigits: decimals,
+    }) + (el.dataset.suffix || '');
+    if (reduced || isNaN(to)) { el.textContent = fmt(isNaN(to) ? 0 : to); return; }
+    const start = performance.now(), dur = 1200;
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      el.textContent = fmt(to * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+
+  // --- Meter / Race Bars ----------------------------------------------------
+  const animateMeter = (el) => {
+    const pct = el.dataset.pct || el.style.getPropertyValue('--pct') || '0%';
+    el.style.setProperty('--target-pct', pct);
+    el.classList.add('filled');
+  };
+
+  // --- Reveal once ----------------------------------------------------------
+  const targets = [...document.querySelectorAll('figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels')];
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      e.target.classList.add('in');
+      e.target.querySelectorAll('.num[data-to]').forEach(countUp);
+      e.target.querySelectorAll('.meter-fill, .race-fill').forEach(animateMeter);
+      io.unobserve(e.target);
+    }
+  }, { threshold: 0.15 });
+  targets.forEach((t) => io.observe(t));
+
+  // --- Live motion: run only while the figure is on screen ------------------
+  const live = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      e.target.classList.toggle('live', e.isIntersecting);
+      e.target.querySelectorAll('svg').forEach((svg) => {
+        if (reduced) { svg.pauseAnimations(); return; }
+        e.isIntersecting ? svg.unpauseAnimations() : svg.pauseAnimations();
+      });
+    }
+  }, { threshold: 0.1 });
+  document.querySelectorAll('figure, .live-host').forEach((f) => live.observe(f));
+
+  // --- Cycles: [data-cycle="900"] lights its children in turn, forever ------
+  document.querySelectorAll('[data-cycle]').forEach((host) => {
+    const kids = [...host.children];
+    if (kids.length < 2) return;
+    const step = parseInt(host.dataset.cycle, 10) || 900;
+    let i = 0;
+    if (reduced) { kids[0].classList.add('lit'); return; }
+    setInterval(() => {
+      if (!host.closest('.live') && !host.classList.contains('live')) return;
+      kids.forEach((k) => k.classList.remove('lit'));
+      kids[i % kids.length].classList.add('lit');
+      i++;
+    }, step);
+  });
+
+  // --- Inspect-Node Cross-Highlighting (Prose <-> Diagram) ------------------
+  document.querySelectorAll('.inspect-node[data-target]').forEach((pill) => {
+    const targetId = pill.dataset.target;
+    const targetEl = document.getElementById(targetId);
+    if (!targetEl) return;
+
+    const svg = targetEl.closest('svg');
+
+    const activate = () => {
+      pill.classList.add('inspecting');
+      if (svg) svg.classList.add('inspect-active');
+      targetEl.classList.add('inspected');
+    };
+
+    const deactivate = () => {
+      pill.classList.remove('inspecting');
+      if (svg) svg.classList.remove('inspect-active');
+      targetEl.classList.remove('inspected');
+    };
+
+    pill.addEventListener('mouseenter', activate);
+    pill.addEventListener('mouseleave', deactivate);
+    pill.addEventListener('focus', activate);
+    pill.addEventListener('blur', deactivate);
+    // Touch / click: toggle, so the highlight is reachable without hover or a keyboard.
+    pill.addEventListener('click', () =>
+      pill.classList.contains('inspecting') ? deactivate() : activate());
+  });
+
+  // --- Interactive Step-by-Step Steppers -----------------------------------
+  document.querySelectorAll('.stepper').forEach((stepper) => {
+    const panes = [...stepper.querySelectorAll('.step-pane')];
+    const indicator = stepper.querySelector('.step-count');
+    const prevBtn = stepper.querySelector('.step-prev');
+    const nextBtn = stepper.querySelector('.step-next');
+    const targetSvgId = stepper.dataset.svg;
+    const svg = targetSvgId ? document.getElementById(targetSvgId) : null;
+    let current = 0;
+
+    const render = () => {
+      panes.forEach((p, idx) => p.classList.toggle('active', idx === current));
+      if (indicator) indicator.textContent = `${current + 1} / ${panes.length}`;
+      if (prevBtn) prevBtn.disabled = current === 0;
+      if (nextBtn) nextBtn.disabled = current === panes.length - 1;
+
+      if (svg) {
+        svg.querySelectorAll('[data-step]').forEach((el) => {
+          const stepVal = parseInt(el.dataset.step, 10);
+          el.classList.toggle('active-step', stepVal === current + 1);
+        });
+      }
+    };
+
+    if (prevBtn) prevBtn.addEventListener('click', () => { if (current > 0) { current--; render(); } });
+    if (nextBtn) nextBtn.addEventListener('click', () => { if (current < panes.length - 1) { current++; render(); } });
+    render();
+  });
+})();
+
+</script>
+

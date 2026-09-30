@@ -1,0 +1,307 @@
+{
+  "arrows" : [ {
+    "name" : "b",
+    "vector" : [ 3.0, 4.0 ],
+    "dot" : 24.0,
+    "length_a" : 5.0,
+    "length_other" : 5.0,
+    "cosine" : 0.96,
+    "degrees" : 16.0
+  }, {
+    "name" : "c",
+    "vector" : [ -3.0, 4.0 ],
+    "dot" : 0.0,
+    "length_a" : 5.0,
+    "length_other" : 5.0,
+    "cosine" : 0.0,
+    "degrees" : 90.0
+  }, {
+    "name" : "d",
+    "vector" : [ -4.0, -3.0 ],
+    "dot" : -25.0,
+    "length_a" : 5.0,
+    "length_other" : 5.0,
+    "cosine" : -1.0,
+    "degrees" : 180.0
+  } ],
+  "longer_arrow" : {
+    "vector" : [ 8.0, 6.0 ],
+    "dot_with_b" : 48.0,
+    "length" : 10.0,
+    "cosine_with_b" : 0.96,
+    "cosine_with_a" : 1.0,
+    "dot_a_with_b" : 24.0
+  },
+  "question" : "How can I lower my blood pressure?",
+  "vector" : {
+    "dimensions" : 384,
+    "first_values" : [ -0.0321, 0.1206, -0.0035, 0.0289, -0.0166, 0.001 ],
+    "length" : 1.0
+  },
+  "sentences" : [ {
+    "text" : "Eating less salt helps reduce hypertension.",
+    "shared_words" : [ ],
+    "cosine" : 0.647,
+    "dot" : 0.647,
+    "euclidean" : 0.84,
+    "degrees" : 50.0
+  }, {
+    "text" : "Ways to bring down high blood pressure without medication.",
+    "shared_words" : [ "blood", "pressure" ],
+    "cosine" : 0.853,
+    "dot" : 0.853,
+    "euclidean" : 0.542,
+    "degrees" : 31.0
+  }, {
+    "text" : "Blood pressure is measured in millimetres of mercury.",
+    "shared_words" : [ "blood", "pressure" ],
+    "cosine" : 0.323,
+    "dot" : 0.323,
+    "euclidean" : 1.164,
+    "degrees" : 71.0
+  }, {
+    "text" : "Lower the tyre pressure before driving on sand.",
+    "shared_words" : [ "lower", "pressure" ],
+    "cosine" : 0.294,
+    "dot" : 0.294,
+    "euclidean" : 1.188,
+    "degrees" : 73.0
+  }, {
+    "text" : "The stock market fell sharply today.",
+    "shared_words" : [ ],
+    "cosine" : 0.11,
+    "dot" : 0.11,
+    "euclidean" : 1.334,
+    "degrees" : 84.0
+  } ],
+  "recipe_384" : {
+    "sentence" : "Eating less salt helps reduce hypertension.",
+    "first_products" : [ {
+      "question" : -0.0321,
+      "sentence" : -0.0238,
+      "product" : 7.6E-4
+    }, {
+      "question" : 0.1206,
+      "sentence" : 0.1193,
+      "product" : 0.01439
+    }, {
+      "question" : -0.0035,
+      "sentence" : 0.0537,
+      "product" : -1.9E-4
+    }, {
+      "question" : 0.0289,
+      "sentence" : 0.0068,
+      "product" : 2.0E-4
+    } ],
+    "dot" : 0.6474,
+    "length_question" : 1.0,
+    "length_sentence" : 1.0,
+    "cosine" : 0.6474
+  },
+  "levels" : {
+    "pieces" : [ {
+      "text" : "bank",
+      "pieces" : [ "[CLS]", "bank", "[SEP]" ]
+    }, {
+      "text" : "hypertension",
+      "pieces" : [ "[CLS]", "hyper", "##tension", "[SEP]" ]
+    }, {
+      "text" : "She sat on the bank of the river and watched the water.",
+      "pieces" : [ "[CLS]", "she", "sat", "on", "the", "bank", "of", "the", "river", "and", "watched", "the", "water", ".", "[SEP]" ]
+    } ],
+    "words" : [ {
+      "a" : "bank",
+      "b" : "river",
+      "cosine" : 0.5
+    }, {
+      "a" : "bank",
+      "b" : "money",
+      "cosine" : 0.469
+    }, {
+      "a" : "river",
+      "b" : "money",
+      "cosine" : 0.358
+    } ],
+    "sentences" : [ {
+      "a" : "She sat on the bank of the river and watched the water.",
+      "b" : "He opened a savings account at the bank.",
+      "shared_words" : [ "bank" ],
+      "cosine" : 0.262,
+      "cosine_of_word_averages" : 0.874
+    }, {
+      "a" : "She sat on the bank of the river and watched the water.",
+      "b" : "They had a picnic beside the stream.",
+      "shared_words" : [ ],
+      "cosine" : 0.394,
+      "cosine_of_word_averages" : 0.876
+    }, {
+      "a" : "He opened a savings account at the bank.",
+      "b" : "She paid her salary into her current account.",
+      "shared_words" : [ "account" ],
+      "cosine" : 0.412,
+      "cosine_of_word_averages" : 0.819
+    } ],
+    "paragraph" : {
+      "question" : "How do I renew my parking permit?",
+      "whole" : 0.507,
+      "paragraph_vs_each_sentence" : [ 0.644, 0.572, 0.614 ],
+      "paragraph_vs_average_of_sentences" : 0.915,
+      "sentences" : [ {
+        "text" : "Our office moved to a new building on Park Street in March.",
+        "cosine" : 0.342
+      }, {
+        "text" : "The canteen on the ground floor now serves vegetarian meals every day.",
+        "cosine" : 0.003
+      }, {
+        "text" : "Parking permits must be renewed online before the end of June.",
+        "cosine" : 0.743
+      } ]
+    }
+  },
+  "pairs" : [ {
+    "a" : "car",
+    "b" : "automobile",
+    "cosine" : 0.865
+  }, {
+    "a" : "car",
+    "b" : "truck",
+    "cosine" : 0.689
+  }, {
+    "a" : "car",
+    "b" : "banana",
+    "cosine" : 0.39
+  }, {
+    "a" : "hot",
+    "b" : "cold",
+    "cosine" : 0.519
+  }, {
+    "a" : "The dog bit the man.",
+    "b" : "The man bit the dog.",
+    "cosine" : 0.978
+  }, {
+    "a" : "I love this film.",
+    "b" : "I do not love this film.",
+    "cosine" : 0.743
+  }, {
+    "a" : "Order 4471 has shipped.",
+    "b" : "Order 9012 has shipped.",
+    "cosine" : 0.647
+  } ],
+  "nfcorpus" : {
+    "opensearch_version" : "2.19.1",
+    "query_id" : "PLAIN-2830",
+    "query" : "Neurobiology of Artificial Sweeteners",
+    "documents" : 3633,
+    "keyword_top" : [ {
+      "id" : "MED-5054",
+      "title" : "The potential toxicity of artificial sweeteners.",
+      "relevance" : 0,
+      "keyword_rank" : 1,
+      "meaning_rank" : 7,
+      "cosine" : 0.584,
+      "shared_words" : [ "artificial", "sweeteners" ]
+    }, {
+      "id" : "MED-4120",
+      "title" : "Sucrose activates human taste pathways differently from artificial sweetener.",
+      "relevance" : 2,
+      "keyword_rank" : 2,
+      "meaning_rank" : 4,
+      "cosine" : 0.614,
+      "shared_words" : [ "artificial", "sweeteners" ]
+    }, {
+      "id" : "MED-1625",
+      "title" : "Sugar substitutes: Health controversy over perceived benefits",
+      "relevance" : 0,
+      "keyword_rank" : 3,
+      "meaning_rank" : 3,
+      "cosine" : 0.622,
+      "shared_words" : [ "artificial", "sweeteners" ]
+    }, {
+      "id" : "MED-5053",
+      "title" : "Artificial sweetener consumption and urinary tract tumors in Cordoba, Argentina.",
+      "relevance" : 0,
+      "keyword_rank" : 4,
+      "meaning_rank" : 13,
+      "cosine" : 0.467,
+      "shared_words" : [ "artificial", "sweeteners" ]
+    }, {
+      "id" : "MED-3380",
+      "title" : "Artificial food dyes and attention deficit hyperactivity disorder.",
+      "relevance" : 0,
+      "keyword_rank" : 5,
+      "meaning_rank" : 15,
+      "cosine" : 0.459,
+      "shared_words" : [ "artificial" ]
+    } ],
+    "meaning_top" : [ {
+      "id" : "MED-1624",
+      "title" : "Direct and indirect cellular effects of aspartame on the brain.",
+      "relevance" : 0,
+      "keyword_rank" : 24,
+      "meaning_rank" : 1,
+      "cosine" : 0.686,
+      "shared_words" : [ "artificial" ]
+    }, {
+      "id" : "MED-1623",
+      "title" : "Possible neurologic effects of aspartame, a widely used food additive.",
+      "relevance" : 0,
+      "keyword_rank" : 21,
+      "meaning_rank" : 2,
+      "cosine" : 0.64,
+      "shared_words" : [ "artificial" ]
+    }, {
+      "id" : "MED-1625",
+      "title" : "Sugar substitutes: Health controversy over perceived benefits",
+      "relevance" : 0,
+      "keyword_rank" : 3,
+      "meaning_rank" : 3,
+      "cosine" : 0.622,
+      "shared_words" : [ "artificial", "sweeteners" ]
+    }, {
+      "id" : "MED-4120",
+      "title" : "Sucrose activates human taste pathways differently from artificial sweetener.",
+      "relevance" : 2,
+      "keyword_rank" : 2,
+      "meaning_rank" : 4,
+      "cosine" : 0.614,
+      "shared_words" : [ "artificial", "sweeteners" ]
+    }, {
+      "id" : "MED-3521",
+      "title" : "Sweet and sour cherry phenolics and their protective effects on neuronal cells.",
+      "relevance" : 0,
+      "keyword_rank" : null,
+      "meaning_rank" : 5,
+      "cosine" : 0.607,
+      "shared_words" : [ ]
+    } ],
+    "relevant" : [ {
+      "id" : "MED-4120",
+      "title" : "Sucrose activates human taste pathways differently from artificial sweetener.",
+      "relevance" : 2,
+      "keyword_rank" : 2,
+      "meaning_rank" : 4,
+      "cosine" : 0.614,
+      "shared_words" : [ "artificial", "sweeteners" ]
+    }, {
+      "id" : "MED-4121",
+      "title" : "Effect of covert nutritive dilution on the spontaneous food intake of obese individuals: a pilot study.",
+      "relevance" : 1,
+      "keyword_rank" : null,
+      "meaning_rank" : null,
+      "cosine" : 0.34,
+      "shared_words" : [ ]
+    }, {
+      "id" : "MED-4124",
+      "title" : "Erythritol is a sweet antioxidant.",
+      "relevance" : 1,
+      "keyword_rank" : null,
+      "meaning_rank" : null,
+      "cosine" : 0.318,
+      "shared_words" : [ ]
+    } ],
+    "ndcg@10" : {
+      "keyword" : 0.403,
+      "meaning" : 0.275
+    }
+  }
+}

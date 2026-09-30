@@ -1,0 +1,79 @@
+{
+  "shipped_tokenizer_truncation" : {
+    "direction" : "Right",
+    "max_length" : 128,
+    "strategy" : "LongestFirst",
+    "stride" : 0
+  },
+  "datasets" : {
+    "nfcorpus" : {
+      "documents" : 3633,
+      "median_tokens" : 357,
+      "p90_tokens" : 505,
+      "share_longer_than" : {
+        "128" : 0.9735755573905863,
+        "256" : 0.7883292045141757,
+        "512" : 0.09083402146985962
+      },
+      "longest_query_tokens" : 28,
+      "longest_document_probe" : {
+        "tokens" : 2377,
+        "shipped_vs_its_first_126_tokens" : 1.0,
+        "shipped_vs_limit_128_model" : 1.0,
+        "shipped_vs_limit_256_model" : 0.8417474576849661,
+        "shipped_vs_no_limit_model" : 0.7398602605285473
+      },
+      "ndcg@10" : {
+        "128" : 0.3149449318945292,
+        "256" : 0.31667312754717813,
+        "none" : 0.3104995487092089
+      }
+    },
+    "scifact" : {
+      "documents" : 5183,
+      "median_tokens" : 316,
+      "p90_tokens" : 502,
+      "share_longer_than" : {
+        "128" : 0.978776770210303,
+        "256" : 0.710206444144318,
+        "512" : 0.08778699594829249
+      },
+      "longest_query_tokens" : 64,
+      "longest_document_probe" : {
+        "tokens" : 1939,
+        "shipped_vs_its_first_126_tokens" : 1.0000000000000002,
+        "shipped_vs_limit_128_model" : 1.0000000000000002,
+        "shipped_vs_limit_256_model" : 0.8260239559565052,
+        "shipped_vs_no_limit_model" : 0.7434706952656516
+      },
+      "ndcg@10" : {
+        "128" : 0.6238596288000929,
+        "256" : 0.6450816521455768,
+        "none" : 0.6540837346606101
+      }
+    },
+    "fiqa" : {
+      "documents" : 57638,
+      "median_tokens" : 120,
+      "p90_tokens" : 371,
+      "share_longer_than" : {
+        "128" : 0.46807661612130885,
+        "256" : 0.19154030327214686,
+        "512" : 0.04193414067108505
+      },
+      "longest_query_tokens" : 35,
+      "longest_document_probe" : {
+        "tokens" : 3599,
+        "shipped_vs_its_first_126_tokens" : 1.0,
+        "shipped_vs_limit_128_model" : 1.0,
+        "shipped_vs_limit_256_model" : 0.9130270946215561,
+        "shipped_vs_no_limit_model" : 0.7686874616582634
+      },
+      "ndcg@10" : {
+        "128" : 0.36626217997741567,
+        "256" : 0.36867136984071575,
+        "none" : 0.36103016333795235
+      }
+    }
+  }
+}
