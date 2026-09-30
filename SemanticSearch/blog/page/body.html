@@ -387,7 +387,7 @@ ol.metric b { font-family: var(--mono); text-align: right; }
         <tr><th>What the model can physically take</th><td>512</td><td class="wrap">Its design has 512 position slots. Longer input can't go in at all.</td></tr>
         <tr><th>What its makers set</th><td>256</td><td class="wrap">The model card and its settings file: longer text is cut here. The MTEB leaderboard's scores use this.</td></tr>
         <tr><th>What it was trained on</th><td>128</td><td class="wrap">The model card: training texts were cut at 128.</td></tr>
-        <tr class="hl"><th>What LangChain4j actually gives it</th><td>128</td><td class="wrap">The tokenizer file bundled with the Java library we run it with. Everything after is dropped before the model sees it.</td></tr>
+        <tr class="hl"><th>What our lab actually gives it</th><td>128</td><td class="wrap">LangChain4j, the Java library that runs the model in this lab, ships a settings file that cuts here. Everything after is dropped before the model sees it.</td></tr>
       </tbody>
     </table>
   </div>
@@ -526,7 +526,15 @@ ol.metric b { font-family: var(--mono); text-align: right; }
   <p>Names, codes, gene symbols and rare terms are keyword search's strength and meaning search's weakness (a 2021 study found the same for questions about less common people and places). That is why most production systems run both and merge the two lists. Merging is part 3.</p>
 
   <h2 data-n="09">How much of each document the model reads</h2>
-  <p>We found this one by accident. The model itself can take 512 word pieces and its makers set 256, but LangChain4j, the Java library we run it with, cuts every text at 128 before the model sees it (the table in section 04). LangChain4j even has code to split long texts into parts and average them; the cut means that code never runs. We checked on FiQA's longest document, {{l:datasets.fiqa.longest_document_probe.tokens|int}} pieces long: its arrow and the arrow of just its first 126 pieces have a cosine of {{l:datasets.fiqa.longest_document_probe.shipped_vs_its_first_126_tokens|4}}. They are the same arrow. Most documents are affected: {{l:datasets.nfcorpus.share_longer_than.128|pct}} of NFCorpus papers, {{l:datasets.scifact.share_longer_than.128|pct}} of SciFact abstracts and {{l:datasets.fiqa.share_longer_than.128|pct}} of FiQA answers are longer than 128 pieces. So we re-embedded every document twice: with the limit raised to 256, the makers' setting, and with no limit, letting LangChain4j split and average:</p>
+  <p>A model on its own is just a file of numbers. Something has to cut the text into word pieces, feed them in, and read the 384 numbers out. In this lab that is <strong>LangChain4j</strong>, a Java library for working with AI models. It ships with its own copy of all-MiniLM-L6-v2 and of the settings file that decides where text is cut.</p>
+  <ol class="steps">
+    <li class="step"><strong>What should happen.</strong><span>The model can take up to 512 word pieces, and its makers chose to cut at 256 (the table in section 04).</span></li>
+    <li class="step"><strong>What happens in LangChain4j.</strong><span>Its settings file cuts every text at 128 pieces, roughly the first 100 words, before the model sees it. LangChain4j also has code to handle long texts by splitting them into parts and averaging them. Because of the 128 cut, that code never runs.</span></li>
+    <li class="step"><strong>How we know.</strong><span>FiQA's longest document is {{l:datasets.fiqa.longest_document_probe.tokens|int}} pieces long. We embedded the whole document, then only its first 126 pieces (plus the two markers). The cosine between the two arrows was {{l:datasets.fiqa.longest_document_probe.shipped_vs_its_first_126_tokens|4}}: the same arrow. Nothing after the first 128 pieces had any effect.</span></li>
+    <li class="step"><strong>How much it matters.</strong><span>Most documents are longer than that: {{l:datasets.nfcorpus.share_longer_than.128|pct}} of NFCorpus papers, {{l:datasets.scifact.share_longer_than.128|pct}} of SciFact abstracts and {{l:datasets.fiqa.share_longer_than.128|pct}} of FiQA answers.</span></li>
+    <li class="step"><strong>What we tried.</strong><span>We changed the setting and embedded every document twice more: once cut at 256, the makers' choice, and once with no cut, so LangChain4j splits long texts and averages the parts.</span></li>
+  </ol>
+  <p>We found this by accident, while checking why our SciFact score was lower than the published one. Here is what each setting gives:</p>
   <div class="widget">
     <p class="legend"><span><i class="kw"></i>first 128 pieces (as shipped)</span><span><i></i>first 256</span><span><i style="background:color-mix(in srgb, var(--ok) 42%, transparent)"></i>whole document</span></p>
     <div class="bars" style="--max:1">
