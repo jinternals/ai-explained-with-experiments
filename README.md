@@ -16,7 +16,8 @@ The three search posts build on each other; the LLM post stands on its own.
 ## Getting started
 
 ```bash
-git clone <this repository> && cd <repository folder>
+git clone https://github.com/mradulpandey/ai-explained-with-experiments.git
+cd ai-explained-with-experiments
 ```
 
 Each project runs on its own, so you only need what the project you want uses:
