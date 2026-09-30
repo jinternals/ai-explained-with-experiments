@@ -679,10 +679,15 @@ details.more { border: 1px solid var(--line); border-radius: 10px; padding: 0.7r
 details.more summary { cursor: pointer; font-weight: 600; }
 details.more[open] summary { margin-bottom: 0.6rem; }
 
-/* Section 04: the recipe */
-.recipe svg { width: 100%; height: auto; display: block; }
-.recipe .step-text { min-height: 4.2rem; margin: 0.6rem 0 0; }
-.recipe .step-text strong { color: var(--accent); }
+/* Section 04: the toy recipe */
+.toy-grid { display: grid; grid-template-columns: minmax(0, 300px) 1fr; gap: 1.25rem; align-items: start; }
+.toy-grid > div { min-width: 0; }
+.toy-grid svg { width: 100%; height: auto; display: block; }
+.toy .step-text { margin: 0.7rem 0 0; font-size: 0.95rem; }
+.toy .step-text strong { color: var(--accent); }
+.toy .toy-readout { margin: 0.7rem 0 0; font-size: 0.88rem; color: var(--muted); font-family: var(--mono); }
+.toy .seg button { text-align: left; }
+@media (max-width: 40rem) { .toy-grid { grid-template-columns: 1fr; } .toy-grid svg { max-width: 280px; margin: 0 auto; } }
 .nav { display: flex; gap: 0.4rem; align-items: center; margin-top: 0.6rem; }
 .nav button { font: inherit; font-size: 0.85rem; border: 1px solid var(--line); border-radius: 7px; padding: 0.35rem 0.8rem; background: var(--bg); color: var(--text); cursor: pointer; }
 .nav button:disabled { opacity: 0.4; cursor: default; }
@@ -703,6 +708,15 @@ details.more[open] summary { margin-bottom: 0.6rem; }
 .myth .proof { margin: 0; font-size: 0.85rem; color: var(--muted); border-left: 2px solid var(--accent-line); padding-left: 0.8rem; }
 .myth .proof b { color: var(--text); font-family: var(--mono); }
 @media (max-width: 40rem) { .myth { grid-template-columns: 1fr; gap: 0.6rem; } }
+.spec { margin: 1rem 0 1.2rem; }
+.spec dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr)); gap: 0.6rem; margin: 0; }
+.spec dl > div { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.8rem; background: var(--surface); }
+.spec dt { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.spec dd { margin: 0.15rem 0 0; font-size: 0.9rem; }
+.spec dd b { font-family: var(--mono); font-size: 1.05rem; }
+.matrix.limits th, .matrix.limits td { white-space: normal; }
+.matrix.limits td.wrap { min-width: 11rem; }
+.matrix.limits tr.hl th, .matrix.limits tr.hl td { color: var(--accent); font-weight: 700; }
 .card-model { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 0.6rem; margin: 1rem 0 1.2rem; }
 .card-model div { border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 0.8rem; background: var(--surface); }
 .card-model b { display: block; font-family: var(--mono); font-size: 1.05rem; }
@@ -873,14 +887,29 @@ ol.metric b { font-family: var(--mono); text-align: right; }
   </details>
 
   <h2 data-n="04">Words, sentences, paragraphs: one recipe</h2>
-  <p>"Word embeddings", "sentence embeddings" and "document embeddings" sound like three different things. In a model like ours they are one recipe applied to different amounts of text, and they all come out as 384 numbers in the same space. Get this part right and the rest of semantic search makes sense. The model here is <strong>all-MiniLM-L6-v2</strong>. Step through what it does with one sentence:</p>
-  <div class="widget recipe" id="w-recipe" data-pieces="[&quot;[CLS]&quot;, &quot;she&quot;, &quot;sat&quot;, &quot;on&quot;, &quot;the&quot;, &quot;bank&quot;, &quot;of&quot;, &quot;the&quot;, &quot;river&quot;, &quot;and&quot;, &quot;watched&quot;, &quot;the&quot;, &quot;water&quot;, &quot;.&quot;, &quot;[SEP]&quot;]">
-    <svg viewBox="0 0 720 250" role="img" aria-label="The sentence split into word pieces, each with a small arrow, the arrows adjusting to each other, and then averaged into one arrow."></svg>
-    <p class="step-text" aria-live="polite"></p>
-    <div class="nav"><button type="button" data-go="-1">Back</button><button type="button" data-go="1">Next step</button><div class="dots"><span></span><span></span><span></span><span></span></div></div>
-    <p class="cap">The pieces are the model's real ones. The small arrows are drawn to show the idea: the real ones have 384 numbers each.</p>
+  <p>People talk about "word embeddings", "sentence embeddings" and "document embeddings" as if they were three different things. In a model like ours they are the same thing: whatever text goes in, one arrow of 384 numbers comes out, made by the same four steps.</p>
+  <p>384 directions can't be drawn, so here is a toy version with just two, and we give them names: <strong>money</strong> to the right, <strong>nature and water</strong> up. Watch what happens to "bank".</p>
+  <div class="widget toy" id="w-toy">
+    <div class="seg" role="group" aria-label="Text">
+      <button type="button" data-text="river" aria-pressed="true">"She sat on the bank of the river"</button>
+      <button type="button" data-text="savings" aria-pressed="false">"He opened a savings account at the bank"</button>
+      <button type="button" data-text="paragraph" aria-pressed="false">Both, as one paragraph</button>
+    </div>
+    <div class="toy-grid">
+      <svg viewBox="0 0 320 320" role="img" aria-label="A plot with money to the right and nature and water upward, showing each word's arrow and the arrow for the whole text."></svg>
+      <div>
+        <ul class="chips toy-words"></ul>
+        <p class="step-text" aria-live="polite"></p>
+        <p class="toy-readout" aria-live="polite"></p>
+      </div>
+    </div>
+    <div class="nav"><button type="button" data-go="-1">Back</button><button type="button" data-go="1">Next step</button><div class="dots"></div></div>
+    <p class="cap">A toy with two named directions, to show the idea. The real model's 384 directions have no names, and it keeps every word piece, including "the" and "of"; the toy shows only the three words that matter.</p>
   </div>
-  <p>The same four steps run for any text. What changes is how many pieces there are to adjust and to average:</p>
+  <p>One way to picture step 3: every word is at a meeting. It arrives with its own opinion, listens to everyone else in the room, and shifts its view to fit the conversation. "Bank" at a meeting with "river" and "water" ends up talking about nature. The text's arrow is then simply the room's average view.</p>
+  <p>That also explains the other two sizes. A <strong>single word</strong> is a meeting of one: nobody to listen to, so "bank" stays in the middle, halfway between money and nature. A <strong>paragraph</strong> is a bigger meeting: the average of more voices, so if it covers several topics, its arrow sits between them and points clearly at none.</p>
+  <h3>The real model, measured</h3>
+  <p>The same effects, measured on all-MiniLM-L6-v2's real 384 numbers:</p>
   <div class="levels">
     <div class="level">
       <h4>A word</h4>
@@ -914,7 +943,7 @@ ol.metric b { font-family: var(--mono); text-align: right; }
     </div>
     <div class="myth">
       <p class="wrong">A longer text gives a richer, more detailed arrow.</p>
-      <p class="right">It gives a more blended one. Every text ends up as 384 numbers, however long it is, and our setup reads only the first 128 pieces, about 100 words. The rest has no effect at all (section 09).</p>
+      <p class="right">It gives a more blended one. Every text ends up as 384 numbers, however long it is. And in our setup the model only ever sees the first 128 word pieces, roughly 100 words, because that is where the Java library cuts the text (see "Meet the model" below). The rest has no effect at all.</p>
       <p class="proof">The question about parking permits scores <b>0.743</b> against the parking sentence alone and <b>0.507</b> against the paragraph that contains it. This is why search systems split long documents into chunks of a few sentences and embed each chunk.</p>
     </div>
     <div class="myth">
@@ -923,14 +952,31 @@ ol.metric b { font-family: var(--mono); text-align: right; }
       <p class="proof">The question and every document in section 07 went through the same model. Arrows from two <em>different</em> models, though, can't be compared at all.</p>
     </div>
   </div>
-  <p>What makes the adjusting useful is training. The model's makers showed it about 1.17 billion pairs of texts that belong together: a Stack Exchange question and its accepted answer, a paper's title and its abstract, a Reddit comment and its reply. Training pulled each pair's arrows together and pushed unrelated texts apart. Its vital statistics:</p>
-  <div class="card-model">
-    <div><b>384</b><span>numbers per text</span></div>
-    <div><b>1.000</b><span>length of every arrow</span></div>
-    <div><b>128</b><span>word pieces read, at most, in our setup</span></div>
-    <div><b>6</b><span>rounds of adjusting</span></div>
-    <div><b>8 ms</b><span>to embed a question, on a laptop CPU</span></div>
+  <h3>Meet the model</h3>
+  <p>Everything on this page uses one small, free model, <strong>all-MiniLM-L6-v2</strong>, from the Sentence Transformers project. Its name spells out what it is: a <em>MiniLM</em> (Microsoft's small, compressed version of Google's BERT) with <em>6 Layers</em>, which the Sentence Transformers team then trained to make embeddings; <em>v2</em> is their second version. What makes its adjusting useful is that training: its makers showed it about 1.17 billion pairs of texts that belong together, such as a Stack Exchange question and its accepted answer, a paper's title and its abstract, a Reddit comment and its reply. Each pair's arrows were pulled together and unrelated texts pushed apart.</p>
+  <div class="spec">
+    <dl>
+      <div><dt>Output</dt><dd><b>384</b> numbers per text, scaled to length 1</dd></div>
+      <div><dt>Vocabulary</dt><dd><b>30,522</b> word pieces. Text is lowercased first, so "Bank" and "bank" are the same piece</dd></div>
+      <div><dt>Adjusting rounds</dt><dd><b>6</b> layers (the "L6"), each letting every piece look at every other</dd></div>
+      <div><dt>Size</dt><dd>about <b>23 million</b> weights, a 90 MB file that runs on a laptop CPU: 8 ms per question here</dd></div>
+      <div><dt>Combining pieces</dt><dd>the <b>average</b> of all pieces' arrows (mean pooling), step 4 above</dd></div>
+      <div><dt>Training</dt><dd>about <b>1.17 billion</b> pairs of related texts</dd></div>
+    </dl>
   </div>
+  <p>One more number needs a table of its own, because there are four different answers to "how much text does it read?":</p>
+  <div class="matrix-wrap">
+    <table class="matrix limits">
+      <thead><tr><th>The limit</th><th>Word pieces</th><th>Where it comes from</th></tr></thead>
+      <tbody>
+        <tr><th>What the model can physically take</th><td>512</td><td class="wrap">Its design has 512 position slots. Longer input can't go in at all.</td></tr>
+        <tr><th>What its makers set</th><td>256</td><td class="wrap">The model card and its settings file: longer text is cut here. The MTEB leaderboard's scores use this.</td></tr>
+        <tr><th>What it was trained on</th><td>128</td><td class="wrap">The model card: training texts were cut at 128.</td></tr>
+        <tr class="hl"><th>What LangChain4j actually gives it</th><td>128</td><td class="wrap">The tokenizer file bundled with the Java library we run it with. Everything after is dropped before the model sees it.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>128 pieces is roughly the first 100 words, counting the two markers [CLS] and [SEP]. The last row applied to every result in sections 01 to 08, and the same library runs the meaning search in parts 3 and 4. Section 09 measures what reading more changes.</p>
   <div class="vec">"How can I lower my blood pressure?" → [ −0.0321, 0.1206, −0.0035, 0.0289, −0.0166, 0.0010, … 378 more ]</div>
   <p>No single number means "blood" or "health". Only the direction of the whole arrow means anything. Documents are embedded once, when they are added to the search engine. At search time only the question is embedded, and the engine looks for the stored arrows pointing most nearly the same way. Because the two are embedded separately, this setup is called a <span class="term">bi-encoder</span>. The Sentence-BERT paper puts the saving in numbers: finding the most similar pair among 10,000 sentences takes about 65 hours if a model reads every pair together, and about 5 seconds if each sentence is embedded once.</p>
 
@@ -1065,7 +1111,7 @@ ol.metric b { font-family: var(--mono); text-align: right; }
   <p>Names, codes, gene symbols and rare terms are keyword search's strength and meaning search's weakness (a 2021 study found the same for questions about less common people and places). That is why most production systems run both and merge the two lists. Merging is part 3.</p>
 
   <h2 data-n="09">How much of each document the model reads</h2>
-  <p>We found this one by accident. The model card says it reads up to 256 word pieces. LangChain4j, the Java library we run it with, ships a tokenizer file that stops at 128, so everything after roughly the first 100 words is ignored. We checked on the longest FiQA document: its arrow and the arrow of its first 126 pieces have a cosine of 1.0000. Identical. Then we re-embedded every document with the limit raised:</p>
+  <p>We found this one by accident. The model itself can take 512 word pieces and its makers set 256, but LangChain4j, the Java library we run it with, cuts every text at 128 before the model sees it (the table in section 04). LangChain4j even has code to split long texts into parts and average them; the cut means that code never runs. We checked on FiQA's longest document, 3,599 pieces long: its arrow and the arrow of just its first 126 pieces have a cosine of 1.0000. They are the same arrow. Most documents are affected: 97% of NFCorpus papers, 98% of SciFact abstracts and 47% of FiQA answers are longer than 128 pieces. So we re-embedded every document twice: with the limit raised to 256, the makers' setting, and with no limit, letting LangChain4j split and average:</p>
   <div class="widget">
     <p class="legend"><span><i class="kw"></i>first 128 pieces (as shipped)</span><span><i></i>first 256</span><span><i style="background:color-mix(in srgb, var(--ok) 42%, transparent)"></i>whole document</span></p>
     <div class="bars" style="--max:1">
@@ -1147,7 +1193,7 @@ ol.metric b { font-family: var(--mono); text-align: right; }
     <li class="step"><strong>Words, sentences and paragraphs go through one recipe.</strong><span>Split into pieces, adjust each by its neighbours, average. Longer text means a more blended arrow, not a richer one. (04)</span></li>
     <li class="step"><strong>It finds answers in other words, and blurs names, numbers and "not".</strong><span>(01, 05)</span></li>
     <li class="step"><strong>It wins when the answers share few of the question's words.</strong><span>FiQA +0.127, SciFact −0.032. 229 : 85 when few words are shared. (07, 08)</span></li>
-    <li class="step"><strong>Check how much text your model reads.</strong><span>Ours read 128 pieces, not the 256 its card promises. (09)</span></li>
+    <li class="step"><strong>Check how much text your model reads.</strong><span>The model can take 512 pieces and its makers set 256, but our Java library gave it 128. At 256 our scores match the published ones. (04, 09)</span></li>
     <li class="step"><strong>HNSW is nearly free.</strong><span>Same top 10 as exact search for 94% of questions, in about 1 ms. (10)</span></li>
   </ol>
 
@@ -1264,55 +1310,104 @@ ol.metric b { font-family: var(--mono); text-align: right; }
     update();
   }
 
-  // 04: the recipe, step by step, on the model's real word pieces.
-  var recipe = document.getElementById("w-recipe");
-  if (recipe) {
-    var pieces = [];
-    try { pieces = JSON.parse(recipe.dataset.pieces || "[]"); } catch (e) { pieces = []; }
-    if (!pieces.length) pieces = ["[CLS]", "(run", "the", "lab)", "[SEP]"];
-    var svg = recipe.querySelector("svg"), NS = "http://www.w3.org/2000/svg";
-    var W = 720, n = pieces.length, gap = (W - 40) / n;
-    // Illustrative directions: each piece starts pointing its own way; after adjusting, they lean together.
-    function hash(s) { var h = 7; for (var k = 0; k < s.length; k++) h = (h * 31 + s.charCodeAt(k)) % 997; return h; }
-    var start = pieces.map(function (p) { return -150 + (hash(p) % 120); });
-    var mixed = start.map(function (a) { return -60 + (a + 90) * 0.25; });
-    function el(tag, attrs) { var e = document.createElementNS(NS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); return e; }
-    el("defs", {}).innerHTML = '<marker id="rtip" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent-2)"/></marker>' +
-      '<marker id="rtip2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker>';
-    var chips = [], arrows = [];
-    pieces.forEach(function (p, k) {
-      var x = 20 + gap * k + gap / 2;
-      var t = el("text", { x: x, y: 40, "text-anchor": "middle", "font-size": Math.min(13, gap / (p.length * 0.62)) });
-      t.textContent = p; chips.push(t);
-      arrows.push(el("line", { x1: x, y1: 120, x2: x, y2: 120, stroke: "var(--accent-2)", "stroke-width": 2, "marker-end": "url(#rtip)", opacity: 0 }));
-    });
-    var avg = el("line", { x1: 360, y1: 225, x2: 360, y2: 225, stroke: "var(--accent)", "stroke-width": 4, "marker-end": "url(#rtip2)", opacity: 0 });
-    var avgLabel = el("text", { x: 400, y: 215, "font-size": 13, opacity: 0 }); avgLabel.textContent = "one arrow for the whole sentence";
-    function point(line, x, y, deg, len) {
-      var r = deg * Math.PI / 180;
-      line.setAttribute("x1", x); line.setAttribute("y1", y);
-      line.setAttribute("x2", x + Math.cos(r) * len); line.setAttribute("y2", y + Math.sin(r) * len);
+  // 04: the toy recipe. Two named directions: x = money, y = nature and water. Illustration only.
+  var toy = document.getElementById("w-toy");
+  if (toy) {
+    var TEXTS = {
+      river: { words: [["bank", [0.55, 0.50], [0.20, 0.88]], ["river", [0.05, 0.95], [0.06, 0.96]], ["water", [0.45, 0.80], [0.40, 0.82]]] },
+      savings: { words: [["savings", [0.95, 0.08], [0.95, 0.10]], ["account", [0.80, 0.40], [0.82, 0.36]], ["bank", [0.55, 0.50], [0.92, 0.18]]] }
+    };
+    var tsvg = toy.querySelector("svg"), TNS = "http://www.w3.org/2000/svg";
+    var O = [45, 275], S = 220, current = "river", step = 0;
+    function tadd(tag, attrs) { var e = document.createElementNS(TNS, tag); for (var k in attrs) e.setAttribute(k, attrs[k]); tsvg.appendChild(e); return e; }
+    tsvg.innerHTML = '<defs><marker id="tw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent-2)"/></marker>' +
+      '<marker id="tb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker>' +
+      '<marker id="tg" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker></defs>';
+    tadd("line", { x1: O[0], y1: O[1], x2: 300, y2: O[1], stroke: "var(--line)", "stroke-width": 1.5 });
+    tadd("line", { x1: O[0], y1: O[1], x2: O[0], y2: 20, stroke: "var(--line)", "stroke-width": 1.5 });
+    tadd("text", { x: 300, y: O[1] + 22, "text-anchor": "end", "font-size": 12, fill: "var(--muted)" }).textContent = "money \u2192";
+    tadd("text", { x: 12, y: 30, "font-size": 12, fill: "var(--muted)", transform: "rotate(-90 12 30)", "text-anchor": "end" }).textContent = "nature, water \u2192";
+    var pool = [];
+    function arrow(i) {
+      if (!pool[i]) {
+        var line = tadd("line", { x1: O[0], y1: O[1], x2: O[0], y2: O[1], "stroke-width": 2.5 });
+        var label = tadd("text", { "font-size": 12 });
+        pool[i] = { line: line, label: label };
+      }
+      return pool[i];
     }
-    var bank = pieces.indexOf("bank");
-    var texts = [
-      "<strong>1. Split.</strong> The text is cut into word pieces the model knows. [CLS] and [SEP] are markers it adds at the start and end. Rare words become several pieces.",
-      "<strong>2. Start.</strong> Each piece gets its own starting arrow from a fixed table, the same arrow wherever the piece appears. This is the \"word embedding\" level: \"bank\" here starts exactly as it would next to \"money\".",
-      "<strong>3. Adjust.</strong> Six times over, every piece looks at every other piece and shifts its arrow toward what the context says. After this, \"bank\" next to \"river\" and \"water\" points somewhere different from \"bank\" in a sentence about savings.",
-      "<strong>4. Average.</strong> All the piece arrows are averaged into one, then scaled to length 1. A word, a sentence and a paragraph all end here: one arrow of 384 numbers."
-    ];
-    stepper(recipe, 4, function (s) {
-      recipe.querySelector(".step-text").innerHTML = texts[s];
-      pieces.forEach(function (p, k) {
-        var x = 20 + gap * k + gap / 2;
-        arrows[k].setAttribute("opacity", s >= 1 ? (s === 3 ? 0.35 : 1) : 0);
-        point(arrows[k], x, 120, s >= 2 ? mixed[k] : start[k], Math.min(34, gap * 0.9));
-        arrows[k].setAttribute("stroke-width", k === bank && s >= 1 && s < 3 ? 3.5 : 2);
-        chips[k].setAttribute("font-weight", k === bank && s >= 1 ? 700 : 400);
-      });
-      var mean = mixed.reduce(function (a, b) { return a + b; }, 0) / n;
-      point(avg, 330, 230, mean, 60);
-      avg.setAttribute("opacity", s === 3 ? 1 : 0); avgLabel.setAttribute("opacity", s === 3 ? 1 : 0);
+    function unit(v) { var l = Math.hypot(v[0], v[1]); return [v[0] / l, v[1] / l]; }
+    function mean(vs) { return [vs.reduce(function (a, v) { return a + v[0]; }, 0) / vs.length, vs.reduce(function (a, v) { return a + v[1]; }, 0) / vs.length]; }
+    function cosv(a, b) { return (a[0] * b[0] + a[1] * b[1]) / (Math.hypot(a[0], a[1]) * Math.hypot(b[0], b[1])); }
+    function sentence(name, adjusted) { return unit(mean(TEXTS[name].words.map(function (w) { return adjusted ? w[2] : w[1]; }))); }
+    function place(a, v, len, color, marker, width, label, opacity) {
+      var x = O[0] + v[0] * S * len, y = O[1] - v[1] * S * len;
+      a.line.setAttribute("x2", x); a.line.setAttribute("y2", y);
+      a.line.setAttribute("stroke", color); a.line.setAttribute("marker-end", "url(#" + marker + ")");
+      a.line.setAttribute("stroke-width", width); a.line.setAttribute("opacity", opacity);
+      a.label.setAttribute("x", x + 5); a.label.setAttribute("y", y - 5);
+      a.label.setAttribute("opacity", opacity); a.label.textContent = label;
+      a.label.setAttribute("font-weight", label === "bank" || width > 3 ? 700 : 400);
+    }
+    function fmt2(v) { return "(" + v[0].toFixed(2) + ", " + v[1].toFixed(2) + ")"; }
+    var STEPS = {
+      sentence: [
+        "<strong>1. Split.</strong> The text is cut into word pieces. Each piece is looked up on its own first.",
+        "<strong>2. Start.</strong> Every piece gets its starting arrow from a fixed table. \"bank\" starts at {BANK0}, halfway between money and nature, and it starts there in <em>every</em> sentence. This is all a \"word embedding\" is.",
+        "<strong>3. Adjust.</strong> Each piece looks at the others and moves toward what the context says. Here \"bank\" moves to {BANK1}. The real model repeats this six times.",
+        "<strong>4. Average.</strong> The words' arrows are averaged into one arrow for the whole text, and scaled to length 1. That bold arrow is the sentence embedding."
+      ],
+      paragraph: [
+        "<strong>A paragraph</strong> goes through the same steps, just with more words. Here are the two sentences' own arrows.",
+        "<strong>Averaged together</strong>, they give the paragraph's arrow. It points between money and nature, and close to neither: a blend."
+      ]
+    };
+    function draw() {
+      var n = 0;
+      toy.querySelector(".toy-readout").textContent = "";
+      if (current === "paragraph") {
+        var a = sentence("river", true), b = sentence("savings", true), p = unit(mean([a, b]));
+        place(arrow(n++), a, 1, "var(--accent-2)", "tw", 2.5, "river sentence", 1);
+        place(arrow(n++), b, 1, "var(--accent-2)", "tw", 2.5, "savings sentence", 1);
+        place(arrow(n++), p, 1, "var(--accent)", "tb", 4, "paragraph", step === 1 ? 1 : 0);
+        toy.querySelector(".toy-words").innerHTML = "<li>river sentence</li><li>savings sentence</li>";
+        toy.querySelector(".step-text").innerHTML = STEPS.paragraph[step];
+        if (step === 1) toy.querySelector(".toy-readout").textContent = "Paragraph against the river sentence: cosine " + cosv(p, a).toFixed(2) + ". Against the savings sentence: " + cosv(p, b).toFixed(2) + ". Each sentence against the other: " + cosv(a, b).toFixed(2) + ".";
+      } else {
+        var words = TEXTS[current].words;
+        toy.querySelector(".toy-words").innerHTML = words.map(function (w) { return "<li>" + w[0] + "</li>"; }).join("");
+        words.forEach(function (w) {
+          var v = step >= 2 ? w[2] : w[1];
+          var isBank = w[0] === "bank";
+          place(arrow(n++), v, 1, isBank ? "var(--accent)" : "var(--accent-2)", isBank ? "tb" : "tw", isBank ? 3 : 2.5, w[0], step === 0 ? 0 : (step === 3 ? 0.35 : 1));
+        });
+        var s = sentence(current, true);
+        place(arrow(n++), s, 1, "var(--text)", "tg", 4, "sentence", step === 3 ? 1 : 0);
+        var bank = words.filter(function (w) { return w[0] === "bank"; })[0];
+        toy.querySelector(".step-text").innerHTML = STEPS.sentence[step].replace("{BANK0}", fmt2(bank[1])).replace("{BANK1}", fmt2(bank[2]));
+        if (step === 3) {
+          var withAdjust = cosv(sentence("river", true), sentence("savings", true));
+          var without = cosv(sentence("river", false), sentence("savings", false));
+          toy.querySelector(".toy-readout").textContent = "River sentence against savings sentence: cosine " + withAdjust.toFixed(2) + ". Skip step 3 and just average the starting arrows, and it would be " + without.toFixed(2) + ": the shared \"bank\" would drag them together.";
+        }
+      }
+      for (var k = n; k < pool.length; k++) { pool[k].line.setAttribute("opacity", 0); pool[k].label.setAttribute("opacity", 0); }
+    }
+    var back = toy.querySelector('[data-go="-1"]'), next = toy.querySelector('[data-go="1"]'), dots = toy.querySelector(".dots");
+    function count() { return current === "paragraph" ? 2 : 4; }
+    function go(i) {
+      step = Math.max(0, Math.min(count() - 1, i));
+      back.disabled = step === 0; next.disabled = step === count() - 1;
+      dots.innerHTML = "";
+      for (var k = 0; k < count(); k++) { var d = document.createElement("span"); if (k === step) d.className = "on"; dots.appendChild(d); }
+      draw();
+    }
+    back.addEventListener("click", function () { go(step - 1); });
+    next.addEventListener("click", function () { go(step + 1); });
+    toy.querySelectorAll("[data-text]").forEach(function (b) {
+      b.addEventListener("click", function () { press(toy.querySelector(".seg"), b); current = b.dataset.text; go(0); });
     });
+    go(0);
   }
 
   // 07: dataset tabs.
