@@ -4,6 +4,31 @@ Plain-language write-ups of ideas from AI research. Each project is written for 
 
 The rule for every post here: **if a number is on the page, a script in the same folder printed it.** Numbers quoted from a paper are marked as coming from the paper.
 
+## Reading order
+
+The three search posts build on each other; the LLM post stands on its own.
+
+1. **[BM25](BM25/)**: how keyword search scores a document.
+2. **[Reciprocal Rank Fusion](RRF/)**: merging keyword search and meaning search into one list.
+3. **[Cross-encoder re-ranking](CrossEncoder/)**: re-sorting the top results with a slower, more careful model.
+4. **[Nondeterminism in LLM inference](LLMs/nondeterminism/)**: why temperature 0 can still give different answers.
+
+## Getting started
+
+```bash
+git clone <this repository> && cd <repository folder>
+```
+
+Each project runs on its own, so you only need what the project you want uses:
+
+| To run | You need |
+|---|---|
+| BM25, RRF, CrossEncoder | Docker. The labs bring OpenSearch and download the BEIR datasets and models on the first run. |
+| LLMs/nondeterminism | An Apple Silicon Mac and Python 3.10+ (`lab/rounding.py` runs anywhere). |
+| apple-foundation-model | An Apple Silicon Mac with macOS 27 and Apple Intelligence turned on, and Xcode 27 to build. |
+
+The posts themselves are plain HTML files (`blog/index.html` or `blog/rrf-blog.html`) that open in any browser. Datasets, cached embeddings, models and build output are not in the repository; the labs recreate them (see [What isn't in the repository](#what-isnt-in-the-repository)).
+
 ## Projects
 
 | Project | Question it answers | Headline result | Stack |
@@ -17,7 +42,7 @@ The rule for every post here: **if a number is on the page, a script in the same
 
 `BM25/` · part 1: how keyword search works
 
-BM25 adds up IDF × TF for each matching word. IDF makes rare words count more; TF lets repeats count a little more each time (k1) and gives long documents a small penalty (b). The post shows the full formula and fills it in with real numbers. The post takes one real search score apart using OpenSearch's explain API, then tests 42 combinations of k1 and b and two text analyzers on three BEIR datasets.
+BM25 adds up IDF × TF for each matching word. IDF makes rare words count more; TF lets repeats count a little more each time (k1) and gives long documents a small penalty (b). The post shows the full formula, fills it in with the numbers behind one real search score (OpenSearch's explain API), then tests 42 combinations of k1 and b and two text analyzers on three BEIR datasets.
 
 ```bash
 cd BM25
@@ -30,7 +55,7 @@ Needs Docker. Details are in [BM25/README.md](BM25/README.md).
 
 ## Reciprocal Rank Fusion
 
-`RRF/` · [Read it on Medium](https://medium.com/jinternals/reciprocal-rank-fusion-without-the-scary-math-68421476c505)
+`RRF/` · part 2 · [Read it on Medium](https://medium.com/jinternals/reciprocal-rank-fusion-without-the-scary-math-68421476c505)
 
 Keyword search and meaning search score results on different scales, so their scores can't be added. RRF ignores the scores and adds up points for each result's position in each list. The post works through one real NFCorpus question by hand, then tests the method on three BEIR datasets and sweeps the constant k.
 
@@ -45,7 +70,7 @@ Needs Docker. The first benchmark run downloads about 23 MB of data and embeds a
 
 ## Cross-encoder re-ranking
 
-`CrossEncoder/` · follows the RRF post
+`CrossEncoder/` · part 3
 
 Meaning search reads the question and each document separately, so it is fast but never sees them together. A cross-encoder reads the question and one document as a single input and outputs one relevance score. It is used to re-sort the top results of a fast search. The post re-ranks keyword, meaning and RRF lists on the same three BEIR datasets as the RRF post, and measures the gain, the cost, and how far the result is from a perfect order.
 
@@ -81,7 +106,7 @@ Apps built along the way, not posts, so they don't use the `blog/ lab/ out/` lay
 
 | Tool | What it does |
 |---|---|
-| [**apple-foundation-model**](apple-foundation-model/) | A macOS menu-bar app that serves Apple's on-device Foundation Model through an OpenAI-compatible API (`/v1/models`, `/v1/chat/completions`, streaming), so Open WebUI and other chat apps can use it. Swift, no dependencies. |
+| [**apple-foundation-model**](apple-foundation-model/) | A macOS menu-bar app that serves Apple's on-device Foundation Model through an OpenAI-compatible API (`/v1/models`, `/v1/chat/completions`, streaming), so Open WebUI and other chat apps can use it. It has a log window and a `docker-compose.yml` that starts Open WebUI already connected. Swift, no dependencies. |
 
 ## Layout
 
@@ -97,30 +122,44 @@ Every project uses the same folders and the same README sections, so you know wh
 
 ```
 AI/
+├── BM25/
+│   ├── blog/          index.html, page/ (source), build_page.py
+│   ├── lab/           Java 21: OpenSearch BM25, explain and analyze APIs
+│   └── out/           example and benchmark results
 ├── RRF/
 │   ├── blog/          rrf-blog.html
 │   ├── medium/        rrf-medium.md, rrf-medium.html, images/, build-images.mjs
 │   ├── lab/           Java 21: OpenSearch, BM25, all-MiniLM-L6-v2, BEIR
-│   ├── lab-python/    the first version of the lab
-│   ├── out/           benchmark and example results
-│   └── data/ cache/   downloaded datasets and embeddings, created on first run
+│   └── lab-python/    the first version of the lab
 ├── CrossEncoder/
 │   ├── blog/          index.html, page/ (source), build_page.py
 │   ├── lab/           Java 21: OpenSearch, all-MiniLM-L6-v2, ms-marco-MiniLM-L6-v2 cross-encoder
-│   ├── out/           example and benchmark results
-│   └── data/ cache/   datasets, embeddings, the ONNX model, cross-encoder scores
+│   └── out/           example and benchmark results
 ├── LLMs/
 │   └── nondeterminism/
 │       ├── blog/      index.html, page/ (source), build_page.py
 │       ├── lab/       rounding, batch_invariance, experiments, model_experiment, logit_gap
 │       └── out/       JSON results, named after the chip
-└── BM25/
-    ├── blog/          index.html, page/ (source), build_page.py
-    ├── lab/           Java 21: OpenSearch BM25, explain and analyze APIs
-    └── out/           example and benchmark results
+└── apple-foundation-model/
+    ├── Sources/       the server (FMServerCore) and the menu-bar app
+    ├── Tests/         unit tests
+    ├── Resources/     the app icon
+    └── scripts/       build-app.sh, make-icon.swift
 ```
 
-`RRF/data/` and `RRF/cache/` take about 350 MB together, and `CrossEncoder/data/` and `CrossEncoder/cache/` about 270 MB. Delete them to free space; the next run rebuilds them.
+## What isn't in the repository
+
+Everything the labs download or rebuild is ignored by `.gitignore`, about 1.2 GB on the machine these were made on:
+
+| Not committed | Size | Recreated by |
+|---|---|---|
+| `*/data/`: the BEIR datasets | about 64 MB per project | the first lab run |
+| `RRF/cache/`, `CrossEncoder/cache/`: embeddings, models, cross-encoder scores | about 285 MB and 200 MB | the first benchmark run |
+| `RRF/out/`: RRF's results JSON | under 1 MB | `docker compose run --rm lab benchmark` in `RRF/` |
+| `LLMs/nondeterminism/.venv/` | about 335 MB | `pip install -r lab/requirements.txt` |
+| `apple-foundation-model/.build/`, `build/` | about 225 MB | `scripts/build-app.sh` |
+
+To free space, delete any of these; the next run rebuilds them.
 
 ## How the posts are made
 
