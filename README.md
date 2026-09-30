@@ -18,7 +18,7 @@ Also in the repository: **[Apple Foundation Model server](apple-foundation-model
 ## Getting started
 
 ```bash
-git clone https://github.com/mradulpandey/ai-explained-with-experiments.git
+git clone https://github.com/jinternals/ai-explained-with-experiments.git
 cd ai-explained-with-experiments
 ```
 
