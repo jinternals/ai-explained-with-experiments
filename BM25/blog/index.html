@@ -1,0 +1,1072 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BM25, Without the Scary Math</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+/* ape-present base stylesheet. Copy verbatim into <style>, then add
+   per-document rules beneath it. Every colour in the document must be one
+   of these tokens; grep for '#' outside the :root blocks and expect zero hits.
+
+   The document is a long-form reading page, not a deck: one prose column,
+   real headings, figures inline. Theme follows the OS or present-md; `t` flips it.
+   Width has a comfortable measure constraint (--measure) with visual elements
+   allowed to break out beyond it (--wide, --max-width). Layout is centered by
+   default; data-layout="left" on <html> switches the whole document to a
+   left-margin layout so breakouts extend rightward instead of symmetrically. */
+
+/* ---- Theme: midnight (dark) -------------------------------- */
+:root[data-theme="midnight"],
+:root[data-theme="dark"],
+:root[data-theme="mocha"] {
+  --crust:            #11111b;
+  --mantle:           #181825;
+  --base:             #1e1e2e;
+  --surface0:         #313244;
+  --surface1:         #45475a;
+  --surface2:         #585b70;
+  --overlay0:         #6c7086;
+  --overlay1:         #7f849c;
+  --subtext0:         #a6adc8;
+  --subtext1:         #bac2de;
+  --text:             #cdd6f4;
+  --lavender:         #b4befe;
+  --blue:             #89b4fa;
+  --sapphire:         #74c7ec;
+  --sky:              #89dceb;
+  --teal:             #94e2d5;
+  --green:            #a6e3a1;
+  --yellow:           #f9e2af;
+  --peach:            #fab387;
+  --red:              #f38ba8;
+  --mauve:            #cba6f7;
+  --pink:             #f5c2e7;
+  --accent:           #cba6f7;
+  --accent-2:         #89b4fa;
+  --accent-3:         #89dceb;
+  --accent-soft:      color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-line:      color-mix(in srgb, var(--accent) 42%, transparent);
+  --glow:             color-mix(in srgb, var(--accent) 34%, transparent);
+  --gradient:         linear-gradient(115deg, #cba6f7, #89b4fa 58%, #89dceb);
+  --accent-fade:      linear-gradient(90deg, #cba6f7, rgba(203, 166, 247, 0.45) 62%, transparent);
+  --surface-soft:     rgba(49, 50, 68, 0.34);
+  --crust-overlay:    rgba(17, 17, 27, 0.84);
+  --scrim:            rgba(0, 0, 0, 0.5);
+  --hairline:         rgba(205, 214, 244, 0.09);
+  --shadow-md:        0 8px 28px rgba(0, 0, 0, 0.42);
+  --shadow-lg:        0 24px 68px rgba(0, 0, 0, 0.52);
+  --code-shadow:      0 6px 26px rgba(0, 0, 0, 0.4);
+  --font-display:     'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-body:        'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:        'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display-weight:   700;
+  --display-tracking: -0.025em;
+  --display-case:     none;
+  --body-tracking:    0;
+  --decor-line:       rgba(205, 214, 244, 0.05);
+  --decor-dot:        rgba(205, 214, 244, 0.085);
+  --decor-glow-1:     rgba(203, 166, 247, 0.2);
+  --decor-glow-2:     rgba(137, 180, 250, 0.16);
+  --decor-glow-3:     rgba(137, 220, 235, 0.13);
+  --bg:               #1e1e2e;
+  --surface:          #181825;
+  --line:             #313244;
+  --muted:            #a6adc8;
+  --grid:             rgba(205, 214, 244, 0.06);
+  --err:              #f38ba8;
+  --ok:               #a6e3a1;
+  --code-k:           #cba6f7;
+  --code-s:           #a6e3a1;
+  --code-c:           #6c7086;
+  --code-n:           #89b4fa;
+  --serif:            'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono:             'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans:             'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --ease:             cubic-bezier(0.22, 1, 0.36, 1);
+  --measure:          44rem;
+  --wide:             64rem;
+  --max-width:        72rem;
+  color-scheme: dark;
+}
+
+/* ---- Theme: daylight (light) -------------------------------- */
+:root, :root[data-theme="daylight"],
+:root[data-theme="light"],
+:root[data-theme="latte"] {
+  --crust:            #ebebeb;
+  --mantle:           #f5f5f5;
+  --base:             #fafaf8;
+  --surface0:         #ccd0da;
+  --surface1:         #9ca0b0;
+  --surface2:         #8c8fa1;
+  --overlay0:         #6c6f85;
+  --overlay1:         #5c5f77;
+  --subtext0:         #4c4f69;
+  --subtext1:         #3a3c52;
+  --text:             #1e2030;
+  --lavender:         #7287fd;
+  --blue:             #1e66f5;
+  --sapphire:         #209fb5;
+  --sky:              #04a5e5;
+  --teal:             #179299;
+  --green:            #40a02b;
+  --yellow:           #df8e1d;
+  --peach:            #fe640b;
+  --red:              #d20f39;
+  --mauve:            #8839ef;
+  --pink:             #ea76cb;
+  --accent:           #8839ef;
+  --accent-2:         #1e66f5;
+  --accent-3:         #179299;
+  --accent-soft:      color-mix(in srgb, var(--accent) 9%, transparent);
+  --accent-line:      color-mix(in srgb, var(--accent) 34%, transparent);
+  --glow:             color-mix(in srgb, var(--accent) 22%, transparent);
+  --gradient:         linear-gradient(115deg, #8839ef, #1e66f5 58%, #179299);
+  --accent-fade:      linear-gradient(90deg, #8839ef, rgba(136, 57, 239, 0.45) 62%, transparent);
+  --surface-soft:     rgba(204, 208, 218, 0.42);
+  --crust-overlay:    rgba(235, 235, 235, 0.88);
+  --scrim:            rgba(30, 32, 48, 0.26);
+  --hairline:         rgba(30, 32, 48, 0.11);
+  --shadow-md:        0 8px 28px rgba(30, 32, 48, 0.17639999999999997);
+  --shadow-lg:        0 24px 68px rgba(30, 32, 48, 0.2184);
+  --code-shadow:      0 6px 26px rgba(30, 32, 48, 0.168);
+  --font-display:     'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-body:        'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:        'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display-weight:   700;
+  --display-tracking: -0.025em;
+  --display-case:     none;
+  --body-tracking:    0;
+  --decor-line:       rgba(30, 32, 48, 0.07);
+  --decor-dot:        rgba(30, 32, 48, 0.1);
+  --decor-glow-1:     rgba(136, 57, 239, 0.15);
+  --decor-glow-2:     rgba(30, 102, 245, 0.12);
+  --decor-glow-3:     rgba(23, 146, 153, 0.1);
+  --bg:               #fafaf8;
+  --surface:          #f5f5f5;
+  --line:             #ccd0da;
+  --muted:            #4c4f69;
+  --grid:             rgba(30, 32, 48, 0.08);
+  --err:              #d20f39;
+  --ok:               #40a02b;
+  --code-k:           #8839ef;
+  --code-s:           #40a02b;
+  --code-c:           #6c6f85;
+  --code-n:           #1e66f5;
+  --serif:            'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono:             'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans:             'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --ease:             cubic-bezier(0.22, 1, 0.36, 1);
+  --measure:          44rem;
+  --wide:             64rem;
+  --max-width:        72rem;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+  --crust:            #11111b;
+  --mantle:           #181825;
+  --base:             #1e1e2e;
+  --surface0:         #313244;
+  --surface1:         #45475a;
+  --surface2:         #585b70;
+  --overlay0:         #6c7086;
+  --overlay1:         #7f849c;
+  --subtext0:         #a6adc8;
+  --subtext1:         #bac2de;
+  --text:             #cdd6f4;
+  --lavender:         #b4befe;
+  --blue:             #89b4fa;
+  --sapphire:         #74c7ec;
+  --sky:              #89dceb;
+  --teal:             #94e2d5;
+  --green:            #a6e3a1;
+  --yellow:           #f9e2af;
+  --peach:            #fab387;
+  --red:              #f38ba8;
+  --mauve:            #cba6f7;
+  --pink:             #f5c2e7;
+  --accent:           #cba6f7;
+  --accent-2:         #89b4fa;
+  --accent-3:         #89dceb;
+  --accent-soft:      color-mix(in srgb, var(--accent) 10%, transparent);
+  --accent-line:      color-mix(in srgb, var(--accent) 42%, transparent);
+  --glow:             color-mix(in srgb, var(--accent) 34%, transparent);
+  --gradient:         linear-gradient(115deg, #cba6f7, #89b4fa 58%, #89dceb);
+  --accent-fade:      linear-gradient(90deg, #cba6f7, rgba(203, 166, 247, 0.45) 62%, transparent);
+  --surface-soft:     rgba(49, 50, 68, 0.34);
+  --crust-overlay:    rgba(17, 17, 27, 0.84);
+  --scrim:            rgba(0, 0, 0, 0.5);
+  --hairline:         rgba(205, 214, 244, 0.09);
+  --shadow-md:        0 8px 28px rgba(0, 0, 0, 0.42);
+  --shadow-lg:        0 24px 68px rgba(0, 0, 0, 0.52);
+  --code-shadow:      0 6px 26px rgba(0, 0, 0, 0.4);
+  --font-display:     'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-body:        'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --font-mono:        'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --display-weight:   700;
+  --display-tracking: -0.025em;
+  --display-case:     none;
+  --body-tracking:    0;
+  --decor-line:       rgba(205, 214, 244, 0.05);
+  --decor-dot:        rgba(205, 214, 244, 0.085);
+  --decor-glow-1:     rgba(203, 166, 247, 0.2);
+  --decor-glow-2:     rgba(137, 180, 250, 0.16);
+  --decor-glow-3:     rgba(137, 220, 235, 0.13);
+  --bg:               #1e1e2e;
+  --surface:          #181825;
+  --line:             #313244;
+  --muted:            #a6adc8;
+  --grid:             rgba(205, 214, 244, 0.06);
+  --err:              #f38ba8;
+  --ok:               #a6e3a1;
+  --code-k:           #cba6f7;
+  --code-s:           #a6e3a1;
+  --code-c:           #6c7086;
+  --code-n:           #89b4fa;
+  --serif:            'Space Grotesk', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --mono:             'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans:             'Inter', system-ui, -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
+  --ease:             cubic-bezier(0.22, 1, 0.36, 1);
+  --measure:          44rem;
+  --wide:             64rem;
+  --max-width:        72rem;
+    color-scheme: dark;
+  }
+}
+
+/* ---- Reset + page ----------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--bg);
+  /* Permanent graph-paper ground: 32px squares in faint accent. Ties the diagrams' grid to the page. */
+  background-image: linear-gradient(to right, var(--grid) 1px, transparent 1px), linear-gradient(to bottom, var(--grid) 1px, transparent 1px);
+  background-size: 32px 32px;
+  color: var(--text);
+  font: 1rem/1.7 var(--mono);
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+a { color: var(--accent); text-decoration: underline; text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent); text-underline-offset: 0.15em; }
+a:hover { text-decoration-color: var(--accent); }
+svg { display: block; max-width: 100%; height: auto; }
+svg text { font-family: var(--mono); fill: var(--text); }
+code, pre, .num { font-family: var(--mono); }
+p code, li code, td code { font-size: 0.95em; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 0.05em 0.35em; }
+
+/* ---- Document column & width limits ------------------------------------------ */
+.doc { max-width: var(--measure); margin: 0 auto; padding: clamp(2rem, 5vw, 4rem) clamp(1.25rem, 4vw, 2.5rem) 6rem; }
+.doc > *, .doc section > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+
+/* Visual elements breakout: permitted to go beyond the prose column up to --wide or --max-width */
+figure.wide, .wide, .breakout {
+  width: min(var(--wide), 100vw - 2.5rem);
+  max-width: none;
+  margin-left: 50%;
+  transform: translate(-50%, 12px);
+}
+.full-bleed {
+  width: min(var(--max-width), 100vw - 2.5rem);
+  max-width: none;
+  margin-left: 50%;
+  transform: translate(-50%, 12px);
+}
+
+/* Layout mode: data-layout="left" on <html> shifts the whole document off a left
+   margin instead of true center, freeing the right side for breakouts throughout
+   the doc. Default (no attribute) keeps the centered column above. Figures then
+   anchor to that same left edge and grow rightward instead of centering on the
+   viewport. Collapses back to the default full-width column below the mobile
+   breakpoint (see Responsive). */
+:root[data-layout="left"] { --doc-left-margin: clamp(2rem, 8vw, 6rem); }
+:root[data-layout="left"] .doc { margin: 0 0 0 var(--doc-left-margin); }
+:root[data-layout="left"] figure.wide,
+:root[data-layout="left"] .wide,
+:root[data-layout="left"] .breakout {
+  width: min(var(--wide), 100vw - var(--doc-left-margin) - 2rem);
+  margin-left: 0;
+  transform: translateY(12px);
+}
+:root[data-layout="left"] .full-bleed {
+  width: min(var(--max-width), 100vw - var(--doc-left-margin) - 2rem);
+  margin-left: 0;
+  transform: translateY(12px);
+}
+:root[data-layout="left"] figure.wide.in,
+:root[data-layout="left"] .wide.in,
+:root[data-layout="left"] .breakout.in,
+:root[data-layout="left"] .full-bleed.in { transform: none !important; }
+
+/* Chrome bar: running head above the title. Mono, uppercase, hairline. */
+.chrome { display: flex; justify-content: space-between; gap: 1rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); padding-bottom: 0.6rem; border-bottom: 1.5px solid var(--text); margin-bottom: 2.5rem; }
+.chrome b { color: var(--text); font-weight: 500; }
+.tag { display: inline-block; border: 1px solid var(--accent); color: var(--accent); border-radius: 3px; padding: 0.15em 0.55em; font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; vertical-align: middle; }
+
+/* Header: direct, clean first screen. Staggers in once on load. */
+.doc-header { padding-bottom: 1.75rem; border-bottom: 1px solid var(--line); margin-bottom: 2.25rem; }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.chrome, .doc-header > * { animation: rise 700ms var(--ease) both; }
+.chrome { animation-delay: 0ms; }
+.doc-header > :nth-child(1) { animation-delay: 80ms; }
+.doc-header > :nth-child(2) { animation-delay: 200ms; }
+.doc-header > :nth-child(3) { animation-delay: 320ms; }
+.eyebrow { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.75rem; }
+h1 { font-family: var(--serif); font-weight: var(--display-weight, 700); font-size: clamp(2.25rem, 4.5vw, 3.25rem); line-height: 1.08; letter-spacing: var(--display-tracking, -0.01em); text-transform: var(--display-case, none); margin: 0 0 0.9rem; }
+.dek { font-family: var(--serif); font-style: italic; font-size: 1.35rem; line-height: 1.45; color: var(--muted); margin: 0; }
+.meta { color: var(--muted); font-size: 0.9rem; margin-top: 0.75rem; }
+
+h2 { font-family: var(--serif); font-weight: var(--display-weight, 700); font-size: 1.75rem; line-height: 1.2; letter-spacing: var(--display-tracking, 0); margin: 3rem 0 1rem; position: relative; }
+h3 { font-family: var(--serif); font-weight: var(--display-weight, 700); font-size: 1.3rem; line-height: 1.3; margin: 2rem 0 0.75rem; position: relative; }
+/* Stub rule: the 36px accent hairline under every idea heading. The system's small punctuation mark. */
+h2::after, h3::after { content: ""; display: block; width: 36px; height: 2px; background: var(--accent); margin-top: 0.6rem; }
+/* Folio: idea number in the left margin, mono. <h2 data-n="03"> */
+[data-n]::before { content: attr(data-n); white-space: nowrap; position: absolute; right: 100%; margin-right: 1rem; top: 0.45em; font-family: var(--mono); font-weight: 400; font-size: 0.75rem; letter-spacing: 0.1em; color: var(--accent); }
+@media (max-width: 64rem) { [data-n]::before { position: static; display: block; margin: 0 0 0.35rem; } }
+/* Drop cap on the first paragraph of the context section. */
+.dropcap::first-letter { font-family: var(--serif); font-weight: 700; font-size: 3.4em; line-height: 0.8; float: left; margin: 0.08em 0.12em 0 0; color: var(--accent); }
+/* Magazine end mark after the last idea. */
+.end-mark { text-align: center; color: var(--accent); font-size: 0.9rem; margin: 3rem 0 0; letter-spacing: 0.4em; }
+h2 + p, h3 + p { margin-top: 0; }
+p { margin: 0 0 1.1rem; letter-spacing: var(--body-tracking, normal); }
+ul, ol { padding-left: 1.4rem; margin: 0 0 1.1rem; }
+li { margin: 0.3rem 0; }
+ul { list-style: none; padding-left: 1.4rem; }
+ul > li { position: relative; }
+ul > li::before { content: "\2014"; position: absolute; left: -1.4rem; color: var(--accent); font-family: var(--mono); }   /* newspaper dash, never a dot */
+ol li::marker { color: var(--accent); font-family: var(--mono); }
+mark { background: var(--accent-soft); color: var(--text); padding: 0 0.15em; border-radius: 2px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+hr { border: 0; border-top: 1px solid var(--line); margin: 3rem 0; }
+
+/* Summary block (TL;DR). */
+.summary { background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1.1rem 1.4rem; margin: 0 0 2rem; box-shadow: var(--shadow-md); }
+.summary p:last-child { margin-bottom: 0; }
+
+/* Aside: a caveat, an "only when". */
+.aside { margin: 1.25rem 0; padding: 0.8rem 1.1rem; border-left: 3px solid var(--accent); background: var(--accent-soft); font-size: 0.98rem; border-radius: 0 6px 6px 0; }
+.aside.err { border-color: var(--err); background: color-mix(in srgb, var(--err) 12%, transparent); }
+.aside p:last-child { margin-bottom: 0; }
+
+/* Callouts: key insights & alerts */
+.callout { background: var(--surface); border: 1px solid var(--line); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 1.1rem 1.4rem; margin: 1.5rem 0; box-shadow: var(--shadow-md); }
+.callout.insight { border-left-color: var(--accent); background: var(--accent-soft); }
+.callout.warn { border-left-color: var(--err); background: color-mix(in srgb, var(--err) 10%, transparent); }
+.callout.ok { border-left-color: var(--ok); background: color-mix(in srgb, var(--ok) 10%, transparent); }
+.callout h4 { margin: 0 0 0.4rem; font-size: 0.82rem; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.1em; color: var(--accent); }
+.callout.warn h4 { color: var(--err); }
+.callout.ok h4 { color: var(--ok); }
+.callout p:last-child { margin-bottom: 0; }
+
+/* Inline inspection pills & badges */
+.inspect-node { display: inline-flex; align-items: center; gap: 0.25rem; padding: 0.1em 0.45em; background: var(--accent-soft); border: 1px solid var(--accent-line); border-radius: 4px; color: var(--text); cursor: pointer; font-size: 0.9em; font-family: var(--mono); transition: all 200ms var(--ease); text-decoration: none; }
+.inspect-node:hover, .inspect-node.inspecting { background: var(--accent); color: var(--bg); border-color: var(--accent); box-shadow: 0 0 12px var(--glow); }
+.hl-pill { display: inline-block; padding: 0.08em 0.45em; background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-line); border-radius: 999px; font-size: 0.85em; font-family: var(--mono); font-weight: 500; vertical-align: middle; }
+.delta { display: inline-flex; align-items: center; font-size: 0.82rem; font-family: var(--mono); padding: 0.15em 0.5em; border-radius: 4px; font-weight: 600; }
+.delta.up { color: var(--ok); background: color-mix(in srgb, var(--ok) 15%, transparent); }
+.delta.down { color: var(--err); background: color-mix(in srgb, var(--err) 15%, transparent); }
+
+/* SVG Inspect Dimming/Highlighting */
+svg.inspect-active [data-node] { opacity: 0.25; transition: opacity 250ms var(--ease); }
+svg.inspect-active .inspected, svg.inspect-active [data-node].inspected { opacity: 1 !important; filter: drop-shadow(0 0 8px var(--accent)); }
+
+/* ---- Figures -------------------------------------------------------------------- */
+figure { margin: 2rem 0; }
+figure > svg { width: 100%; }                 /* viewBox-only SVGs otherwise render at 300px */
+figcaption { color: var(--muted); font-size: 0.95rem; line-height: 1.5; margin-top: 0.75rem; text-align: center; max-width: 40rem; margin-left: auto; margin-right: auto; }
+figcaption strong { color: var(--text); font-weight: 600; }
+
+/* ---- Reveal (gentle; figures only) --------------------------------------------- */
+figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels { opacity: 0; transform: translateY(12px); transition: opacity 500ms var(--ease), transform 500ms var(--ease); }
+.in { opacity: 1 !important; transform: translateY(0) !important; }
+figure.wide.in, .wide.in, .breakout.in, .full-bleed.in { transform: translateX(-50%) !important; }
+/* Arrows draw themselves once the figure is in. */
+.draw { stroke-dasharray: 1000; stroke-dashoffset: 1000; transition: stroke-dashoffset 800ms var(--ease); transition-delay: calc(var(--i, 0) * 120ms + 200ms); }
+.in .draw { stroke-dashoffset: 0; }
+/* .pop animates opacity only: a CSS transform would override the SVG transform attribute. */
+.pop { opacity: 0; transition: opacity 400ms var(--ease); transition-delay: calc(var(--i, 0) * 120ms); }
+.in .pop { opacity: 1; }
+.grow { transform: scaleY(0); transform-origin: bottom; transition: transform 700ms var(--ease); transition-delay: calc(var(--i, 0) * 100ms + 200ms); transform-box: fill-box; }
+.in .grow { transform: none; }
+.grow-x { transform: scaleX(0); transform-origin: left; transition: transform 700ms var(--ease); transition-delay: calc(var(--i, 0) * 100ms + 200ms); transform-box: fill-box; }
+.in .grow-x { transform: none; }
+
+/* ---- Live motion (loops only while the figure is on screen: .live) ------------- */
+.packet { fill: var(--accent); }
+.packet.err { fill: var(--err); }
+.packet.ok { fill: var(--ok); }
+@keyframes pulse { 0%, 100% { stroke-width: 1.5; } 50% { stroke-width: 3.5; } }
+.live .pulse > rect, .live .pulse > circle, .live .pulse > path { animation: pulse 1.8s var(--ease) infinite; stroke: var(--accent); }
+.live .pulse-glow { animation: glowPulse 2s ease-in-out infinite; }
+@keyframes glowPulse { 0%, 100% { filter: drop-shadow(0 0 2px var(--accent)); } 50% { filter: drop-shadow(0 0 10px var(--accent)); } }
+.lit > rect, .lit > circle, .lit > path.node { stroke: var(--accent) !important; fill: var(--accent-soft) !important; }
+.lit > text { fill: var(--text); }
+.step.lit strong, .cell.lit { color: var(--accent); }
+.cell.lit { background: var(--accent-soft); border-color: var(--accent); }
+[data-cycle] > * { transition: fill 300ms var(--ease), stroke 300ms var(--ease), color 300ms var(--ease), background 300ms var(--ease), border-color 300ms var(--ease); }
+[data-cycle] > * > rect, [data-cycle] > * > circle { transition: fill 300ms var(--ease), stroke 300ms var(--ease); }
+@keyframes dash { to { stroke-dashoffset: -24; } }
+.live .flowing { stroke-dasharray: 6 6; animation: dash 1s linear infinite; }
+@keyframes streamFlow { to { stroke-dashoffset: -28; } }
+.live .stream-channel { stroke-dasharray: 8 6; animation: streamFlow 1.1s linear infinite; }
+
+/* ---- Components ------------------------------------------------------------------ */
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr)); gap: 1.5rem; margin: 2rem 0; }
+figure .stats { margin: 0 0 1.5rem 0; }
+figure.wide .stats, .stats.wide { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); }
+.stat { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.5rem 1.25rem; box-shadow: var(--shadow-md); }
+.stat .num { font-family: var(--serif); font-size: clamp(2.5rem, 4.5vw, 3.75rem); line-height: 1; color: var(--accent); font-weight: 700; letter-spacing: -0.02em; }
+.stat .unit { color: var(--muted); font-size: 0.95rem; margin-top: 0.5rem; text-align: center; }
+
+/* Meters / Progress Gauges */
+.meter { display: grid; gap: 0.4rem; margin: 1.2rem 0; }
+.meter-head { display: flex; justify-content: space-between; font-size: 0.85rem; font-family: var(--mono); color: var(--muted); }
+.meter-head strong { color: var(--text); }
+.meter-bar { height: 10px; background: var(--surface0); border-radius: 999px; overflow: hidden; border: 1px solid var(--line); }
+.meter-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width 900ms var(--ease); }
+.meter-fill.filled { width: var(--target-pct, 0%); }
+
+/* Race Bars (Comparison Benchmarks) */
+.race-bars { display: grid; gap: 0.9rem; margin: 1.5rem 0; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; box-shadow: var(--shadow-md); }
+.race-item { display: grid; grid-template-columns: clamp(5rem, 20%, 9rem) 1fr clamp(3rem, 15%, 5rem); gap: 0.8rem; align-items: center; font-size: 0.88rem; font-family: var(--mono); }
+.race-label { color: var(--text); font-weight: 500; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.race-track { height: 18px; background: var(--surface0); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
+.race-fill { height: 100%; width: 0%; background: var(--muted); border-radius: 3px; transition: width 1000ms var(--ease); }
+.race-fill.accent { background: var(--accent); box-shadow: 0 0 10px var(--glow); }
+.race-fill.filled { width: var(--target-pct, 0%); }
+.race-val { color: var(--text); font-weight: 600; text-align: left; }
+
+/* Quadrant Chart & 2x2 Matrix */
+.quadrant { width: 100%; margin: 2rem 0; }
+.quadrant-node { transition: transform 300ms var(--ease), filter 300ms var(--ease); cursor: pointer; }
+.quadrant-node:hover { filter: drop-shadow(0 0 8px var(--accent)); }
+
+/* Interactive Step-by-Step Stepper */
+.stepper { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem; margin: 1.5rem 0; box-shadow: var(--shadow-md); }
+.stepper-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--line); padding-bottom: 0.75rem; }
+.stepper-title { font-family: var(--mono); font-size: 0.82rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.stepper-nav { display: flex; align-items: center; gap: 0.75rem; }
+.step-count { font-family: var(--mono); font-size: 0.85rem; color: var(--accent); font-weight: 600; }
+.step-btn { background: var(--surface0); color: var(--text); border: 1px solid var(--line); border-radius: 4px; padding: 0.3em 0.75em; font-family: var(--mono); font-size: 0.8rem; cursor: pointer; transition: all 150ms var(--ease); }
+.step-btn:hover:not(:disabled) { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.step-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.step-pane { display: none; font-size: 0.95rem; line-height: 1.6; }
+.step-pane.active { display: block; animation: rise 300ms var(--ease) both; }
+[data-step] { opacity: 0.35; transition: opacity 300ms var(--ease), filter 300ms var(--ease); }
+[data-step].active-step { opacity: 1 !important; filter: drop-shadow(0 0 6px var(--accent)); }
+
+.quote { font-family: var(--serif); font-style: italic; font-size: 1.45rem; line-height: 1.4; margin: 2rem 0; padding-left: 1.25rem; border-left: 3px solid var(--accent); }
+.quote em { color: var(--accent); font-style: normal; }
+
+.panels { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+.panels.three { grid-template-columns: repeat(3, 1fr); }
+.panel { text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.25rem; box-shadow: var(--shadow-md); }
+.panel h4 { margin: 0 0 0.6rem; font-size: 0.8rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.panel.after { border-color: var(--accent); }
+.panel .hl { color: var(--accent); }
+.panel p:last-child, .panel ul:last-child { margin-bottom: 0; }
+
+/* Steps: ordered, sequential. Rules: unordered principles/requirements. Same shape, different marker. */
+.steps, .rules { display: grid; gap: 0.9rem; counter-reset: step; padding: 0; margin: 0; list-style: none; }
+.step, .rule { display: grid; grid-template-columns: 2.25rem 1fr; column-gap: 0.75rem; align-items: start; }
+.step::before { counter-increment: step; content: counter(step, decimal-leading-zero); }
+.rule::before { content: "\2014"; }
+.step::before, .rule::before { grid-column: 1; grid-row: 1 / span 2; font-family: var(--mono); color: var(--accent); font-size: 0.95rem; padding-top: 0.2rem; }
+.step > *, .rule > * { grid-column: 2; }
+.step strong, .rule strong { display: block; }
+.step span, .rule span { color: var(--muted); }
+
+.cells { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.75rem, 1fr)); gap: 4px; }
+/* Record / byte layout: one row of labelled fields, widths proportional to content. */
+.cells.row { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: minmax(3.5rem, auto); }
+.cells.row .cell { aspect-ratio: auto; padding: 0.55rem 0.8rem; font-size: 0.8rem; white-space: nowrap; }
+.cells.row .cell.var { min-width: 8rem; }
+.cell { aspect-ratio: 1; display: grid; place-items: center; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
+.cell.on { background: var(--accent-soft); border-color: var(--accent); color: var(--text); }
+.cell.bad { background: color-mix(in srgb, var(--err) 16%, transparent); border-color: var(--err); color: var(--text); }
+
+/* Pixel-stack bars: a bar chart built from grid cells; cells light bottom-up on reveal. */
+.pixbars { display: flex; align-items: flex-end; justify-content: center; gap: clamp(1rem, 4vw, 2.5rem); padding: 0.5rem 0 0; }
+.pixbar { display: flex; flex-direction: column-reverse; gap: 3px; align-items: stretch; width: clamp(2.5rem, 7vw, 4rem); }
+.pixbar .px { height: 10px; background: var(--grid); border-radius: 2px; transition: background 300ms var(--ease); transition-delay: calc(var(--i, 0) * 60ms); }
+.in .pixbar .px.on { background: var(--muted); }
+.in .pixbar.accent .px.on { background: var(--accent); }
+.pixbar .val { order: 1; text-align: center; font-family: var(--mono); font-size: 0.95rem; margin-bottom: 0.4rem; color: var(--text); }
+.pixbar .lbl { order: -1; text-align: center; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 0.5rem; }
+
+pre {
+  text-align: left; background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+  padding: 1.1rem 1.25rem; overflow-x: auto; font-size: 0.92rem; line-height: 1.6; margin: 0; box-shadow: var(--code-shadow);
+}
+pre .k { color: var(--code-k); } pre .s { color: var(--code-s); } pre .c { color: var(--code-c); } pre .n { color: var(--code-n); }
+pre .hl { display: inline-block; width: 100%; background: var(--accent-soft); box-shadow: -1.25rem 0 0 var(--accent-soft), 1.25rem 0 0 var(--accent-soft); }
+
+/* Diff: the exact code change. The author types the +/- prefixes; CSS only tints. */
+pre.diff .add { display: inline-block; width: 100%; background: color-mix(in srgb, var(--ok) 13%, transparent); box-shadow: -1.25rem 0 0 color-mix(in srgb, var(--ok) 13%, transparent), 1.25rem 0 0 color-mix(in srgb, var(--ok) 13%, transparent); }
+pre.diff .del { display: inline-block; width: 100%; background: color-mix(in srgb, var(--err) 11%, transparent); box-shadow: -1.25rem 0 0 color-mix(in srgb, var(--err) 11%, transparent), 1.25rem 0 0 color-mix(in srgb, var(--err) 11%, transparent); opacity: 0.85; }
+
+/* Terminal session: a command and what it printed. */
+pre.term { background: var(--crust); }
+pre.term .prompt { color: var(--accent); font-weight: 600; user-select: none; }
+pre.term .out { color: var(--muted); }
+
+/* Deep-dive: optional depth a skimmer can skip. Nothing load-bearing goes inside. */
+details.deep-dive { margin: 1.25rem 0; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 8px; background: var(--surface-soft); }
+details.deep-dive > summary { cursor: pointer; padding: 0.7rem 1rem; font-family: var(--mono); font-size: 0.85rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+details.deep-dive > summary:hover { color: var(--text); }
+details.deep-dive[open] > summary { border-bottom: 1px solid var(--line); color: var(--text); }
+details.deep-dive > :not(summary) { margin-left: 1rem; margin-right: 1rem; }
+details.deep-dive > :last-child { margin-bottom: 0.9rem; }
+
+/* Heatmap intensity: three steps of the one accent hue. */
+.cell.heat-1 { background: color-mix(in srgb, var(--accent) 12%, transparent); border-color: var(--accent-line); color: var(--text); }
+.cell.heat-2 { background: color-mix(in srgb, var(--accent) 32%, transparent); border-color: var(--accent); color: var(--text); }
+.cell.heat-3 { background: color-mix(in srgb, var(--accent) 60%, transparent); border-color: var(--accent); color: var(--text); }
+
+figure:has(> .matrix), .matrix-wrap { overflow-x: auto; }
+.matrix { border-collapse: collapse; width: 100%; font-size: 0.98rem; overflow-wrap: normal; }
+.matrix th, .matrix td { padding: 0.7rem 0.9rem; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; white-space: nowrap; }
+.matrix thead th { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; }
+.matrix tbody th { font-weight: 500; }
+.matrix td { font-family: var(--mono); font-size: 0.9rem; color: var(--muted); }
+.matrix tr.chosen { background: var(--accent-soft); }
+.matrix tr.chosen th, .matrix tr.chosen td { color: var(--text); }
+.matrix tr.chosen th::after { content: "chosen"; color: var(--accent); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; margin-left: 0.6rem; }
+
+.formula { font-size: clamp(1.25rem, 2.2vw, 1.75rem); line-height: 1.4; text-align: center; padding: 1rem 0; }
+.formula mjx-container { color: var(--text); }
+.formula mjx-container[display="true"] { display: block !important; text-align: center !important; margin: 0 auto !important; max-width: 100%; overflow-x: auto; }
+mjx-container > svg { display: inline-block; max-width: 100%; height: auto; }   /* base svg{display:block} would pin it left */
+.formula .term { color: var(--accent); }
+.formula-legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem 1.5rem; color: var(--muted); font-size: 0.95rem; margin-top: 0.5rem; }
+.formula-legend code { color: var(--text); }
+.formula:not(.typeset)::after { content: attr(data-plain); display: block; font-family: var(--mono); font-size: 0.65em; color: var(--muted); }
+.formula.typeset::after { display: none; }
+
+.sources { font-size: 0.95rem; color: var(--muted); }
+.sources li { margin: 0.35rem 0; }
+
+/* ---- Responsive -------------------------------------------------------------------- */
+@media (max-width: 48rem) {
+  .panels, .panels.three, .stats, figure.wide .stats, .stats.wide { grid-template-columns: 1fr; }
+  figure.wide, .wide, .breakout, .full-bleed { width: 100%; margin-left: 0; transform: none; }
+  figure.wide.in, .wide.in, .breakout.in, .full-bleed.in { transform: none !important; }
+  :root[data-layout="left"] .doc { margin-left: 0; }
+}
+
+/* ---- Print ------------------------------------------------------------------------- */
+@media print {
+  body { background-image: none; }
+  .chrome, .doc-header > * { animation: none; }
+  figure, .stats, .summary, .pop { opacity: 1 !important; transform: none !important; }
+  .draw { stroke-dashoffset: 0 !important; }
+  .grow, .grow-x { transform: none !important; }
+  details.deep-dive { border-left-color: var(--line); }
+  details.deep-dive > summary::after { content: " (collapsed)"; }
+  details.deep-dive[open] > summary::after { content: ""; }
+  .doc { padding: 0; max-width: 100%; margin: 0; }
+  figure.wide, .wide, .breakout, .full-bleed { width: 100%; margin-left: 0; transform: none !important; }
+}
+
+/* ---- Reduced motion: everything visible, nothing moves --------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  figure, .stats, .summary, .pop, .grow, .grow-x, .callout, .race-bars, .quadrant, .stepper { opacity: 1 !important; transform: none !important; }
+  .chrome, .doc-header > * { animation: none; opacity: 1; }
+  :root:not([data-layout="left"]) figure.wide,
+  :root:not([data-layout="left"]) .wide,
+  :root:not([data-layout="left"]) .breakout,
+  :root:not([data-layout="left"]) .full-bleed { transform: translateX(-50%) !important; }
+  :root[data-layout="left"] figure.wide,
+  :root[data-layout="left"] .wide,
+  :root[data-layout="left"] .breakout,
+  :root[data-layout="left"] .full-bleed { transform: none !important; }
+  .draw { stroke-dashoffset: 0 !important; }
+  html { scroll-behavior: auto; }
+}
+/* Document-specific refinements */
+.eyebrow { margin-top: 3rem; margin-bottom: 0.25rem; }
+.eyebrow + h2 { margin-top: 0.35rem; }
+
+
+
+/* ---- This document --------------------------------------------------------- */
+/* Visible at rest: the reveal only adds motion, it never hides content. */
+figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels { opacity: 1; transform: none; }
+figure.wide, .wide, .breakout, .full-bleed { transform: translateX(-50%); }
+@media (max-width: 48rem) { figure.wide, .wide, .breakout, .full-bleed { transform: none; } }
+h1, h2, h3 { text-wrap: balance; }
+.doc p, .doc li { text-wrap: pretty; }
+.term { font-weight: 600; color: var(--text); border-bottom: 1px dotted var(--accent-line); }
+.src { color: var(--muted); font-size: 0.85rem; margin: 0.6rem 0 0; }
+mark.pending { background: color-mix(in srgb, var(--err) 18%, transparent); color: var(--err); padding: 0 0.3em; border-radius: 3px; }
+ul.rules { padding-left: 0; margin-bottom: 1.1rem; }
+ul.rules > li { position: relative; padding-left: 1.6rem; margin: 0; }
+ul.rules > li::before { left: 0; top: 0.05em; }
+ul.rules > li > strong { display: block; color: var(--text); }
+ul.rules > li > span { display: block; color: var(--muted); }
+.matrix td { font-variant-numeric: tabular-nums; }
+.matrix td.up { color: var(--ok); font-weight: 600; }
+.matrix td.down { color: var(--err); font-weight: 600; }
+.matrix tr.total th, .matrix tr.total td { border-top: 2px solid var(--line); color: var(--text); font-weight: 600; }
+.tokens { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.25rem 0 0; padding: 0; list-style: none; }
+.tokens li { margin: 0; font-family: var(--mono); font-size: 0.88rem; padding: 0.1em 0.5em; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.tokens li::before { content: none; }
+.token-rows { display: grid; gap: 0.9rem; margin: 1.25rem 0 1.5rem; }
+.token-rows .label { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+table.grid td.heat { text-align: center; }
+table.grid td.heat.up { background: color-mix(in srgb, var(--accent) calc(var(--h) * 40%), transparent); }
+table.grid td.heat.down { background: color-mix(in srgb, var(--err) calc(var(--h) * 40%), transparent); }
+table.grid td.is-default { outline: 2px solid var(--muted); outline-offset: -2px; }
+table.grid td.is-best { outline: 2px solid var(--ok); outline-offset: -2px; font-weight: 700; color: var(--text); }
+table.grid th { text-align: center; }
+.stats { grid-template-columns: repeat(2, 1fr); }
+.formula-box { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem 1.4rem; margin: 1.25rem 0 1.5rem; display: grid; gap: 1.2rem; overflow-x: auto; box-shadow: var(--shadow-md); }
+.eq { display: flex; align-items: center; flex-wrap: nowrap; gap: 0.5rem; font-family: var(--mono); font-size: 1rem; white-space: nowrap; }
+.eq .name { font-weight: 700; font-size: 1.05rem; }
+.eq .idf { color: var(--accent); }
+.eq .tf { color: var(--accent-2); }
+.eq .big { font-size: 1.6rem; line-height: 1; }
+.frac { display: inline-flex; flex-direction: column; align-items: stretch; vertical-align: middle; }
+.frac > span { display: flex; align-items: center; justify-content: center; gap: 0.4rem; text-align: center; }
+.frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 0.35em 0.25em; }
+.frac > span:last-child { padding: 0.25em 0.35em 0; }
+.formula-note { font-size: 0.85rem; color: var(--muted); margin: -0.4rem 0 0; }
+dl.symbols { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem; margin: 0 0 1.5rem; font-size: 0.95rem; }
+dl.symbols dt { font-family: var(--mono); font-weight: 600; color: var(--text); }
+dl.symbols dd { margin: 0; color: var(--muted); }
+@media (max-width: 30rem) { .stats { grid-template-columns: 1fr; } }
+pre { margin: 1.25rem 0 1.5rem; }
+</style>
+
+<article class="doc">
+
+<header class="doc-header">
+  <div class="chrome">
+    <span>How search works, part 1</span>
+    <span><b>OpenSearch 2.19.1</b> · BEIR</span>
+  </div>
+  <h1>BM25, Without the Scary Math</h1>
+  <p class="dek">Keyword search gave one paper a score of 28.64. This post rebuilds that number one word at a time, shows what BM25's two settings do, and tests what changes results on 1,271 real questions.</p>
+  <p class="meta">Every number on this page was printed by the Java lab in section 11, unless it says it was worked out from the formula.</p>
+</header>
+
+<div class="summary">
+  <p><strong>Short version.</strong> BM25 scores a document by adding up points for each word of the question that the document contains. Rare words earn more points than common ones. Using a word again earns a little more each time, but less and less. And a long document gets a small penalty, so it can't win only because it contains more words.</p>
+  <p><strong>What we measured.</strong> Across 42 combinations of BM25's two settings, k1 and b, the best one beat OpenSearch's defaults by at most 0.005 nDCG@10 on any of the three datasets. Only extreme settings did real damage. Reducing words to their stem ("sweeteners" becomes "sweeten") mattered more: +0.021 on NFCorpus, +0.034 on SciFact and +0.015 on FiQA. With stemming and the BEIR paper's settings, we reproduce the paper's BM25 scores for NFCorpus and FiQA to three decimals.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><span class="num">28.64</span><span class="unit">the score we take apart, word by word</span></div>
+  <div class="stat"><span class="num">6</span><span class="unit">(field, word) pairs that make up that score</span></div>
+  <div class="stat"><span class="num">+0.034</span><span class="unit">nDCG@10 from stemming on SciFact</span></div>
+  <div class="stat"><span class="num">42</span><span class="unit">k1 and b combinations tested on each dataset</span></div>
+</div>
+
+<section>
+
+  <h2 data-n="01">What keyword search does</h2>
+  <p>You type a question. The search engine has thousands of documents and has to decide which ones to show first. <span class="term">Keyword search</span> does this by looking for documents that contain the words of the question, giving each one a score, and listing the highest scores first.</p>
+  <p>The standard scoring method for keyword search is <span class="term">BM25</span>, short for "Best Match 25". It is the default in OpenSearch, Elasticsearch and Lucene. This post takes one real BM25 score apart and rebuilds it word by word.</p>
+  <p>The example comes from <strong>NFCorpus</strong>, a public test set of 3,633 medical research papers with real questions. We loaded it into OpenSearch and searched for "Neurobiology of Artificial Sweeteners". The top result was "The potential toxicity of artificial sweeteners.", with a score of <strong>28.64</strong>. OpenSearch can explain exactly how it reached that number, and the rest of this post follows that explanation.</p>
+
+  <h2 data-n="02">Three ideas</h2>
+  <p>BM25 is built on three ideas:</p>
+  <ul class="rules">
+    <li><strong>Rare words count more.</strong><span>A document containing "sweeteners" tells you much more than one containing "of", because almost every document contains "of".</span></li>
+    <li><strong>Repeating a word helps, less each time.</strong><span>A document that says "sweeteners" four times is probably more about sweeteners than one that says it once, but not four times more. The setting <span class="term">k1</span> controls how fast the extra credit runs out.</span></li>
+    <li><strong>Long documents get a small penalty.</strong><span>A long document contains more words because it is long, so it would win too often. The setting <span class="term">b</span> controls how strongly length is taken into account.</span></li>
+  </ul>
+  <p>Written as a formula, the first idea becomes <span class="term">IDF</span> (inverse document frequency) and the other two become <span class="term">TF</span> (term frequency). For every word of the question that the document contains, BM25 multiplies IDF by TF, then adds up the results:</p>
+  <div class="formula-box">
+    <div class="eq"><span class="name">score</span> = <span class="big">Σ</span> <span class="name idf">IDF</span> × <span class="name tf">TF</span></div>
+    <p class="formula-note">Σ means "add this up for every word of the question that appears in the document".</p>
+    <div class="eq"><span class="name idf">IDF</span> = ln ( 1 + <span class="frac"><span>N − n + 0.5</span><span>n + 0.5</span></span> )</div>
+    <div class="eq"><span class="name tf">TF</span> = <span class="frac"><span>freq × (k1 + 1)</span><span>freq + k1 × ( 1 − b + b × <span class="frac"><span>length</span><span>avg length</span></span> )</span></span></div>
+  </div>
+  <dl class="symbols">
+    <dt>N</dt><dd>how many documents there are (3,633 in NFCorpus)</dd>
+    <dt>n</dt><dd>how many of them contain the word</dd>
+    <dt>freq</dt><dd>how many times the word appears in this document</dd>
+    <dt>length</dt><dd>how many terms this document has; <em>avg length</em> is the average over all documents</dd>
+    <dt>k1</dt><dd>how quickly repeats stop adding more (OpenSearch's default: 1.2)</dd>
+    <dt>b</dt><dd>how much document length counts, from 0 (not at all) to 1 (fully); default 0.75</dd>
+    <dt>ln</dt><dd>the natural logarithm: it grows fast for small numbers and slowly for large ones</dd>
+  </dl>
+  <p>The next sections go through IDF and TF with the real numbers behind the 28.64.</p>
+
+  <h2 data-n="03">First, the text is split into words</h2>
+  <p>Before any scoring, OpenSearch runs every document and every question through an <span class="term">analyzer</span>, which turns text into the list of words, called <span class="term">terms</span>, that it will match. OpenSearch's default is the <em>standard</em> analyzer: split on spaces and punctuation, and lowercase. The <em>english</em> analyzer also drops very common words, called stop words, and cuts words down to their stem, so that "sweetener" and "sweeteners" become the same term. Here is what each one does, as printed by OpenSearch's analyze API:</p>
+  <div class="token-rows">
+    <div><span class="label">Question, standard analyzer</span><ul class="tokens"><li>neurobiology</li><li>of</li><li>artificial</li><li>sweeteners</li></ul></div>
+    <div><span class="label">Question, english analyzer</span><ul class="tokens"><li>neurobiolog</li><li>artifici</li><li>sweeten</li></ul></div>
+    <div><span class="label">Title of the top result, standard analyzer</span><ul class="tokens"><li>the</li><li>potential</li><li>toxicity</li><li>of</li><li>artificial</li><li>sweeteners</li></ul></div>
+    <div><span class="label">Title of the top result, english analyzer</span><ul class="tokens"><li>potenti</li><li>toxic</li><li>artifici</li><li>sweeten</li></ul></div>
+  </div>
+  <p>With the standard analyzer, a document that says "sweetener" does not match the question's "sweeteners" at all. With the english analyzer both become "sweeten". Section 09 shows how much that alone changes.</p>
+
+  <h2 data-n="04">IDF: rare words count more</h2>
+  <p><span class="term">IDF</span> only needs two counts: how many documents there are (N) and how many of them contain the word (n). NFCorpus has 3,633 documents. In their text field:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Word</th><th>Documents containing it (n)</th><th>IDF</th></tr></thead>
+      <tbody>
+        <tr><th>of</th><td>3,623 of 3,633</td><td>0.0029</td></tr>
+        <tr><th>artificial</th><td>20</td><td>5.18</td></tr>
+        <tr><th>sweeteners</th><td>11</td><td>5.76</td></tr>
+        <tr><th>neurobiology</th><td>–</td><td>not in this document</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>"of" is in almost every document, so its IDF is almost zero and it barely affects the score. "sweeteners" is in only 11 documents, so it counts for a lot. Putting the numbers for "sweeteners" into the IDF formula: ln(1 + (3,633 − 11 + 0.5) ÷ (11 + 0.5)) = 5.7557.</p>
+  <p>The word "neurobiology" is in the question but not in this document, so it adds nothing here. BM25 only rewards words that match.</p>
+
+  <h2 data-n="05">TF: repeating a word helps, less each time</h2>
+  <p><span class="term">TF</span> looks at how often the word appears, with less extra credit for each repeat. With the default k1 = 1.2, a word appearing twice counts about 1.4 times as much as appearing once, not twice as much. The table shows this, worked out from the formula for a document of average length:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Word appears</th><th>1 time</th><th>2 times</th><th>3 times</th><th>5 times</th><th>10 times</th></tr></thead>
+      <tbody>
+        <tr><th>k1 = 0.5</th><td>1.00</td><td>1.20</td><td>1.29</td><td>1.36</td><td>1.43</td></tr>
+        <tr><th>k1 = 1.2 (default)</th><td>1.00</td><td>1.38</td><td>1.57</td><td>1.77</td><td>1.96</td></tr>
+        <tr><th>k1 = 2.0</th><td>1.00</td><td>1.50</td><td>1.80</td><td>2.14</td><td>2.50</td></tr>
+        <tr><th>k1 = 5.0</th><td>1.00</td><td>1.71</td><td>2.25</td><td>3.00</td><td>4.00</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">Relative to one appearance, with b = 0.75. Worked out from the formula, not measured.</p>
+  <p>With a small k1 the credit runs out almost at once: ten appearances count less than 1.5 times one. With a large k1, repeats keep adding more. k1 = 0 would ignore repeats completely, and only "is the word there or not" would matter.</p>
+
+  <h2 data-n="06">TF, continued: long documents get a small penalty</h2>
+  <p>TF also compares the document's length with the average length of that field. With b = 0.75, a word appearing once in a document twice as long as average counts 0.71 times as much as in an average-length document. In a document half the average length it counts 1.26 times as much.</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Document length vs. average</th><th>half</th><th>average</th><th>2×</th><th>4×</th></tr></thead>
+      <tbody>
+        <tr><th>b = 0 (length ignored)</th><td>1.00</td><td>1.00</td><td>1.00</td><td>1.00</td></tr>
+        <tr><th>b = 0.4</th><td>1.12</td><td>1.00</td><td>0.82</td><td>0.60</td></tr>
+        <tr><th>b = 0.75 (default)</th><td>1.26</td><td>1.00</td><td>0.71</td><td>0.45</td></tr>
+        <tr><th>b = 1</th><td>1.38</td><td>1.00</td><td>0.65</td><td>0.38</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">One appearance of a word, relative to an average-length document, with k1 = 1.2. Worked out from the formula, not measured.</p>
+  <p>Our document's text is 152 terms long, shorter than the NFCorpus average of 228, so its words count a little extra. Its title is 6 terms against an average of 13. Length here means the number of terms the analyzer produced.</p>
+  <p>Putting the numbers for "sweeteners" in the text into the TF formula, with k1 = 1.2 and b = 0.75 (so 1 − b = 0.25): TF = 4 × 2.2 ÷ (4 + 1.2 × (0.25 + 0.75 × 152 ÷ 227.6)) = 1.796.</p>
+
+  <h2 data-n="07">Putting 28.64 together</h2>
+  <p>Each (field, word) score is IDF × TF. For "sweeteners" in the text, 5.7557 × 1.796 = 10.33. Here is every piece, from OpenSearch's explain API:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Field</th><th>Word</th><th>Times in field</th><th>Field length</th><th>IDF</th><th>TF</th><th>IDF × TF</th></tr></thead>
+      <tbody>
+        <tr><th>text</th><td>of</td><td>7</td><td>152</td><td>0.0029</td><td>1.949</td><td>0.01</td></tr>
+        <tr><th>text</th><td>artificial</td><td>3</td><td>152</td><td>5.18</td><td>1.692</td><td>8.76</td></tr>
+        <tr><th>text</th><td>sweeteners</td><td>4</td><td>152</td><td>5.76</td><td>1.796</td><td>10.33</td></tr>
+        <tr class="total"><th>text</th><td colspan="5">total</td><td>19.10</td></tr>
+        <tr><th>title</th><td>of</td><td>1</td><td>6</td><td>0.51</td><td>1.289</td><td>0.66</td></tr>
+        <tr><th>title</th><td>artificial</td><td>1</td><td>6</td><td>6.49</td><td>1.289</td><td>8.37</td></tr>
+        <tr><th>title</th><td>sweeteners</td><td>1</td><td>6</td><td>7.79</td><td>1.289</td><td>10.05</td></tr>
+        <tr class="total"><th>title</th><td colspan="5">total</td><td>19.08</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">If you run OpenSearch's explain API yourself, it shows TF in two pieces: k1 + 1 = 2.2, which it labels "boost", and the rest, labelled "tf" (0.8162 for "sweeteners" in the text). Multiply them to get TF as written here.</p>
+  <p>The title and the text are scored separately, and IDF is counted per field. "sweeteners" appears in the title of only 1 document, this one, so in the title it has the highest IDF of all (7.79).</p>
+  <p>Last, the two fields are combined the way the search asked for: the better field counts in full and the other counts half. That is 19.10 + 0.5 × 19.08 = <strong>28.64</strong>. The half comes from the query's <code>tie_breaker: 0.5</code> setting, which gives a document some credit for matching in a second field without letting the two fields add up in full.</p>
+
+  <h2 data-n="08">How much k1 and b matter</h2>
+  <p>The defaults, k1 = 1.2 and b = 0.75, are rules of thumb. To see how much they matter, we need many questions and a way to score the answers.</p>
+  <p>We used three public test sets from the <a href="https://github.com/beir-cellar/beir">BEIR</a> benchmark: <strong>NFCorpus</strong> (nutrition and medical research), <strong>SciFact</strong> (scientific claims and research abstracts) and <strong>FiQA</strong> (finance questions and forum answers). That is 1,271 questions, and for each one the test set marks which documents are relevant. To score a list of results we use <span class="term">nDCG@10</span>, a number from 0 to 1 for how good the top 10 is. A relevant document near the very top counts for more than one in 9th place. Higher is better, and 1 would be a perfect top 10.</p>
+  <p>We tried every combination of seven k1 values and six b values on all three. OpenSearch applies k1 and b when it searches, not when it indexes, so each combination only needed the index reopened, not rebuilt.</p>
+  <p>Here is NFCorpus with the english analyzer. The grey outline marks the default (k1 1.2, b 0.75) and the green outline the best combination.</p>
+  <figure>
+    <div class="matrix-wrap"><table class="matrix grid"><thead><tr><th>k1 ↓ · b →</th><th>0.0</th><th>0.25</th><th>0.4</th><th>0.6</th><th>0.75</th><th>1.0</th></tr></thead><tbody><tr><th>0.0</th><td class="heat down" style="--h:1.00">0.297</td><td class="heat down" style="--h:1.00">0.297</td><td class="heat down" style="--h:1.00">0.297</td><td class="heat down" style="--h:1.00">0.297</td><td class="heat down" style="--h:1.00">0.297</td><td class="heat down" style="--h:1.00">0.297</td></tr><tr><th>0.5</th><td class="heat down" style="--h:0.32">0.318</td><td class="heat down" style="--h:0.19">0.321</td><td class="heat down" style="--h:0.17">0.322</td><td class="heat down" style="--h:0.15">0.323</td><td class="heat down" style="--h:0.15">0.323</td><td class="heat down" style="--h:0.21">0.321</td></tr><tr><th>0.9</th><td class="heat down" style="--h:0.20">0.321</td><td class="heat down" style="--h:0.07">0.325</td><td class="heat down" style="--h:0.06">0.325</td><td class="heat down" style="--h:0.07">0.325</td><td class="heat down" style="--h:0.06">0.326</td><td class="heat down" style="--h:0.12">0.324</td></tr><tr><th>1.2</th><td class="heat down" style="--h:0.09">0.325</td><td class="heat down" style="--h:0.07">0.325</td><td class="heat up" style="--h:0.00">0.327</td><td class="heat down" style="--h:0.00">0.327</td><td class="heat up is-default" style="--h:0.00">0.327</td><td class="heat down" style="--h:0.07">0.325</td></tr><tr><th>1.5</th><td class="heat down" style="--h:0.12">0.324</td><td class="heat up" style="--h:0.28">0.329</td><td class="heat up" style="--h:0.64">0.331</td><td class="heat up" style="--h:0.38">0.329</td><td class="heat up" style="--h:0.25">0.329</td><td class="heat down" style="--h:0.04">0.326</td></tr><tr><th>2.0</th><td class="heat down" style="--h:0.02">0.327</td><td class="heat up" style="--h:0.60">0.331</td><td class="heat up" style="--h:0.89">0.332</td><td class="heat up is-best" style="--h:1.00">0.333</td><td class="heat up" style="--h:0.74">0.331</td><td class="heat down" style="--h:0.02">0.327</td></tr><tr><th>3.0</th><td class="heat down" style="--h:0.03">0.326</td><td class="heat up" style="--h:0.55">0.330</td><td class="heat up" style="--h:0.58">0.330</td><td class="heat up" style="--h:0.79">0.332</td><td class="heat up" style="--h:0.53">0.330</td><td class="heat down" style="--h:0.02">0.327</td></tr></tbody></table></div>
+    <figcaption><strong>NFCorpus, nDCG@10 for every k1 and b.</strong> Purple cells beat the default, red cells fall short of it; the stronger the colour, the bigger the difference.</figcaption>
+  </figure>
+  <p>Most of the grid is close to the default, and the low scores are at the edges. The top row, k1 = 0, ignores how often a word appears, and every b gives the same 0.297, because with nothing to adjust, length makes no difference either. The first column, b = 0, ignores document length.</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Dataset</th><th>Analyzer</th><th>Defaults (1.2, 0.75)</th><th>Best combination</th><th>Worst to best</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td>standard</td><td>0.307</td><td>0.310 (k1=2.0,b=0.75)</td><td>0.278 – 0.310</td></tr>
+        <tr><th></th><td>english</td><td>0.327</td><td>0.333 (k1=2.0,b=0.6)</td><td>0.297 – 0.333</td></tr>
+        <tr><th>SciFact</th><td>standard</td><td>0.656</td><td>0.658 (k1=0.9,b=1.0)</td><td>0.627 – 0.658</td></tr>
+        <tr><th></th><td>english</td><td>0.691</td><td>0.691 (k1=1.2,b=0.6)</td><td>0.650 – 0.691</td></tr>
+        <tr><th>FiQA</th><td>standard</td><td>0.239</td><td>0.241 (k1=1.2,b=0.6)</td><td>0.132 – 0.241</td></tr>
+        <tr><th></th><td>english</td><td>0.254</td><td>0.254 (k1=1.2,b=0.75)</td><td>0.136 – 0.254</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The table shows two things:</p>
+  <ul class="rules">
+    <li><strong>The defaults are close to the best.</strong><span>The best combination beat the defaults by at most 0.005. With stemming on FiQA, the default was the best combination.</span></li>
+    <li><strong>The extremes cost a lot, most of all on FiQA.</strong><span>With the standard analyzer, FiQA's worst setting scored 0.132, against 0.241 for its best. FiQA documents are forum answers of uneven length: a tenth are 44 words or shorter, a tenth are 270 or longer, and the longest has 2,973. With b = 0 and k1 = 3, length is ignored while repeats count for a lot, and nDCG@10 falls to 0.132. NFCorpus and SciFact abstracts are more even in length, and their worst settings cost much less.</span></li>
+  </ul>
+  <p>Tuning k1 and b won us little on these datasets. Knowing what they do still helps you avoid the settings that hurt, such as k1 = 0, or b = 0 on documents of very different lengths.</p>
+
+  <h2 data-n="09">What made the bigger difference</h2>
+  <p>The analyzer mattered more. Keeping OpenSearch's default k1 and b and only switching from the standard to the english analyzer:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Dataset</th><th>standard</th><th>english</th><th>Change</th><th>Questions better / same / worse</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td>0.307</td><td>0.327</td><td class="up">+0.021</td><td>86 / 173 / 64</td></tr>
+        <tr><th>SciFact</th><td>0.656</td><td>0.691</td><td class="up">+0.034</td><td>52 / 222 / 26</td></tr>
+        <tr><th>FiQA</th><td>0.239</td><td>0.254</td><td class="up">+0.015</td><td>148 / 361 / 139</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Stemming improved the average on all three datasets. Question by question it is closer: on FiQA it helped 148 questions and hurt 139. "Are Avocados Good for You?" went from 0.00 to 0.58. Two of its six relevant papers only ever say "avocado", which the standard analyzer cannot match to the question's "avocados". "Freelancer: Should I start a second bank account?" went from 0.00 to 1.00. It can also go the other way: "Is Caffeinated Tea Really Dehydrating?" fell from 0.35 to 0.07.</p>
+
+  <h3>Matching the BEIR paper's numbers</h3>
+  <p>The paper that introduced BEIR also reports BM25 scores for these test sets. OpenSearch out of the box, with the standard analyzer and default settings, comes in a little lower. The BEIR paper used Anserini, a search toolkit built on Lucene, with k1 = 0.9 and b = 0.4. The paper calls these "the default Lucene parameters", but they are Anserini's defaults; Lucene's own defaults are 1.2 and 0.75. Anserini also stems English words by default (its indexer's <code>-stemmer</code> option <a href="https://github.com/castorini/anserini/blob/master/src/main/java/io/anserini/index/IndexCollection.java">defaults to Porter</a>). Matching both gives:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Dataset</th><th>BEIR paper</th><th>Ours: standard, defaults</th><th>Ours: english, k1 0.9, b 0.4</th><th>Ours: english, defaults</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td>0.325</td><td>0.307</td><td class="up">0.325</td><td>0.327</td></tr>
+        <tr><th>SciFact</th><td>0.665</td><td>0.656</td><td>0.681</td><td>0.691</td></tr>
+        <tr><th>FiQA</th><td>0.236</td><td>0.239</td><td class="up">0.236</td><td>0.254</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">BEIR paper: Table 2, BM25 column. Ours: this lab, OpenSearch 2.19.1.</p>
+  <p>NFCorpus and FiQA now match the paper to three decimals. SciFact comes out higher than the paper. We have not tracked down why; Anserini and OpenSearch still differ in details such as their stop-word lists and exactly how the title and text scores are combined. The last column shows that OpenSearch's defaults with the english analyzer beat the paper's published BM25 on all three datasets.</p>
+
+  <h2 data-n="10">In code</h2>
+  <p>Both choices are index settings in OpenSearch. This is the index the lab builds, with the english analyzer and BEIR's k1 and b:</p>
+<pre><span class="k">PUT</span> /nfcorpus
+{
+  <span class="s">"settings"</span>: {
+    <span class="s">"index"</span>: {
+      <span class="s">"similarity"</span>: { <span class="s">"default"</span>: { <span class="s">"type"</span>: <span class="s">"BM25"</span>, <span class="s">"k1"</span>: <span class="n">0.9</span>, <span class="s">"b"</span>: <span class="n">0.4</span> } }
+    }
+  },
+  <span class="s">"mappings"</span>: {
+    <span class="s">"properties"</span>: {
+      <span class="s">"title"</span>: { <span class="s">"type"</span>: <span class="s">"text"</span>, <span class="s">"analyzer"</span>: <span class="s">"english"</span> },
+      <span class="s">"text"</span>:  { <span class="s">"type"</span>: <span class="s">"text"</span>, <span class="s">"analyzer"</span>: <span class="s">"english"</span> }
+    }
+  }
+}</pre>
+  <p>Changing the analyzer means re-indexing, because the stored terms change. Changing k1 or b does not: close the index, update <code>index.similarity.default</code>, and open it again. To see how any score was reached, send the same query to <code>/nfcorpus/_explain/&lt;document id&gt;</code>. That is where every number in section 07 came from.</p>
+
+  <h2>Summary</h2>
+  <ol class="steps">
+    <li class="step"><strong>BM25 adds up points for each matching word.</strong><span>The top result for "Neurobiology of Artificial Sweeteners" scored 28.64 from six (field, word) pairs. "Neurobiology" wasn't in it and added nothing. (Sections 01 and 07)</span></li>
+    <li class="step"><strong>Rare words count more.</strong><span>"sweeteners", in 11 of 3,633 documents, had an IDF of 5.76. "of", in 3,623, had 0.003. (Section 04)</span></li>
+    <li class="step"><strong>Repeats help, less each time, and long documents get a small penalty.</strong><span>k1 controls the first, b the second. (Sections 05 and 06)</span></li>
+    <li class="step"><strong>k1 and b barely moved results.</strong><span>With the english analyzer, the best of 42 combinations beat the defaults by 0.005 on NFCorpus and 0.001 on SciFact. On FiQA the defaults were already the best. (Section 08)</span></li>
+    <li class="step"><strong>How words are split mattered more.</strong><span>Stemming changed nDCG@10 by +0.021 on NFCorpus, +0.034 on SciFact and +0.015 on FiQA. (Section 09)</span></li>
+  </ol>
+
+  <h2 data-n="11">Run it yourself</h2>
+  <p>The lab is Java 21 with OpenSearch in Docker. It downloads the three test sets on its first run and needs nothing else.</p>
+<pre class="term"><span class="prompt">$</span> docker compose run --rm --build lab example     <span class="out"># sections 03–07</span>
+<span class="prompt">$</span> docker compose run --rm --build lab benchmark   <span class="out"># sections 08–09</span>
+<span class="prompt">$</span> docker compose down
+<span class="prompt">$</span> python3 blog/build_page.py                      <span class="out"># rebuild this page from out/*.json</span></pre>
+
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li>S. Robertson and H. Zaragoza, <a href="https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf">The Probabilistic Relevance Framework: BM25 and Beyond</a>, Foundations and Trends in Information Retrieval, 2009. Where BM25 comes from.</li>
+    <li>N. Thakur et al., <a href="https://arxiv.org/abs/2104.08663">BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models</a>, NeurIPS 2021 Datasets and Benchmarks. Section 4: "We use Anserini with the default Lucene parameters (k=0.9 and b=0.4). We index the title (if available) and passage as separate fields." Table 2 gives BM25 nDCG@10 of 0.325 (NFCorpus), 0.665 (SciFact) and 0.236 (FiQA).</li>
+    <li><a href="https://lucene.apache.org/core/9_12_0/core/org/apache/lucene/search/similarities/BM25Similarity.html">Lucene BM25Similarity</a>: the implementation OpenSearch uses, with defaults k1 = 1.2 and b = 0.75.</li>
+    <li>OpenSearch documentation: <a href="https://docs.opensearch.org/latest/analyzers/language-analyzers/english/">English analyzer</a>, <a href="https://docs.opensearch.org/latest/api-reference/search-apis/explain/">Explain API</a>, <a href="https://docs.opensearch.org/latest/api-reference/analyze-apis/">Analyze API</a>.</li>
+  </ul>
+</section>
+
+</article>
+
+<script>
+// ape-present runtime. Copy verbatim into the <script> at the end of <body>.
+// Covers: figure reveals, stat counters, live diagram motion (packets, pulses,
+// cycles, streaming channels), meter animations, inspect-node cross-highlighting,
+// interactive step-by-step walkthroughs, and theme switching.
+(() => {
+  if (window.__apePresent) return;
+  window.__apePresent = true;
+
+  const root = document.documentElement;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // --- Theme --------------------------------------------------------------
+  {
+    // The theme the document was built with (data-theme on <html>, or none = follow OS).
+    const builtTheme = root.getAttribute('data-theme');
+    const DARK = ['midnight', 'dark', 'mocha', 'tokyo', 'tokyo-night', 'nord', 'dracula',
+      'gruvbox', 'rosepine', 'rose-pine', 'forest', 'neon'];
+    // Scoped per document so toggling one doc never restyles another on the same origin.
+    const KEY = 'ape-theme:' + (location.pathname.split('/').pop() || 'doc');
+
+    const applyTheme = (t) => {
+      if (!t) return;
+      root.setAttribute('data-theme', t);
+      try { localStorage.setItem(KEY, t); } catch (_) {}
+    };
+
+    try {
+      const saved = localStorage.getItem(KEY);
+      if (saved) root.setAttribute('data-theme', saved);
+    } catch (_) {}
+
+    window.addEventListener('message', (e) => {
+      if (e && e.data && e.data.type === 'theme' && e.data.theme) {
+        applyTheme(e.data.theme);
+      }
+    });
+
+    try {
+      if (window.parent && window.parent !== window && window.parent.document && window.parent.document.documentElement) {
+        const parentTheme = window.parent.document.documentElement.getAttribute('data-theme');
+        if (parentTheme) root.setAttribute('data-theme', parentTheme);
+      }
+    } catch (_) {}
+
+    // `t` flips polarity but remembers the built theme: a nord document goes
+    // nord -> daylight -> nord, not nord -> midnight.
+    addEventListener('keydown', (e) => {
+      if (e.key !== 't' || e.metaKey || e.ctrlKey || e.altKey) return;
+      if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+      const cur = root.getAttribute('data-theme');
+      const isDark = cur ? DARK.includes(cur)
+        : matchMedia('(prefers-color-scheme: dark)').matches;
+      const darkHome = builtTheme && DARK.includes(builtTheme) ? builtTheme : 'midnight';
+      const lightHome = builtTheme && !DARK.includes(builtTheme) ? builtTheme : 'daylight';
+      applyTheme(isDark ? lightHome : darkHome);
+    });
+  }
+
+  // --- Counters -----------------------------------------------------------
+  const countUp = (el) => {
+    if (el.dataset.done) return;
+    el.dataset.done = '1';
+    const to = parseFloat(el.dataset.to);
+    const decimals = parseInt(el.dataset.decimals || '0', 10);
+    const fmt = (v) => (el.dataset.prefix || '') + v.toLocaleString(undefined, {
+      minimumFractionDigits: decimals, maximumFractionDigits: decimals,
+    }) + (el.dataset.suffix || '');
+    if (reduced || isNaN(to)) { el.textContent = fmt(isNaN(to) ? 0 : to); return; }
+    const start = performance.now(), dur = 1200;
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / dur);
+      el.textContent = fmt(to * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  };
+
+  // --- Meter / Race Bars ----------------------------------------------------
+  const animateMeter = (el) => {
+    const pct = el.dataset.pct || el.style.getPropertyValue('--pct') || '0%';
+    el.style.setProperty('--target-pct', pct);
+    el.classList.add('filled');
+  };
+
+  // --- Reveal once ----------------------------------------------------------
+  const targets = [...document.querySelectorAll('figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels')];
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      if (!e.isIntersecting) continue;
+      e.target.classList.add('in');
+      e.target.querySelectorAll('.num[data-to]').forEach(countUp);
+      e.target.querySelectorAll('.meter-fill, .race-fill').forEach(animateMeter);
+      io.unobserve(e.target);
+    }
+  }, { threshold: 0.15 });
+  targets.forEach((t) => io.observe(t));
+
+  // --- Live motion: run only while the figure is on screen ------------------
+  const live = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      e.target.classList.toggle('live', e.isIntersecting);
+      e.target.querySelectorAll('svg').forEach((svg) => {
+        if (reduced) { svg.pauseAnimations(); return; }
+        e.isIntersecting ? svg.unpauseAnimations() : svg.pauseAnimations();
+      });
+    }
+  }, { threshold: 0.1 });
+  document.querySelectorAll('figure, .live-host').forEach((f) => live.observe(f));
+
+  // --- Cycles: [data-cycle="900"] lights its children in turn, forever ------
+  document.querySelectorAll('[data-cycle]').forEach((host) => {
+    const kids = [...host.children];
+    if (kids.length < 2) return;
+    const step = parseInt(host.dataset.cycle, 10) || 900;
+    let i = 0;
+    if (reduced) { kids[0].classList.add('lit'); return; }
+    setInterval(() => {
+      if (!host.closest('.live') && !host.classList.contains('live')) return;
+      kids.forEach((k) => k.classList.remove('lit'));
+      kids[i % kids.length].classList.add('lit');
+      i++;
+    }, step);
+  });
+
+  // --- Inspect-Node Cross-Highlighting (Prose <-> Diagram) ------------------
+  document.querySelectorAll('.inspect-node[data-target]').forEach((pill) => {
+    const targetId = pill.dataset.target;
+    const targetEl = document.getElementById(targetId);
+    if (!targetEl) return;
+
+    const svg = targetEl.closest('svg');
+
+    const activate = () => {
+      pill.classList.add('inspecting');
+      if (svg) svg.classList.add('inspect-active');
+      targetEl.classList.add('inspected');
+    };
+
+    const deactivate = () => {
+      pill.classList.remove('inspecting');
+      if (svg) svg.classList.remove('inspect-active');
+      targetEl.classList.remove('inspected');
+    };
+
+    pill.addEventListener('mouseenter', activate);
+    pill.addEventListener('mouseleave', deactivate);
+    pill.addEventListener('focus', activate);
+    pill.addEventListener('blur', deactivate);
+    // Touch / click: toggle, so the highlight is reachable without hover or a keyboard.
+    pill.addEventListener('click', () =>
+      pill.classList.contains('inspecting') ? deactivate() : activate());
+  });
+
+  // --- Interactive Step-by-Step Steppers -----------------------------------
+  document.querySelectorAll('.stepper').forEach((stepper) => {
+    const panes = [...stepper.querySelectorAll('.step-pane')];
+    const indicator = stepper.querySelector('.step-count');
+    const prevBtn = stepper.querySelector('.step-prev');
+    const nextBtn = stepper.querySelector('.step-next');
+    const targetSvgId = stepper.dataset.svg;
+    const svg = targetSvgId ? document.getElementById(targetSvgId) : null;
+    let current = 0;
+
+    const render = () => {
+      panes.forEach((p, idx) => p.classList.toggle('active', idx === current));
+      if (indicator) indicator.textContent = `${current + 1} / ${panes.length}`;
+      if (prevBtn) prevBtn.disabled = current === 0;
+      if (nextBtn) nextBtn.disabled = current === panes.length - 1;
+
+      if (svg) {
+        svg.querySelectorAll('[data-step]').forEach((el) => {
+          const stepVal = parseInt(el.dataset.step, 10);
+          el.classList.toggle('active-step', stepVal === current + 1);
+        });
+      }
+    };
+
+    if (prevBtn) prevBtn.addEventListener('click', () => { if (current > 0) { current--; render(); } });
+    if (nextBtn) nextBtn.addEventListener('click', () => { if (current < panes.length - 1) { current++; render(); } });
+    render();
+  });
+})();
+
+</script>
+

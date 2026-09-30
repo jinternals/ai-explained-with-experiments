@@ -1,0 +1,946 @@
+<meta charset="utf-8">
+<title>Reciprocal Rank Fusion, Gently</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,600;1,7..72,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+  :root {
+    --ground: #F2F4F7;
+    --surface: #FFFFFF;
+    --ink: #161C2A;
+    --muted: #586275;
+    --rule: #D7DDE7;
+    --kw: #2A55C6;
+    --kw-soft: #E2E9FA;
+    --mn: #A95A12;
+    --mn-soft: #F7E8D8;
+    --good: #2A7447;
+    --good-soft: #DCEFE3;
+    --bad: #AE3B2A;
+    --bad-soft: #F6DFDA;
+    --code-bg: #E8ECF2;
+    --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --body: "Literata", Georgia, "Times New Roman", serif;
+    --mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #0E131B;
+      --surface: #161D28;
+      --ink: #E5E9F0;
+      --muted: #9AA4B5;
+      --rule: #2A3342;
+      --kw: #8AA9FF;
+      --kw-soft: #1C2945;
+      --mn: #F0A45F;
+      --mn-soft: #372515;
+      --good: #74CF97;
+      --good-soft: #17372A;
+      --bad: #F29484;
+      --bad-soft: #42211C;
+      --code-bg: #1B2330;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #0E131B;
+    --surface: #161D28;
+    --ink: #E5E9F0;
+    --muted: #9AA4B5;
+    --rule: #2A3342;
+    --kw: #8AA9FF;
+    --kw-soft: #1C2945;
+    --mn: #F0A45F;
+    --mn-soft: #372515;
+    --good: #74CF97;
+    --good-soft: #17372A;
+    --bad: #F29484;
+    --bad-soft: #42211C;
+    --code-bg: #1B2330;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--body);
+    font-size: 1.125rem;
+    line-height: 1.7;
+    padding-inline: 20px;
+    padding-block: 0 96px;
+    overflow-x: hidden;
+  }
+  article { max-width: 680px; margin-inline: auto; }
+
+  /* ---------- header ---------- */
+  header { padding-block: 72px 32px; }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 20px;
+  }
+  h1, h2, h3 {
+    font-family: var(--display);
+    text-wrap: balance;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  h1 { font-size: clamp(2.4rem, 6vw, 3.6rem); font-weight: 700; margin: 0 0 20px; }
+  .dek { font-size: 1.3rem; line-height: 1.5; color: var(--muted); margin: 0; }
+  .meta {
+    display: flex; flex-wrap: wrap; gap: 8px 20px;
+    font-family: var(--mono); font-size: 0.8rem; color: var(--muted);
+    margin-top: 28px; padding-top: 16px; border-top: 1px solid var(--rule);
+  }
+
+  h2 { font-size: clamp(1.6rem, 3.6vw, 2.1rem); font-weight: 700; margin: 72px 0 16px; }
+  h3 { font-size: 1.2rem; font-weight: 500; margin: 36px 0 8px; }
+  p { margin: 0 0 1.1em; }
+  strong { font-weight: 600; }
+  em { font-style: italic; }
+  .kw { color: var(--kw); font-weight: 600; }
+  .mn { color: var(--mn); font-weight: 600; }
+  code, .num { font-family: var(--mono); font-size: 0.88em; font-variant-numeric: tabular-nums; }
+  p code, li code { background: var(--code-bg); padding: 1px 6px; border-radius: 4px; }
+
+  a { color: var(--kw); text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  a:hover { text-decoration-thickness: 2px; }
+  a:focus-visible { outline: 2px solid var(--kw); outline-offset: 2px; border-radius: 2px; }
+
+  .rel-tag {
+    display: inline-block;
+    font-family: var(--mono); font-size: 0.68rem; font-style: normal; font-weight: 600;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--good); background: var(--good-soft);
+    padding: 1px 6px; border-radius: 4px; margin-left: 6px;
+    vertical-align: 0.1em; white-space: nowrap;
+  }
+
+  /* ---------- wide figures ---------- */
+  .wide {
+    width: min(920px, calc(100vw - 40px));
+    margin-left: 50%;
+    transform: translateX(-50%);
+    margin-block: 40px;
+  }
+  figure { margin-inline: 0; }
+  figcaption {
+    font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
+    margin-top: 12px; line-height: 1.5;
+  }
+
+  /* ---------- merge diagram ---------- */
+  .merge {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto 1fr;
+    gap: 12px 20px;
+    align-items: start;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 28px;
+  }
+  .merge-q {
+    grid-column: 1 / -1;
+    font-family: var(--display); font-size: 1.15rem; font-weight: 500;
+    padding-bottom: 12px; border-bottom: 1px solid var(--rule); margin-bottom: 4px;
+  }
+  .merge-q span { display: block; font-family: var(--mono); font-size: 0.72rem; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+  .col { display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+  .col-head {
+    font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;
+  }
+  .col.kwc .col-head { color: var(--kw); }
+  .col.mnc .col-head { color: var(--mn); }
+  .chip {
+    display: flex; align-items: baseline; gap: 10px;
+    font-family: var(--mono); font-size: 0.84rem; line-height: 1.35;
+    padding: 8px 12px; border-radius: 6px;
+    border: 1px solid transparent;
+  }
+  .chip b { font-weight: 600; min-width: 0; }
+  .chip span { color: var(--muted); font-size: 0.72rem; flex: none; }
+  .chip i { font-style: normal; margin-left: auto; font-size: 0.72rem; color: var(--muted); flex: none; }
+  .kwc .chip { background: var(--kw-soft); }
+  .mnc .chip { background: var(--mn-soft); }
+  .fused .chip { background: var(--ground); border-color: var(--rule); }
+  .chip.rel { border-color: var(--good); box-shadow: inset 3px 0 0 var(--good); }
+  .arrow {
+    align-self: center; font-family: var(--display); font-size: 1.6rem; color: var(--muted);
+    padding-top: 20px;
+  }
+  .merge-key { grid-column: 1 / -1; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .merge-key i { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid var(--good); box-shadow: inset 3px 0 0 var(--good); }
+  @media (max-width: 640px) {
+    .merge { grid-template-columns: 1fr 1fr; padding: 18px; }
+    .arrow { display: none; }
+    .fused { grid-column: 1 / -1; }
+  }
+
+  /* ---------- formula ---------- */
+  .formula {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 28px 24px;
+    margin-block: 28px;
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+    gap: 10px 14px;
+    font-family: var(--mono); font-size: 1.05rem;
+  }
+  .frac { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.3; }
+  .frac > span:first-child { border-bottom: 2px solid currentColor; padding: 0 8px 2px; }
+  .frac > span:last-child { padding: 2px 8px 0; }
+  .frac.kwf { color: var(--kw); }
+  .frac.mnf { color: var(--mn); }
+  .op { color: var(--muted); }
+
+  .legend {
+    list-style: none; padding: 0; margin: 0 0 1.2em;
+    display: grid; gap: 10px;
+  }
+  .legend li { display: grid; grid-template-columns: 7.5rem 1fr; gap: 16px; }
+  .legend .term { font-family: var(--mono); font-size: 0.9rem; font-weight: 600; padding-top: 3px; }
+  @media (max-width: 480px) { .legend li { grid-template-columns: 1fr; gap: 0; } }
+
+  /* ---------- tables ---------- */
+  .table-scroll { overflow-x: auto; margin-block: 24px; }
+  table { width: 100%; border-collapse: collapse; font-size: 1rem; min-width: 460px; }
+  th {
+    font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--muted); text-align: left; font-weight: 400;
+    padding: 8px 12px; border-bottom: 1px solid var(--ink);
+  }
+  td { padding: 10px 12px; border-bottom: 1px solid var(--rule); font-variant-numeric: tabular-nums; vertical-align: top; }
+  td.n, th.n { text-align: right; font-family: var(--mono); font-size: 0.92rem; }
+  td.absent { color: var(--muted); }
+  td.best { font-weight: 600; }
+  td.up { color: var(--good); }
+  td.down { color: var(--bad); }
+  tr.top td { font-weight: 600; }
+  th.kwh { color: var(--kw); }
+  th.mnh { color: var(--mn); }
+  td small { display: block; font-size: 0.82rem; color: var(--muted); line-height: 1.4; }
+
+  .callout {
+    border-left: 3px solid var(--ink);
+    padding: 4px 0 4px 20px;
+    margin-block: 28px;
+    font-size: 1.2rem; line-height: 1.55;
+  }
+
+  /* ---------- k lab ---------- */
+  .lab {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 28px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px 40px;
+  }
+  .lab-controls { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 14px 20px; }
+  .lab-controls label { font-family: var(--mono); font-size: 0.9rem; }
+  .kval { font-family: var(--display); font-size: 2.4rem; font-weight: 700; min-width: 2.2ch; display: inline-block; font-variant-numeric: tabular-nums; }
+  input[type="range"] { flex: 1 1 220px; accent-color: var(--kw); height: 28px; }
+  .presets { display: flex; gap: 8px; }
+  .presets button {
+    font-family: var(--mono); font-size: 0.8rem;
+    background: var(--ground); color: var(--ink);
+    border: 1px solid var(--rule); border-radius: 999px;
+    padding: 6px 12px; cursor: pointer;
+  }
+  .presets button:hover { border-color: var(--ink); }
+  .presets button[aria-pressed="true"] { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--kw); outline-offset: 3px; }
+
+  .lab h3 { margin: 0 0 14px; font-size: 1rem; }
+  .bars { display: grid; gap: 10px; }
+  .bar-row { display: grid; grid-template-columns: 2.6rem 1fr 4.2rem; gap: 12px; align-items: center; font-family: var(--mono); font-size: 0.82rem; }
+  .bar-track { height: 14px; background: var(--ground); border-radius: 3px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--kw); border-radius: 3px; transition: width 180ms ease-out; }
+  .bar-row .v { text-align: right; font-variant-numeric: tabular-nums; }
+  .lab-note { font-size: 0.95rem; color: var(--muted); margin: 14px 0 0; line-height: 1.5; }
+
+  .duel { display: grid; gap: 10px; }
+  .contender {
+    display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline;
+    padding: 12px 14px; border-radius: 6px; border: 1px solid var(--rule);
+    transition: border-color 180ms, background 180ms;
+  }
+  .contender .who { font-family: var(--display); font-weight: 500; font-size: 1rem; }
+  .contender .how { grid-column: 1; font-size: 0.85rem; color: var(--muted); line-height: 1.4; }
+  .contender .score { grid-row: 1 / span 2; grid-column: 2; font-family: var(--mono); font-size: 0.95rem; font-variant-numeric: tabular-nums; }
+  .contender.win { border-color: var(--ink); background: var(--ground); }
+  .verdict { font-size: 0.95rem; margin: 6px 0 0; line-height: 1.5; }
+
+  @media (max-width: 680px) {
+    .lab { grid-template-columns: 1fr; padding: 20px; }
+  }
+
+  /* ---------- k chart ---------- */
+  .chart {
+    margin: 28px 0;
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 20px 20px 16px;
+  }
+  .chart svg { display: block; width: 100%; height: auto; }
+  .chart text { font-family: var(--mono); font-size: 11px; fill: var(--muted); }
+  .chart .tick-y text { text-anchor: end; }
+  .chart .tick-x text, .chart .axis-title { text-anchor: middle; }
+  .chart .axis-title { font-size: 12px; fill: var(--ink); }
+  .chart .grid line { stroke: var(--rule); stroke-width: 1; }
+  .chart .series { fill: none; stroke: var(--kw); stroke-width: 2; stroke-linejoin: round; }
+  .chart .series.gap { stroke-dasharray: 3 5; }
+  .chart .pts circle { fill: var(--kw); }
+  .chart .pt-60 { fill: var(--mn); stroke: var(--surface); stroke-width: 2; }
+  .chart .lbl { fill: var(--ink); font-size: 11.5px; }
+  .chart .lbl.strong { fill: var(--mn); font-weight: 600; text-anchor: middle; }
+  .chart .lbl.end { text-anchor: end; }
+
+  /* ---------- search results ---------- */
+  .runs { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .run {
+    background: var(--surface);
+    border: 1px solid var(--rule);
+    border-radius: 10px;
+    padding: 20px 22px 8px;
+  }
+  .run-head {
+    display: flex; justify-content: space-between; gap: 12px;
+    font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em;
+    padding-bottom: 10px;
+  }
+  .run-head span:last-child { color: var(--muted); }
+  .run.kwr .run-head span:first-child { color: var(--kw); }
+  .run.mnr .run-head span:first-child { color: var(--mn); }
+  .run ol { list-style: none; margin: 0; padding: 0; }
+  .run li {
+    display: grid; grid-template-columns: 1.4rem 1fr auto; gap: 12px; align-items: baseline;
+    padding: 10px 0; border-top: 1px solid var(--rule);
+    font-size: 0.95rem; line-height: 1.4;
+  }
+  .run li .r, .run li .sc { font-family: var(--mono); font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+  .run li .r { color: var(--muted); }
+  .run li .sc { text-align: right; }
+  .run.kwr li .sc { color: var(--kw); }
+  .run.mnr li .sc { color: var(--mn); }
+  @media (max-width: 680px) { .runs { grid-template-columns: 1fr; } }
+
+  .lessons { display: grid; gap: 4px; margin-block: 8px 24px; }
+  .lessons h3 { margin: 24px 0 4px; }
+
+  /* ---------- head-to-head ---------- */
+  .h2h {
+    background: var(--surface); border: 1px solid var(--rule); border-radius: 10px;
+    padding: 22px 24px; display: grid; gap: 16px;
+  }
+  .h2h-row { display: grid; grid-template-columns: 11rem 1fr; gap: 16px; align-items: center; }
+  .h2h-label { display: flex; flex-direction: column; line-height: 1.3; }
+  .h2h-label b { font-family: var(--display); font-weight: 500; font-size: 1rem; }
+  .h2h-label span { font-family: var(--mono); font-size: 0.72rem; color: var(--muted); }
+  .h2h-bar { display: flex; height: 34px; border-radius: 6px; overflow: hidden; gap: 2px; }
+  .h2h-bar span {
+    display: flex; align-items: center; justify-content: center; min-width: 2.2rem;
+    font-family: var(--mono); font-size: 0.8rem; font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .h2h-bar .better { background: var(--good-soft); color: var(--good); }
+  .h2h-bar .same { background: var(--ground); color: var(--muted); }
+  .h2h-bar .worse { background: var(--bad-soft); color: var(--bad); }
+  .h2h-key { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+  .h2h-key i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+  .h2h-key .better { background: var(--good-soft); border: 1px solid var(--good); }
+  .h2h-key .same { background: var(--ground); border: 1px solid var(--rule); }
+  .h2h-key .worse { background: var(--bad-soft); border: 1px solid var(--bad); }
+  @media (max-width: 560px) { .h2h-row { grid-template-columns: 1fr; gap: 6px; } }
+
+  /* ---------- code ---------- */
+  pre {
+    background: var(--code-bg);
+    border-radius: 8px;
+    padding: 20px 22px;
+    overflow-x: auto;
+    font-family: var(--mono); font-size: 0.86rem; line-height: 1.65;
+    margin-block: 24px;
+  }
+  pre .c { color: var(--muted); }
+  pre .k { color: var(--kw); }
+  pre .s { color: var(--mn); }
+
+  .summary {
+    margin-top: 72px; padding: 32px; border-radius: 10px;
+    background: var(--ink); color: var(--ground);
+  }
+  .summary .eyebrow { color: inherit; opacity: 0.7; margin-bottom: 12px; }
+  .summary p { font-family: var(--display); font-size: clamp(1.2rem, 3vw, 1.45rem); line-height: 1.4; font-weight: 500; margin: 0 0 0.6em; text-wrap: balance; }
+  .summary p:last-child { margin-bottom: 0; }
+
+  /* ---------- references ---------- */
+  .refs { margin-top: 64px; padding-top: 8px; border-top: 1px solid var(--rule); }
+  .refs h2 { margin-top: 40px; }
+  .refs h3 {
+    font-family: var(--mono); font-size: 0.75rem; font-weight: 400;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+    margin: 32px 0 4px;
+  }
+  .refs ul { list-style: none; margin: 0; padding: 0; }
+  .refs li {
+    display: flex; flex-direction: column; gap: 2px;
+    padding: 14px 0; border-bottom: 1px solid var(--rule);
+  }
+  .refs li > a { font-family: var(--display); font-weight: 500; font-size: 1.05rem; line-height: 1.35; }
+  .refs .src { font-family: var(--mono); font-size: 0.78rem; color: var(--muted); }
+  .refs .why { font-size: 0.98rem; line-height: 1.55; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar-fill, .contender { transition: none; }
+  }
+</style>
+
+<article>
+  <header>
+    <p class="eyebrow">Search, explained gently</p>
+    <h1>Reciprocal Rank Fusion, without the scary math</h1>
+    <p class="dek">Two search engines give you two different lists. Here's the simple trick behind how modern "hybrid search" merges them into one, using nothing harder than fractions, then tested on 1,271 real questions.</p>
+    <div class="meta"><span>15 min read</span><span>Maths level: fractions</span><span>Every number comes from a real search engine</span></div>
+  </header>
+
+  <figure class="wide">
+    <div class="merge" aria-label="Two ranked lists for a real question merged into one with RRF">
+      <div class="merge-q"><span>A real question from a medical research test set</span>Neurobiology of artificial sweeteners</div>
+      <div class="col kwc">
+        <div class="col-head">Keyword search</div>
+        <div class="chip"><span>1</span><b>Sweetener toxicity</b></div>
+        <div class="chip rel"><span>2</span><b>Sucrose vs sweetener taste</b></div>
+        <div class="chip"><span>3</span><b>Sugar substitutes</b></div>
+        <div class="chip"><span>4</span><b>Sweeteners and tumours</b></div>
+        <div class="chip"><span>5</span><b>Food dyes and ADHD</b></div>
+      </div>
+      <div class="col mnc">
+        <div class="col-head">Meaning search</div>
+        <div class="chip"><span>1</span><b>Aspartame and the brain</b></div>
+        <div class="chip"><span>2</span><b>Aspartame and nerves</b></div>
+        <div class="chip"><span>3</span><b>Sugar substitutes</b></div>
+        <div class="chip rel"><span>4</span><b>Sucrose vs sweetener taste</b></div>
+        <div class="chip"><span>5</span><b>Cherry phenolics</b></div>
+      </div>
+      <div class="arrow" aria-hidden="true">→</div>
+      <div class="col fused">
+        <div class="col-head">After RRF</div>
+        <div class="chip rel"><span>1</span><b>Sucrose vs sweetener taste</b><i>0.031754</i></div>
+        <div class="chip"><span>2</span><b>Sugar substitutes</b><i>0.031746</i></div>
+        <div class="chip"><span>3</span><b>Sweetener toxicity</b><i>0.016393</i></div>
+        <div class="chip"><span>3</span><b>Aspartame and the brain</b><i>0.016393</i></div>
+        <div class="chip"><span>5</span><b>Aspartame and nerves</b><i>0.016129</i></div>
+      </div>
+      <div class="merge-key"><i aria-hidden="true"></i>Marked relevant by the dataset's expert labels</div>
+    </div>
+    <figcaption>Real output from OpenSearch. The one relevant paper came 2nd in one list and 4th in the other. RRF moved it to 1st. By Step 3 you'll be able to work out these numbers yourself.</figcaption>
+  </figure>
+
+  <h2>The problem: two lists, one answer</h2>
+  <p>Say someone types <em>"cheap flights to Goa"</em> into a travel site. Behind the scenes, many search systems now ask <strong>two different searchers</strong> at once:</p>
+  <p><span class="kw">Keyword search</span> hunts for the exact words: "cheap", "flights", "Goa". It's precise, but it misses a page titled "Budget airfare to Goa".</p>
+  <p><span class="mn">Meaning search</span> (also called vector or semantic search) looks for pages that <em>mean</em> the same thing, so it finds "budget airfare". But it can get vague and miss exact matches.</p>
+  <p>Each one hands back its own ranked list. Now you have to turn two lists into one.</p>
+
+  <h3>Why not just add the scores?</h3>
+  <p>Both searchers do give each result a score. The trouble is, <strong>the scores are on completely different scales</strong>. In the real example in Step 3, keyword search (an algorithm called BM25) gives its top result <code>28.64</code>. Meaning search gives its top result <code>0.843</code>.</p>
+  <p>Adding those is like adding kilograms to kilometres. The keyword score would drown out the other one every time.</p>
+  <div class="callout">RRF's big idea: <strong>ignore the scores and use only the positions.</strong> "1st place" means the same thing in every list.</div>
+
+  <h2>Step 1: What "reciprocal" means</h2>
+  <p>"Reciprocal" sounds fancy, but it only means <strong>one divided by the number</strong>. The reciprocal of 4 is ¼.</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Number</th><th>Reciprocal</th><th class="n">As a decimal</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>1 ÷ 1</td><td class="n">1.00</td></tr>
+        <tr><td>2</td><td>1 ÷ 2</td><td class="n">0.50</td></tr>
+        <tr><td>4</td><td>1 ÷ 4</td><td class="n">0.25</td></tr>
+        <tr><td>10</td><td>1 ÷ 10</td><td class="n">0.10</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Notice the pattern: <strong>the bigger the number, the smaller its reciprocal.</strong></p>
+  <p>That's exactly what a ranking needs. 1st place is a small number, so it gets a big score. 10th place is a bigger number, so it gets a small score.</p>
+
+  <h2>Step 2: The formula</h2>
+  <p>For each document, you work out one small fraction per list, then add the fractions together. For our two lists it looks like this:</p>
+
+  <div class="formula" role="img" aria-label="RRF score equals 1 over k plus rank in keyword list, plus 1 over k plus rank in meaning list">
+    <span>RRF score</span><span class="op">=</span>
+    <span class="frac kwf"><span>1</span><span>k + keyword rank</span></span>
+    <span class="op">+</span>
+    <span class="frac mnf"><span>1</span><span>k + meaning rank</span></span>
+  </div>
+
+  <ul class="legend">
+    <li><span class="term">rank</span><span>The document's position in that list: 1, 2, 3 and so on.</span></li>
+    <li><span class="term">k</span><span>A fixed number, usually <strong>60</strong>. It's explained in Step 4. For now, treat it as "add 60".</span></li>
+    <li><span class="term">missing?</span><span>If a document isn't in a list, that list adds <strong>nothing</strong> for it.</span></li>
+  </ul>
+  <p>If you had three or four searchers, you'd just keep adding one fraction per list. The document with the <strong>highest total</strong> goes first.</p>
+
+  <h2>Step 3: Work through a real example</h2>
+  <p>Let's use a real question instead of made-up letters. It comes from <strong>NFCorpus</strong>, a public research test set of 3,633 medical research papers. For each question in it, experts have already marked which papers are relevant, so we can check whether a ranking is actually good.</p>
+  <p>The question is <strong>"Neurobiology of artificial sweeteners"</strong>. Three papers in the collection are marked relevant. We ran it through a real search engine (<a href="https://opensearch.org/">OpenSearch</a> 2.19.1) using both searchers. To keep the sums small, we take just the top 5 from each.</p>
+
+  <h3>3a. What each searcher found</h3>
+  <figure class="wide">
+    <div class="runs">
+      <div class="run kwr">
+        <div class="run-head"><span>Keyword search</span><span>BM25 score</span></div>
+        <ol>
+          <li><span class="r">1</span><span>The potential toxicity of artificial sweeteners</span><span class="sc">28.64</span></li>
+          <li><span class="r">2</span><span>Sucrose activates human taste pathways differently from artificial sweetener <em class="rel-tag">relevant</em></span><span class="sc">21.50</span></li>
+          <li><span class="r">3</span><span>Sugar substitutes: health controversy over perceived benefits</span><span class="sc">17.43</span></li>
+          <li><span class="r">4</span><span>Artificial sweetener consumption and urinary tract tumors in Cordoba, Argentina</span><span class="sc">16.27</span></li>
+          <li><span class="r">5</span><span>Artificial food dyes and attention deficit hyperactivity disorder</span><span class="sc">11.52</span></li>
+        </ol>
+      </div>
+      <div class="run mnr">
+        <div class="run-head"><span>Meaning search</span><span>Similarity</span></div>
+        <ol>
+          <li><span class="r">1</span><span>Direct and indirect cellular effects of aspartame on the brain</span><span class="sc">0.843</span></li>
+          <li><span class="r">2</span><span>Possible neurologic effects of aspartame, a widely used food additive</span><span class="sc">0.820</span></li>
+          <li><span class="r">3</span><span>Sugar substitutes: health controversy over perceived benefits</span><span class="sc">0.811</span></li>
+          <li><span class="r">4</span><span>Sucrose activates human taste pathways differently from artificial sweetener <em class="rel-tag">relevant</em></span><span class="sc">0.807</span></li>
+          <li><span class="r">5</span><span>Sweet and sour cherry phenolics and their protective effects on neuronal cells</span><span class="sc">0.803</span></li>
+        </ol>
+      </div>
+    </div>
+    <figcaption>Raw output from OpenSearch for NFCorpus question PLAIN-2830. Keyword scores run from 11.52 to 28.64. Meaning scores are squeezed between 0.803 and 0.843.</figcaption>
+  </figure>
+
+  <p>Three things stand out before we do any maths:</p>
+  <ul class="legend">
+    <li><span class="term">scales</span><span>The scores can't be compared. 28.64 and 0.843 are both "the best result", on completely different scales.</span></li>
+    <li><span class="term">agreement</span><span>Only <strong>two papers</strong> appear in both lists: "Sucrose activates human taste pathways" and "Sugar substitutes".</span></li>
+    <li><span class="term">the answer</span><span>The relevant paper is <strong>2nd</strong> in one list and <strong>4th</strong> in the other. Neither searcher put it first.</span></li>
+  </ul>
+
+  <h3>3b. Turn positions into points</h3>
+  <p>With k = 60, each position is worth 1 ÷ (60 + position). Because our lists stop at 5th place, there are only five numbers to know:</p>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Position</th><th>Sum</th><th>Fraction</th><th class="n">Points</th></tr></thead>
+      <tbody>
+        <tr><td>1st</td><td>60 + 1 = 61</td><td>1 ÷ 61</td><td class="n">0.016393</td></tr>
+        <tr><td>2nd</td><td>60 + 2 = 62</td><td>1 ÷ 62</td><td class="n">0.016129</td></tr>
+        <tr><td>3rd</td><td>60 + 3 = 63</td><td>1 ÷ 63</td><td class="n">0.015873</td></tr>
+        <tr><td>4th</td><td>60 + 4 = 64</td><td>1 ÷ 64</td><td class="n">0.015625</td></tr>
+        <tr><td>5th</td><td>60 + 5 = 65</td><td>1 ÷ 65</td><td class="n">0.015385</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The points barely change from one position to the next. The totals will be very close, so we keep six decimal places.</p>
+
+  <h3>3c. Add up each paper's points</h3>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Paper</th><th class="kwh">Keyword</th><th class="mnh">Meaning</th><th class="n">Total</th><th class="n">Final</th></tr></thead>
+      <tbody>
+        <tr class="top"><td>Sucrose activates human taste pathways <em class="rel-tag">relevant</em></td><td>2nd → 0.016129</td><td>4th → 0.015625</td><td class="n">0.031754</td><td class="n">1st</td></tr>
+        <tr class="top"><td>Sugar substitutes: health controversy</td><td>3rd → 0.015873</td><td>3rd → 0.015873</td><td class="n">0.031746</td><td class="n">2nd</td></tr>
+        <tr><td>The potential toxicity of artificial sweeteners</td><td>1st → 0.016393</td><td class="absent">not in top 5 → 0</td><td class="n">0.016393</td><td class="n">3rd (tie)</td></tr>
+        <tr><td>Effects of aspartame on the brain</td><td class="absent">not in top 5 → 0</td><td>1st → 0.016393</td><td class="n">0.016393</td><td class="n">3rd (tie)</td></tr>
+        <tr><td>Neurologic effects of aspartame</td><td class="absent">not in top 5 → 0</td><td>2nd → 0.016129</td><td class="n">0.016129</td><td class="n">5th</td></tr>
+        <tr><td>Sweeteners and urinary tract tumors</td><td>4th → 0.015625</td><td class="absent">not in top 5 → 0</td><td class="n">0.015625</td><td class="n">6th</td></tr>
+        <tr><td>Artificial food dyes and ADHD</td><td>5th → 0.015385</td><td class="absent">not in top 5 → 0</td><td class="n">0.015385</td><td class="n">7th (tie)</td></tr>
+        <tr><td>Cherry phenolics and neuronal cells</td><td class="absent">not in top 5 → 0</td><td>5th → 0.015385</td><td class="n">0.015385</td><td class="n">7th (tie)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Final order: the <strong>relevant paper is 1st.</strong> RRF did better than either searcher did alone.</p>
+
+  <div class="lessons">
+    <h3>Agreement beats one star finish</h3>
+    <p>"The potential toxicity of artificial sweeteners" was keyword search's <strong>1st</strong> choice, but it ends up 3rd. The two papers that <em>both</em> searchers found collected points twice, so they passed it easily.</p>
+
+    <h3>A photo finish</h3>
+    <p>The relevant paper (2nd and 4th) beats "Sugar substitutes" (3rd and 3rd) by just <strong>0.000008</strong>. Being 2nd in one list was worth slightly more than being 3rd, enough to make up for 4th in the other.</p>
+
+    <h3>Ties happen</h3>
+    <p>The two papers that came 1st in just one list each have exactly the same score, 0.016393. RRF has no opinion on which goes first, so different systems may list them in either order.</p>
+
+    <h3>What nobody finds, RRF never sees</h3>
+    <p>Three papers are marked relevant, but <strong>two of them</strong> didn't make either top 5. RRF can only reorder what the searchers hand it. (One more honest note: NFCorpus labels come from which research papers NutritionFacts.org articles link to, directly or through other articles. So "Effects of aspartame on the brain" counts as not relevant, even though it sounds on-topic.)</p>
+  </div>
+
+  <div class="callout">RRF rewards the documents that <strong>both searchers agree on.</strong></div>
+
+  <h2>Step 4: So why add 60?</h2>
+  <p>Picture the formula without k, using plain 1 ÷ rank. 1st place scores 1.00 and 2nd place scores 0.50, so <strong>1st gets double the points of 2nd.</strong> One searcher's favourite could win the whole merge on its own.</p>
+  <p>Adding 60 squashes those gaps. 1 ÷ 61 and 1 ÷ 62 are almost the same number. No single list can take over, so <strong>showing up in several lists</strong> matters more than being #1 in one.</p>
+  <p>Easier to feel than to read. Drag the slider below.</p>
+
+  <figure class="wide">
+    <div class="lab">
+      <div class="lab-controls">
+        <label for="k-slider">k = <output class="kval" id="k-out" for="k-slider">60</output></label>
+        <input type="range" id="k-slider" min="0" max="100" step="1" value="60" aria-describedby="k-hint">
+        <div class="presets" role="group" aria-label="Preset values of k">
+          <button type="button" id="preset-0" data-k="0" aria-pressed="false">k = 0</button>
+          <button type="button" id="preset-1" data-k="1" aria-pressed="false">k = 1</button>
+          <button type="button" id="preset-60" data-k="60" aria-pressed="true">k = 60</button>
+        </div>
+      </div>
+
+      <div>
+        <h3>Points for each position</h3>
+        <div class="bars" id="bars"></div>
+        <p class="lab-note" id="k-hint">Bars are drawn relative to 1st place. The longer the lower bars, the less being #1 matters.</p>
+      </div>
+
+      <div>
+        <h3>Star vs. team player</h3>
+        <div class="duel">
+          <div class="contender" id="c-star">
+            <span class="who">Doc X</span>
+            <span class="how">1st in keyword search, missing from meaning search</span>
+            <span class="score" id="s-star"></span>
+          </div>
+          <div class="contender" id="c-team">
+            <span class="who">Doc Y</span>
+            <span class="how">3rd in keyword search, 3rd in meaning search</span>
+            <span class="score" id="s-team"></span>
+          </div>
+        </div>
+        <p class="verdict" id="verdict"></p>
+      </div>
+    </div>
+    <figcaption>The flip happens at exactly k = 1. Below that, one first-place finish wins. Above it, agreement between both lists wins. This is the "toxicity" paper against "Sugar substitutes" from Step 3.</figcaption>
+  </figure>
+
+  <p>So think of k as a <strong>fairness knob</strong>:</p>
+  <ul class="legend">
+    <li><span class="term">small k</span><span>Being #1 in any single list matters a lot.</span></li>
+    <li><span class="term">large k</span><span>Being #1 matters a little. Agreement across lists matters most.</span></li>
+  </ul>
+
+  <h3>Where does 60 come from?</h3>
+  <p>It comes from the paper that introduced RRF: <a href="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf">Cormack, Clarke and Büttcher, SIGIR 2009</a>. It wasn't worked out with a formula. The authors picked it in an early small test. In their words, k = 60 <em>"was fixed during a pilot investigation and not altered during subsequent validation."</em></p>
+  <p>That pilot test combined 30 versions of a search system on a standard research test set (TREC topics 351–400). They measured how good the merged ranking was for different values of k. Their measure is MAP (Mean Average Precision). You don't need the details: <strong>it's a standard score for ranking quality, and higher is better.</strong></p>
+
+  <figure class="chart">
+    <svg viewBox="0 0 640 262" role="img" aria-labelledby="chart-title chart-desc">
+      <title id="chart-title">Ranking quality (MAP) for different values of k</title>
+      <desc id="chart-desc">From Table 1 of Cormack et al. 2009. MAP is 0.2072 at k 0, rises to about 0.2145 between k 50 and 90, and falls to 0.2098 at k 500.</desc>
+      <g class="grid">
+        <line x1="60" y1="191" x2="610" y2="191"/>
+        <line x1="60" y1="153" x2="610" y2="153"/>
+        <line x1="60" y1="115" x2="610" y2="115"/>
+        <line x1="60" y1="77" x2="610" y2="77"/>
+        <line x1="60" y1="39" x2="610" y2="39"/>
+      </g>
+      <g class="tick-y">
+        <text x="52" y="195">0.207</text>
+        <text x="52" y="157">0.209</text>
+        <text x="52" y="119">0.211</text>
+        <text x="52" y="81">0.213</text>
+        <text x="52" y="43">0.215</text>
+      </g>
+      <g class="tick-x">
+        <text x="60" y="232">0</text>
+        <text x="152" y="232">20</text>
+        <text x="244" y="232">40</text>
+        <text x="336" y="232">60</text>
+        <text x="428" y="232">80</text>
+        <text x="520" y="232">100</text>
+        <text x="600" y="232">500</text>
+        <text x="560" y="232">···</text>
+      </g>
+      <text x="335" y="256" class="axis-title">k</text>
+      <polyline class="series" points="60,187.2 106,90.3 152,69.4 198,59.9 244,61.8 290,50.4 336,48.5 382,46.6 428,44.7 474,48.5 520,54.2"/>
+      <line class="series gap" x1="520" y1="54.2" x2="600" y2="137.8"/>
+      <g class="pts">
+        <circle cx="60" cy="187.2" r="3.5"/><circle cx="106" cy="90.3" r="3.5"/><circle cx="152" cy="69.4" r="3.5"/>
+        <circle cx="198" cy="59.9" r="3.5"/><circle cx="244" cy="61.8" r="3.5"/><circle cx="290" cy="50.4" r="3.5"/>
+        <circle cx="382" cy="46.6" r="3.5"/><circle cx="428" cy="44.7" r="3.5"/><circle cx="474" cy="48.5" r="3.5"/>
+        <circle cx="520" cy="54.2" r="3.5"/><circle cx="600" cy="137.8" r="3.5"/>
+      </g>
+      <circle class="pt-60" cx="336" cy="48.5" r="6"/>
+      <text x="336" y="26" class="lbl strong">k = 60 · 0.2145</text>
+      <text x="72" y="200" class="lbl">k = 0 · 0.2072</text>
+      <text x="610" y="160" class="lbl end">k = 500 · 0.2098</text>
+    </svg>
+    <figcaption>Source: Table 1 of Cormack et al. (2009). The scale is zoomed in: the whole chart covers less than 0.01 of MAP. The dotted section skips from k = 100 to k = 500.</figcaption>
+  </figure>
+
+  <p>See how flat the middle of the chart is. Any k from about 30 to 100 scores almost the same, and k = 80 actually scored a tiny bit <em>higher</em> than 60. Only the extremes are clearly worse: k = 0, where one #1 spot dominates, and k = 500, where every position counts about the same. The authors called 60 "near-optimal", and said the exact choice wasn't critical.</p>
+  <p>Later, search engines copied the paper's value as their default. <a href="https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion">Elasticsearch</a>, <a href="https://docs.opensearch.org/latest/search-plugins/search-pipelines/score-ranker-processor/">OpenSearch</a> and <a href="https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking">Azure AI Search</a> all start with 60.</p>
+
+  <div class="callout">Watch out for two different "k"s. In vector search, <code>k</code> usually means "how many nearest results to fetch". That has nothing to do with RRF's k. OpenSearch avoids the mix-up by calling RRF's k <code>rank_constant</code>.</div>
+
+  <h2>Does RRF actually help?</h2>
+  <p>One question that works out nicely proves nothing. We might have picked a lucky one (we did pick it because it teaches well). To find out properly, we ran the same setup on <strong>1,271 real questions</strong> from three public test sets that come with expert relevance labels.</p>
+  <ul class="legend">
+    <li><span class="term">engine</span><span>OpenSearch 2.19.1, running in Docker</span></li>
+    <li><span class="term">keyword</span><span><a href="https://en.wikipedia.org/wiki/Okapi_BM25">BM25</a> over each document's title and text</span></li>
+    <li><span class="term">meaning</span><span>The <a href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2">all-MiniLM-L6-v2</a> embedding model, searched with k-NN</span></li>
+    <li><span class="term">data</span><span>NFCorpus, SciFact and FiQA from the <a href="https://github.com/beir-cellar/beir">BEIR</a> benchmark: 66,454 documents in total</span></li>
+    <li><span class="term">settings</span><span>Top 100 results from each searcher, k = 60</span></li>
+  </ul>
+  <p>To score each ranking we use <strong>nDCG@10</strong>, the standard measure for these test sets. It's a number from 0 to 1 for how good the top 10 results are. A relevant document near the very top counts for more than one at 9th place. <strong>Higher is better</strong>, and 1 would be a perfect top 10.</p>
+
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Test set</th><th class="n">Questions</th><th class="n kwh">Keyword</th><th class="n mnh">Meaning</th><th class="n">RRF</th><th class="n">RRF vs better searcher</th></tr></thead>
+      <tbody>
+        <tr><td>NFCorpus<small>Nutrition and medical research</small></td><td class="n">323</td><td class="n">0.307</td><td class="n">0.311</td><td class="n best">0.341</td><td class="n up">+0.030 (+10%)</td></tr>
+        <tr><td>SciFact<small>Scientific claims vs research abstracts</small></td><td class="n">300</td><td class="n">0.656</td><td class="n">0.624</td><td class="n best">0.682</td><td class="n up">+0.026 (+4%)</td></tr>
+        <tr><td>FiQA<small>Finance questions and forum answers</small></td><td class="n">648</td><td class="n">0.239</td><td class="n best">0.361</td><td class="n">0.339</td><td class="n down">−0.022 (−6%)</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>RRF won on two test sets and <strong>lost on one</strong>. The reason is the most useful thing in this post.</p>
+
+  <div class="lessons">
+    <h3>RRF helps most when both searchers are about equally good</h3>
+    <p>On NFCorpus the two searchers score almost the same (0.307 and 0.311), and RRF beats both by 10%. On SciFact they're close too (0.656 and 0.624), and RRF wins again. Each searcher finds things the other misses, and RRF gets the best of both.</p>
+
+    <h3>It can hurt when one searcher is much weaker</h3>
+    <p>On FiQA, keyword search (0.239) is far behind meaning search (0.361). RRF trusts both lists <em>equally</em>, so the weak list pulls good results down. Here you'd have been better off with meaning search alone.</p>
+
+    <h3>Averages hide a mix</h3>
+    <p>Even where RRF wins on average, it doesn't win every question. Here is RRF compared with the better single searcher, question by question:</p>
+  </div>
+
+  <figure>
+    <div class="h2h">
+      <div class="h2h-row">
+        <div class="h2h-label"><b>NFCorpus</b><span>vs meaning search</span></div>
+        <div class="h2h-bar" role="img" aria-label="Of 323 questions, RRF was better on 114, the same on 122, and worse on 87">
+          <span class="better" style="flex: 114">114</span><span class="same" style="flex: 122">122</span><span class="worse" style="flex: 87">87</span>
+        </div>
+      </div>
+      <div class="h2h-row">
+        <div class="h2h-label"><b>SciFact</b><span>vs keyword search</span></div>
+        <div class="h2h-bar" role="img" aria-label="Of 300 questions, RRF was better on 66, the same on 196, and worse on 38">
+          <span class="better" style="flex: 66">66</span><span class="same" style="flex: 196">196</span><span class="worse" style="flex: 38">38</span>
+        </div>
+      </div>
+      <div class="h2h-row">
+        <div class="h2h-label"><b>FiQA</b><span>vs meaning search</span></div>
+        <div class="h2h-bar" role="img" aria-label="Of 648 questions, RRF was better on 181, the same on 278, and worse on 189">
+          <span class="better" style="flex: 181">181</span><span class="same" style="flex: 278">278</span><span class="worse" style="flex: 189">189</span>
+        </div>
+      </div>
+      <div class="h2h-key">
+        <span><i class="better"></i>RRF better</span>
+        <span><i class="same"></i>Same score</span>
+        <span><i class="worse"></i>RRF worse</span>
+      </div>
+    </div>
+    <figcaption>Number of questions where RRF's top 10 scored higher, the same, or lower (nDCG@10) than the better single searcher on that test set.</figcaption>
+  </figure>
+
+  <div class="lessons">
+    <h3>k = 60 isn't the best choice everywhere</h3>
+    <p>We re-ran the merge with different values of k:</p>
+  </div>
+  <div class="table-scroll">
+    <table>
+      <thead><tr><th>Test set</th><th class="n">k = 1</th><th class="n">k = 10</th><th class="n">k = 60</th><th class="n">k = 500</th></tr></thead>
+      <tbody>
+        <tr><td>NFCorpus</td><td class="n">0.342</td><td class="n best">0.345</td><td class="n">0.341</td><td class="n">0.340</td></tr>
+        <tr><td>SciFact</td><td class="n best">0.695</td><td class="n">0.693</td><td class="n">0.682</td><td class="n">0.679</td></tr>
+        <tr><td>FiQA</td><td class="n best">0.366</td><td class="n">0.364</td><td class="n">0.339</td><td class="n">0.335</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>On all three test sets, a <strong>smaller k did better</strong>. On FiQA, k = 1 even edges past meaning search alone (0.366 against 0.361). A small k lets a strong 1st place count for more, which helps when one searcher is clearly better. <strong>One caution:</strong> we picked these by looking at the test questions themselves, which flatters the result. If you tune k, tune it on your own data.</p>
+
+  <div class="lessons">
+    <h3>You don't need 100 results from each searcher</h3>
+    <p>How many results you take from each list matters too. Taking 10 to 20 did about as well as 100, and sometimes better (FiQA: 0.351 with 20, against 0.339 with 100). Only very short lists hurt: with just 5 from each, NFCorpus drops to 0.316.</p>
+
+    <h3>It finds more, even when its top 10 is worse</h3>
+    <p>Looking at the top 100 instead of the top 10, RRF found the largest share of relevant documents on all three test sets, even FiQA (68% against 67% for meaning search). So RRF is a good first step in systems that re-sort the top results with a slower, smarter model afterwards.</p>
+  </div>
+
+  <h3>How we know these numbers are right</h3>
+  <ul class="legend">
+    <li><span class="term">vs BEIR</span><span>Our keyword scores are close to the <a href="https://arxiv.org/abs/2104.08663">BEIR paper's</a> published BM25 results: NFCorpus 0.307 against 0.325, SciFact 0.656 against 0.665, FiQA 0.239 against 0.236. The small gaps are expected: BEIR used a different engine with word stemming and different BM25 settings.</span></li>
+    <li><span class="term">vs OpenSearch</span><span>We merged the lists with our own code <em>and</em> with OpenSearch's built-in RRF. For every one of the 1,271 questions, the top 10 matched, apart from the order of tied documents like the ones in Step 3.</span></li>
+  </ul>
+
+  <h2>The whole thing in code</h2>
+  <p>If you write software, here's all of RRF in a few lines of Python. Give it the two top-5 lists from Step 3 and you get exactly the table above.</p>
+<pre><code><span class="k">def</span> rrf(ranked_lists, k=<span class="s">60</span>):
+    <span class="c">"""Merge ranked lists of doc ids. A doc earns 1 / (k + rank) from every list it appears in."""</span>
+    scores = {}
+    <span class="k">for</span> ranked <span class="k">in</span> ranked_lists:
+        <span class="k">for</span> rank, doc_id <span class="k">in</span> enumerate(ranked, start=<span class="s">1</span>):
+            scores[doc_id] = scores.get(doc_id, <span class="s">0.0</span>) + <span class="s">1</span> / (k + rank)
+    <span class="k">return</span> sorted(scores.items(), key=<span class="k">lambda</span> item: item[<span class="s">1</span>], reverse=<span class="k">True</span>)
+
+
+keyword = [<span class="s">"toxicity"</span>, <span class="s">"sucrose-taste"</span>, <span class="s">"sugar-substitutes"</span>, <span class="s">"tumours"</span>, <span class="s">"food-dyes"</span>]
+meaning = [<span class="s">"aspartame-brain"</span>, <span class="s">"aspartame-nerves"</span>, <span class="s">"sugar-substitutes"</span>, <span class="s">"sucrose-taste"</span>, <span class="s">"cherry-phenolics"</span>]
+
+<span class="k">for</span> doc_id, score <span class="k">in</span> rrf([keyword, meaning]):
+    print(<span class="s">f"</span>{score:.6f}  {doc_id}<span class="s">"</span>)
+
+<span class="c"># 0.031754  sucrose-taste
+# 0.031746  sugar-substitutes
+# 0.016393  toxicity
+# 0.016393  aspartame-brain
+# 0.016129  aspartame-nerves
+# 0.015625  tumours
+# 0.015385  food-dyes
+# 0.015385  cherry-phenolics</span></code></pre>
+  <p>Notice there's no step to "fix" the scores. RRF never looks at them, which is why it works with any mix of searchers.</p>
+  <p>In OpenSearch you don't have to write this yourself. You create a search pipeline once, then send hybrid queries through it:</p>
+<pre><code>PUT /_search/pipeline/rrf
+{
+  <span class="s">"phase_results_processors"</span>: [
+    {
+      <span class="s">"score-ranker-processor"</span>: {
+        <span class="s">"combination"</span>: { <span class="s">"technique"</span>: <span class="s">"rrf"</span>, <span class="s">"rank_constant"</span>: <span class="k">60</span> }
+      }
+    }
+  ]
+}</code></pre>
+
+  <section class="summary">
+    <p class="eyebrow">In two sentences</p>
+    <p>Give each document a few points for its position in each list (better position, more points), add the points up, and sort. Whatever several searchers agree on rises to the top.</p>
+    <p>It works best when your searchers are about equally good. When one is much weaker, try a smaller k, or check whether the better searcher alone does the job.</p>
+  </section>
+
+  <section class="refs" aria-labelledby="refs-title">
+    <h2 id="refs-title">References and further reading</h2>
+
+    <h3>The original paper</h3>
+    <ul>
+      <li>
+        <a href="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf">Reciprocal Rank Fusion outperforms Condorcet and individual Rank Learning Methods</a>
+        <span class="src">G. V. Cormack, C. L. A. Clarke, S. Büttcher · SIGIR 2009 · <a href="https://doi.org/10.1145/1571941.1572114">doi:10.1145/1571941.1572114</a></span>
+        <span class="why">Where RRF and k = 60 come from. It's only two pages. Table 1 is the k chart above.</span>
+      </li>
+    </ul>
+
+    <h3>The test sets</h3>
+    <ul>
+      <li>
+        <a href="https://arxiv.org/abs/2104.08663">BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models</a>
+        <span class="src">N. Thakur, N. Reimers, A. Rücklé, A. Srivastava, I. Gurevych · NeurIPS 2021 Datasets and Benchmarks</span>
+        <span class="why">The benchmark NFCorpus, SciFact and FiQA come from, including the published BM25 scores we compared against.</span>
+      </li>
+      <li>
+        <a href="https://github.com/beir-cellar/beir">beir-cellar/beir</a>
+        <span class="src">GitHub</span>
+        <span class="why">Download links and descriptions for every dataset in the benchmark.</span>
+      </li>
+    </ul>
+
+    <h3>RRF in real search engines</h3>
+    <ul>
+      <li>
+        <a href="https://opensearch.org/blog/introducing-reciprocal-rank-fusion-hybrid-search/">Introducing reciprocal rank fusion for hybrid search</a>
+        <span class="src">OpenSearch blog</span>
+        <span class="why">A friendly walkthrough with diagrams. This is the version of RRF our tests use (added in OpenSearch 2.19).</span>
+      </li>
+      <li>
+        <a href="https://docs.opensearch.org/latest/search-plugins/search-pipelines/score-ranker-processor/">Score ranker processor</a>
+        <span class="src">OpenSearch documentation</span>
+        <span class="why">Reference for the search pipeline shown in the code section.</span>
+      </li>
+      <li>
+        <a href="https://www.elastic.co/docs/reference/elasticsearch/rest-apis/reciprocal-rank-fusion">Reciprocal rank fusion</a>
+        <span class="src">Elasticsearch reference</span>
+        <span class="why">How Elasticsearch does it, and its <code>rank_constant</code> setting (default 60).</span>
+      </li>
+      <li>
+        <a href="https://learn.microsoft.com/en-us/azure/search/hybrid-search-ranking">Hybrid search scoring (RRF)</a>
+        <span class="src">Azure AI Search documentation</span>
+        <span class="why">A clear step-by-step explanation, plus the warning about the two different k's.</span>
+      </li>
+    </ul>
+
+    <h3>The building blocks</h3>
+    <ul>
+      <li>
+        <a href="https://en.wikipedia.org/wiki/Okapi_BM25">Okapi BM25</a>
+        <span class="src">Wikipedia</span>
+        <span class="why">How keyword search decides its scores, and why they have no upper limit.</span>
+      </li>
+      <li>
+        <a href="https://huggingface.co/sentence-transformers/all-MiniLM-L6-v2">all-MiniLM-L6-v2</a>
+        <span class="src">Hugging Face · Sentence Transformers</span>
+        <span class="why">The embedding model behind our meaning search. It turns each text into a list of 384 numbers.</span>
+      </li>
+    </ul>
+  </section>
+</article>
+
+<script>
+  (function () {
+    var slider = document.getElementById("k-slider");
+    var out = document.getElementById("k-out");
+    var bars = document.getElementById("bars");
+    var presets = document.querySelectorAll(".presets button");
+    var labels = ["1st", "2nd", "3rd", "4th", "5th"];
+
+    bars.innerHTML = labels.map(function (label, i) {
+      return '<div class="bar-row"><span>' + label + '</span>' +
+        '<div class="bar-track"><div class="bar-fill" id="bar-' + i + '"></div></div>' +
+        '<span class="v" id="val-' + i + '"></span></div>';
+    }).join("");
+
+    function fmt(x) {
+      return x >= 0.1 ? x.toFixed(2) : x.toFixed(4);
+    }
+
+    function render() {
+      var k = Number(slider.value);
+      out.textContent = k;
+
+      var first = 1 / (k + 1);
+      for (var i = 0; i < labels.length; i++) {
+        var points = 1 / (k + i + 1);
+        document.getElementById("bar-" + i).style.width = (points / first * 100) + "%";
+        document.getElementById("val-" + i).textContent = fmt(points);
+      }
+
+      var star = 1 / (k + 1);
+      var team = 2 / (k + 3);
+      var diff = Math.abs(star - team);
+      document.getElementById("s-star").textContent = fmt(star);
+      document.getElementById("s-team").textContent = fmt(team);
+      document.getElementById("c-star").classList.toggle("win", star > team && diff > 1e-9);
+      document.getElementById("c-team").classList.toggle("win", team > star && diff > 1e-9);
+
+      var verdict = document.getElementById("verdict");
+      if (diff < 1e-9) {
+        verdict.textContent = "Exactly tied. This is the tipping point.";
+      } else if (star > team) {
+        verdict.textContent = "Doc X wins: with a small k, one first-place finish beats two middling ones.";
+      } else {
+        verdict.textContent = "Doc Y wins: both searchers liked it, and that counts for more than one star finish.";
+      }
+
+      presets.forEach(function (button) {
+        button.setAttribute("aria-pressed", String(Number(button.dataset.k) === k));
+      });
+    }
+
+    slider.addEventListener("input", render);
+    presets.forEach(function (button) {
+      button.addEventListener("click", function () {
+        slider.value = button.dataset.k;
+        render();
+      });
+    });
+    render();
+  })();
+</script>

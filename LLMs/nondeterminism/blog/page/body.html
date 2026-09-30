@@ -1,0 +1,534 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Defeating Nondeterminism, on a Mac</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+{{CSS}}
+
+/* ---- This document --------------------------------------------------------- */
+/* Visible at rest: the reveal only adds motion, it never hides content. */
+figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels { opacity: 1; transform: none; }
+figure.wide, .wide, .breakout, .full-bleed { transform: translateX(-50%); }
+@media (max-width: 48rem) { figure.wide, .wide, .breakout, .full-bleed { transform: none; } }
+
+h1, h2, h3 { text-wrap: balance; }
+.stats { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 30rem) { .stats { grid-template-columns: 1fr; } }
+/* Label-and-explanation lists: dash in the gutter, label on its own line. */
+ul.rules { padding-left: 0; }
+ul.rules > li { position: relative; padding-left: 1.6rem; margin: 0; }
+ul.rules > li::before { left: 0; top: 0.05em; }
+ul.rules > li > strong { display: block; color: var(--text); }
+ul.rules > li > span { display: block; color: var(--muted); }
+.proof { display: inline-block; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.1em 0.5em; border-radius: 3px; vertical-align: 0.15em; margin-left: 0.4rem; }
+.proof.mac { color: var(--ok); border: 1px solid color-mix(in srgb, var(--ok) 55%, transparent); }
+.proof.paper { color: var(--muted); border: 1px solid var(--line); }
+.src { color: var(--muted); font-size: 0.85rem; margin: 0.6rem 0 0; }
+
+.codepair { display: grid; gap: 0.75rem; margin: 1.25rem 0 1.5rem; }
+.codepair pre.term { box-shadow: none; }
+
+.matrix td.hit { color: var(--err); font-weight: 600; }
+.matrix td.same { color: var(--ok); }
+.matrix td { font-variant-numeric: tabular-nums; }
+
+/* Batch-size explorer */
+.explorer { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.1rem 1.25rem 1.25rem; box-shadow: var(--shadow-md); margin: 1.5rem 0; }
+.explorer .label { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin: 0 0 0.6rem; }
+.bs-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 1rem; }
+.bs-btn { font: 500 0.85rem var(--mono); min-width: 3rem; padding: 0.35em 0.6em; border-radius: 4px; border: 1px solid var(--line); background: var(--bg); color: var(--text); cursor: pointer; font-variant-numeric: tabular-nums; }
+.bs-btn[data-same="1"] { border-color: color-mix(in srgb, var(--ok) 60%, transparent); }
+.bs-btn[data-same="0"] { border-color: color-mix(in srgb, var(--err) 55%, transparent); }
+.bs-btn[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+.bs-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ex-out { display: grid; gap: 0.6rem; font-size: 0.93rem; }
+.ex-head { color: var(--muted); }
+.ex-head strong { color: var(--text); }
+.ex-line { display: grid; grid-template-columns: 6.5rem 1fr; gap: 0.75rem; align-items: baseline; }
+.ex-line .who { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+.ex-line .txt { overflow-wrap: anywhere; }
+.ex-line .txt .shared { color: var(--muted); }
+.ex-line .txt .a { color: var(--ok); font-weight: 600; }
+.ex-line .txt .b { color: var(--err); font-weight: 600; }
+@media (max-width: 30rem) { .ex-line { grid-template-columns: 1fr; gap: 0.1rem; } }
+
+/* Blog additions */
+.doc p, .doc li { text-wrap: pretty; }
+.term { font-weight: 600; color: var(--text); border-bottom: 1px dotted var(--accent-line); }
+.define { margin: 1.25rem 0; padding: 0.85rem 1.1rem; border: 1px solid var(--line); border-radius: 8px; background: var(--surface-soft); font-size: 0.95rem; }
+.define dt { font-family: var(--serif); font-weight: 700; color: var(--accent); margin-top: 0.6rem; }
+.define dt:first-child { margin-top: 0; }
+.define dd { margin: 0.15rem 0 0; }
+.steps-table td:last-child { color: var(--text); }
+</style>
+
+<article class="doc">
+
+<header class="doc-header">
+  <div class="chrome">
+    <span>Paper, reproduced</span>
+    <span><b>Apple M4 Pro</b> · MLX 0.32.2</span>
+  </div>
+  <h1>Defeating Nondeterminism, on a Mac</h1>
+  <p class="dek">Ask a model the same question at temperature 0 and you can still get two different answers. This post finds out why, one experiment at a time, on a MacBook.</p>
+  <p class="meta">Based on <a href="https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/">Defeating Nondeterminism in LLM Inference</a> by Horace He and Thinking Machines Lab, September 2025. Numbers tagged <span class="proof mac">ran on Mac</span> were printed by the scripts in section 11, run on an M4 Pro. Numbers tagged <span class="proof paper">paper</span> are quoted from the article.</p>
+</header>
+
+<div class="summary">
+  <p><strong>Short version.</strong> A server groups your request with other people's requests into one <em>batch</em>. How many requests are in that batch depends on traffic. The GPU picks a different way of adding numbers depending on the batch size, and a different order of adding gives slightly different rounding. Usually that changes nothing. But every so often two candidate words score almost the same, and then the rounding decides which one you get. In our runs that happened after 110 to 232 tokens.</p>
+  <p><strong>What the Mac showed.</strong> The same calculation repeated 1,000 times gave identical results. The same row gave 3 different results depending on batch size. A real model asked the same question at temperature 0 gave 8 different answers across 11 batch sizes. With the batch size held fixed it gave 4 of 4 identical answers.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><span class="num">0.0</span><span class="unit">difference across 1,000 repeats of the same calculation</span></div>
+  <div class="stat"><span class="num">3</span><span class="unit">different results for one row, depending on batch size</span></div>
+  <div class="stat"><span class="num">8</span><span class="unit">different answers from 11 batch sizes at temperature 0</span></div>
+  <div class="stat"><span class="num">4/4</span><span class="unit">identical answers once the batch size is fixed</span></div>
+</div>
+
+<section>
+
+  <h2 data-n="01">Temperature 0 should mean one answer</h2>
+  <p>A language model writes one <span class="term">token</span> at a time. A token is a word or a piece of a word: " particle", " quantum", " Feyn", "man". At each step the model gives every token in its vocabulary a score, called a <span class="term">logit</span>. Higher score means "more likely to come next".</p>
+  <p><span class="term">Temperature</span> controls how the next token is picked from those scores. At a high temperature the model samples, so a lower-scored token sometimes wins. At temperature 0 there is no sampling at all. The model takes the highest score every time. This is also called <span class="term">greedy decoding</span>.</p>
+  <p>So at temperature 0, the same prompt with the same model should give the same text every time. The article tested this. <span class="proof paper">paper</span></p>
+  <ul class="rules">
+    <li><strong>Setup</strong><span>Qwen3-235B, prompt "Tell me about Richard Feynman", run 1,000 times, 1,000 tokens each, temperature 0.</span></li>
+    <li><strong>Result</strong><span>80 different completions. The most common one appeared 78 times.</span></li>
+    <li><strong>Where it split</strong><span>All 1,000 runs agreed for the first 102 tokens, up to "Feynman was born on May 11, 1918, in". At token 103, 992 runs wrote "Queens, New York" and 8 wrote "New York City".</span></li>
+  </ul>
+  <p>To see why, we first need to know what a batch is.</p>
+
+  <h2 data-n="02">What a batch is, and why servers use one</h2>
+  <p>A model is mostly a big pile of numbers called <span class="term">weights</span>. The small model used in this post, Qwen2.5-0.5B, has about 500 million of them, roughly 1 GB. To write one token, the GPU has to read all of those weights from memory and do arithmetic with them.</p>
+  <p>Reading 1 GB takes time. The arithmetic for one request is small by comparison, so the GPU spends most of each step waiting for weights to arrive. A <span class="term">batch</span> fixes that. The server stacks several users' requests into one table, one row per request, and runs them through the model together. The weights are read once per step and used for every row.</p>
+  <p>Here is what that looks like on the M4 Pro. Same model, same prompt, 300 tokens per request. <span class="proof mac">ran on Mac</span></p>
+
+  <figure class="wide">
+    <svg viewBox="0 0 960 290" role="img" aria-label="One step of generation. Batch 1: weights read once, 1 token out, 5.8 milliseconds. Batch 32: weights read once, 32 tokens out, 13.4 milliseconds. Batch 128: 128 tokens, 30 milliseconds.">
+      <defs>
+        <marker id="b-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker>
+      </defs>
+      <text x="30" y="28" font-size="12" fill="var(--muted)" letter-spacing="0.1em">ONE STEP OF GENERATION = READ ALL WEIGHTS ONCE, WRITE ONE TOKEN PER ROW</text>
+      <!-- weights -->
+      <rect x="30" y="60" width="170" height="190" rx="8" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="115" y="140" text-anchor="middle" font-size="15" font-weight="700">weights</text>
+      <text x="115" y="162" text-anchor="middle" font-size="12" fill="var(--muted)">~500M numbers</text>
+      <text x="115" y="180" text-anchor="middle" font-size="12" fill="var(--muted)">≈ 1 GB, bf16</text>
+      <path d="M200 95 H300" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#b-arr)"/>
+      <path d="M200 155 H300" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#b-arr)"/>
+      <path d="M200 215 H300" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#b-arr)"/>
+      <!-- batch 1 -->
+      <text x="310" y="84" font-size="13" font-weight="600">batch 1</text>
+      <rect x="400" y="72" width="14" height="18" rx="2" fill="var(--accent)"/>
+      <text x="672" y="84" font-size="13" fill="var(--text)">1 token · <tspan font-weight="700">5.8 ms</tspan></text>
+      <text x="672" y="101" font-size="11" fill="var(--muted)">173 tokens/s in total</text>
+      <!-- batch 32 -->
+      <text x="310" y="144" font-size="13" font-weight="600">batch 32</text>
+      <g fill="var(--accent)">
+        <rect x="400" y="132" width="7" height="18" rx="1"/><rect x="408" y="132" width="7" height="18" rx="1"/><rect x="416" y="132" width="7" height="18" rx="1"/><rect x="424" y="132" width="7" height="18" rx="1"/>
+        <rect x="432" y="132" width="7" height="18" rx="1"/><rect x="440" y="132" width="7" height="18" rx="1"/><rect x="448" y="132" width="7" height="18" rx="1"/><rect x="456" y="132" width="7" height="18" rx="1"/>
+        <rect x="464" y="132" width="7" height="18" rx="1"/><rect x="472" y="132" width="7" height="18" rx="1"/><rect x="480" y="132" width="7" height="18" rx="1"/><rect x="488" y="132" width="7" height="18" rx="1"/>
+        <rect x="496" y="132" width="7" height="18" rx="1"/><rect x="504" y="132" width="7" height="18" rx="1"/><rect x="512" y="132" width="7" height="18" rx="1"/><rect x="520" y="132" width="7" height="18" rx="1"/>
+        <rect x="528" y="132" width="7" height="18" rx="1"/><rect x="536" y="132" width="7" height="18" rx="1"/><rect x="544" y="132" width="7" height="18" rx="1"/><rect x="552" y="132" width="7" height="18" rx="1"/>
+        <rect x="560" y="132" width="7" height="18" rx="1"/><rect x="568" y="132" width="7" height="18" rx="1"/><rect x="576" y="132" width="7" height="18" rx="1"/><rect x="584" y="132" width="7" height="18" rx="1"/>
+        <rect x="592" y="132" width="7" height="18" rx="1"/><rect x="600" y="132" width="7" height="18" rx="1"/><rect x="608" y="132" width="7" height="18" rx="1"/><rect x="616" y="132" width="7" height="18" rx="1"/>
+        <rect x="624" y="132" width="7" height="18" rx="1"/><rect x="632" y="132" width="7" height="18" rx="1"/><rect x="640" y="132" width="7" height="18" rx="1"/><rect x="648" y="132" width="7" height="18" rx="1"/>
+      </g>
+      <text x="672" y="144" font-size="13" fill="var(--text)">32 tokens · <tspan font-weight="700">13.4 ms</tspan></text>
+      <text x="672" y="161" font-size="11" fill="var(--muted)">2,388 tokens/s in total</text>
+      <!-- batch 128 -->
+      <text x="310" y="204" font-size="13" font-weight="600">batch 128</text>
+      <rect x="400" y="192" width="256" height="18" rx="2" fill="var(--accent)" opacity="0.85"/>
+      <text x="400" y="228" font-size="11" fill="var(--muted)">128 rows, one per user</text>
+      <text x="672" y="204" font-size="13" fill="var(--text)">128 tokens · <tspan font-weight="700">30.0 ms</tspan></text>
+      <text x="672" y="221" font-size="11" fill="var(--muted)">4,271 tokens/s in total</text>
+      <text x="310" y="270" font-size="12" fill="var(--muted)">32 times the work for 2.3 times the time. This is why servers batch.</text>
+    </svg>
+    <figcaption><strong>Batching on the M4 Pro.</strong> Time per step and total throughput for 300-token answers from Qwen2.5-0.5B. Serving 32 users one after another would take 32 × 1.73 s = 55 s. As one batch it took 4.0 s. <span class="proof mac">ran on Mac</span></figcaption>
+  </figure>
+
+  <p>You don't choose the batch. If 3 other people send a request at the same moment as you, your request runs in a batch of 4. A second later it might be a batch of 50. On a real server the batch size changes all the time, and nobody can predict it.</p>
+  <p>The rows in a batch do not mix. Row 7 is only ever multiplied by the weights, never by row 3. So on paper your answer cannot depend on who else is in the batch. Section 06 shows that on a real GPU it does.</p>
+  <p>Try it. Below is the same prompt at temperature 0, run as the first row of batches of different sizes. The other rows are other requests. Nothing else changes. <span class="proof mac">ran on Mac</span></p>
+
+  <div class="explorer" id="explorer">
+    <p class="label">Qwen2.5-0.5B-Instruct, bf16 · "Tell me about Richard Feynman." · 300 tokens · temperature 0</p>
+    <div class="bs-row" role="group" aria-label="Batch size" id="bs-row"></div>
+    <div class="ex-out" id="ex-out" aria-live="polite"></div>
+  </div>
+  <p class="src">Green border: same 300 tokens as batch size 1. Red border: a different answer. Batch size 1 was run twice and matched itself exactly. 8 of the 11 batch sizes gave a different answer. The 0.5B model gets some facts about Feynman wrong, and that doesn't matter here. We only compare its answers with each other. Source: <code>lab/model_experiment.py</code>.</p>
+  <p>The rest of this post traces how that happens, starting from the arithmetic.</p>
+
+  <h2 data-n="03">Computers round after every addition</h2>
+  <p>A computer stores every number in a fixed number of bits. A fixed number of bits can only hold a fixed set of values. When the exact result of an addition is not one of those values, the computer stores the nearest one it has. That is rounding. It happens after every single addition, because every result goes back into a slot of the same size.</p>
+  <p>Picture a calculator whose screen shows only 3 significant digits. 1230 + 23.4 is exactly 1253.4. The screen can show 1250 or 1260, but not 1253.4, so it shows 1250. The addition was done correctly. The 3.4 was lost when the result was fitted onto the screen. The article uses this same example. <span class="proof paper">paper</span></p>
+  <p>The number formats a computer uses are called <span class="term">floating point</span>. They work like scientific notation with a fixed number of digits: a few significant digits, plus a note of where the decimal point goes. Because the number of digits is fixed, the gap between neighbouring storable numbers grows as the numbers get bigger. Models use two small 16-bit formats to save memory, <span class="term">float16</span> and <span class="term">bfloat16</span> (bf16). A normal Python number uses 64 bits. <span class="proof mac">ran on Mac</span></p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Gap to the next storable number</th><th>Near 1</th><th>Near 21</th><th>Near 2048</th><th>Near 1e20</th></tr></thead>
+      <tbody>
+        <tr><th>bf16 (16 bits)</th><td>0.0078</td><td>0.125</td><td>16</td><td>–</td></tr>
+        <tr><th>float16 (16 bits)</th><td>0.00098</td><td>0.016</td><td>2</td><td>too big to store</td></tr>
+        <tr><th>Python float (64 bits)</th><td>0.0000000000000002</td><td>0.0000000000000036</td><td>0.00000000000045</td><td>16,384</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Near 21, bf16 can store 20.875, 21.0 and 21.125, and nothing in between. Keep that row in mind for section 08. Near 1e20, even a 64-bit number can only step in jumps of 16,384.</p>
+  <p>Keeping every digit is not practical. The exact sum of many numbers can need any number of digits, and a chip's circuits have a fixed width. Fewer bits also means less memory to move and more numbers handled per second, which is why models use 16-bit formats. GPUs usually add the products up in 32 bits even when the weights are stored in 16. That makes the gaps much smaller, but they never reach zero.</p>
+  <p>Here is the smallest example that shows the problem, in real float16. Above 2048 the gap is 2, so float16 can only store even numbers. 2049 does not exist, so 2048 + 1 rounds back to 2048. (2049 is exactly halfway between 2048 and 2050. Ties go to the neighbour whose last bit is 0, which is 2048.) <span class="proof mac">ran on Mac</span></p>
+  <div class="matrix-wrap">
+    <table class="matrix steps-table">
+      <thead><tr><th>Add 2048, 1, 1, 1, 1</th><th>Working</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><th>Left to right, one pass</th><td>2048 + 1 → 2048, + 1 → 2048, + 1 → 2048, + 1 → 2048</td><td class="hit">2048</td></tr>
+        <tr><th>Two halves, then combine</th><td>(2048 + 1) → 2048 and (1 + 1 + 1) → 3, then 2048 + 3 → 2052</td><td class="same">2052</td></tr>
+        <tr><th>True answer</th><td></td><td>2052</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Same five numbers, same float16, two different answers. In one pass, each 1 meets the big number alone and gets rounded away. Split into halves, the three 1s get added to each other first, make 3, and survive. The order of additions decides what gets rounded away.</p>
+  <p>The article's own example shows the same effect in two lines. <span class="proof mac">ran on Mac</span></p>
+<pre class="term"><span class="prompt">&gt;&gt;&gt;</span> (0.1 + 1e20) - 1e20
+<span class="out">0.0</span>
+<span class="prompt">&gt;&gt;&gt;</span> 0.1 + (1e20 - 1e20)
+<span class="out">0.10000000149011612</span></pre>
+  <p>This ran in 32-bit floats, where the gap near 1e20 is about 8.8 trillion. In the first line, 1e20 + 0.1 is nowhere near the next storable number, so it is stored as exactly 1e20, and subtracting 1e20 leaves 0. In the second line, 1e20 − 1e20 is 0 first, and 0 + 0.1 is fine. (0.10000000149 is the nearest 32-bit value to 0.1.)</p>
+  <p>The article then takes 8 numbers whose true total is exactly 0, shuffles them, adds them up, and repeats 10,000 times. It reports 102 different results. <span class="proof paper">paper</span> We ran it with a plain left-to-right loop and with Python's built-in <code>sum()</code>, which the article's code uses. The shuffled orders were identical on every Python version we tried. <span class="proof mac">ran on Mac</span></p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>10,000 shuffles, true total 0</th><th>Different results</th><th>Exactly 0</th></tr></thead>
+      <tbody>
+        <tr><th>Plain loop, any Python</th><td>258</td><td>3,054</td></tr>
+        <tr><th><code>sum()</code>, Python 3.11</th><td>258</td><td>3,054</td></tr>
+        <tr><th><code>sum()</code>, Python 3.12 and 3.13</th><td>102</td><td>1,369</td></tr>
+        <tr><th><code>sum()</code>, Python 3.14</th><td>9</td><td>7,876</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The article's 102 only comes back on Python 3.12 or 3.13. From 3.12 on, <code>sum()</code> no longer adds floats strictly left to right. It keeps track of the bits that rounding throws away and adds them back at the end, and 3.14 changes it again. Same numbers, same orders, a different method of adding, different answers.</p>
+  <p class="src">Script: <code>lab/rounding.py</code>. Standard library only, so it runs on any computer with Python 3, Mac or not.</p>
+
+  <h2 data-n="04">The GPU decides the order</h2>
+  <p>A model does very little except add up long lists of products. Adding up a list into one number is called a <span class="term">reduction</span>. A GPU has thousands of small cores, so it never adds a long list one number at a time. It gives pieces of the list to different cores, adds each piece, then adds the piece totals. The code that decides how to cut up the work is called a <span class="term">kernel</span>.</p>
+  <p>Different ways of cutting up the list are different orders of addition. We summed the same 1,048,576 random numbers five ways, all in 32-bit floats. <span class="proof mac">ran on Mac</span></p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>How it was summed</th><th>Result</th></tr></thead>
+      <tbody>
+        <tr><th>Exact (64-bit reference)</th><td>291.72002863</td></tr>
+        <tr><th><code>mx.sum</code> in one call</th><td>291.71990967</td></tr>
+        <tr><th>Pieces of 256, then total</th><td>291.71990967</td></tr>
+        <tr><th>Pieces of 4,096, then total</th><td>291.72009277</td></tr>
+        <tr><th>Pieces of 65,536, then total</th><td>291.72009277</td></tr>
+        <tr><th>One by one, left to right</th><td>291.71636963</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Three different answers. None is a mistake. Each is the correct 32-bit result for its own order.</p>
+
+  <h2 data-n="05">Running the same thing twice gives the same bits</h2>
+  <p>The explanation you usually hear goes like this. The GPU runs thousands of threads at once, they finish in a random order, so the additions happen in a random order and the result wobbles. If that were true, repeating the exact same calculation would give different results.</p>
+  <p>So we repeated a matrix multiplication 1,000 times. <span class="proof mac">ran on Mac</span></p>
+<pre class="term"><span class="prompt">&gt;&gt;&gt;</span> A, B = random bf16 matrices, 2048 × 2048
+<span class="prompt">&gt;&gt;&gt;</span> ref = A @ B
+<span class="prompt">&gt;&gt;&gt;</span> largest difference from ref, over 1,000 repeats
+<span class="out">0.0</span></pre>
+  <p>Identical every time. The article found the same on an NVIDIA GPU. <span class="proof paper">paper</span></p>
+  <p>Random order needs a specific ingredient called an <span class="term">atomic add</span>. That is when many threads add into the same memory slot and whichever arrives first goes first. The article notes that the forward pass of an LLM, the part that produces the next token, usually has no atomic adds at all. Each core owns its own piece of the output and adds its numbers in a fixed order. Same inputs and same sizes give the same bits, every time.</p>
+  <div class="callout insight">
+    <h4>So the randomness comes from somewhere else</h4>
+    <p>The arithmetic repeats exactly. What differs between your two requests is the size of the batch they ran in.</p>
+  </div>
+
+  <h2 data-n="06">Batch size changes the order</h2>
+  <p>Your request is one row of 4,096 numbers. Multiplying it by a 4,096 × 4,096 weight matrix gives 4,096 outputs. Each output is a sum of 4,096 products, and every one of those products is one of <em>your</em> numbers times one weight. Another user's row never enters any of your sums.</p>
+  <p>So your 4,096 outputs should come out exactly the same whether you run alone or share the batch with 511 other people. A kernel that keeps this promise is called <span class="term">batch invariant</span>. The article's claim is that most kernels don't keep it.</p>
+  <p>The article's test: multiply the first row on its own, then multiply the whole batch and take its first row. The two should be identical. <span class="proof mac">ran on Mac</span></p>
+<pre class="term"><span class="prompt">&gt;&gt;&gt;</span> a = linspace(-1000, 1000).reshape(2048, 4096)
+<span class="prompt">&gt;&gt;&gt;</span> b = linspace(-1000, 1000).reshape(4096, 4096)
+<span class="prompt">&gt;&gt;&gt;</span> largest | a[:1] @ b  −  (a @ b)[:1] |
+<span class="out">1448.97    (the values are around 722,042, so about 0.2% off)</span></pre>
+  <p class="src">The article got 1669.25 on an NVIDIA GPU. <span class="proof paper">paper</span> The exact size depends on the hardware. It is not zero on either.</p>
+
+  <h3>Why the batch changes the result</h3>
+  <p>Because the kernel changes its plan. A GPU is fast only when all of its cores have work. The GPU in this M4 Pro has 20 cores, and each core runs many groups of threads at once. So a matmul kernel cuts the output into small blocks called <span class="term">tiles</span>, 16 rows by 16 columns in MLX, and hands out one tile per thread group. Each group adds up the long sums for the 256 outputs in its tile.</p>
+  <p>A row of 4,096 outputs is 256 tiles wide (4,096 ÷ 16). One tile is 16 rows tall. So the number of tiles grows with the batch: <span class="proof mac">ran on Mac</span></p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Batch size</th><th>Tiles tall</th><th>Tiles in total</th><th>Plan MLX picks</th></tr></thead>
+      <tbody>
+        <tr><th>1</th><td>–</td><td>–</td><td>single-row kernel (gemv)</td></tr>
+        <tr><th>2 – 16</th><td>1</td><td>256</td><td>split-K</td></tr>
+        <tr><th>128</th><td>8</td><td>2,048</td><td>split-K</td></tr>
+        <tr><th>129</th><td>9</td><td>2,304</td><td>tiled GEMM</td></tr>
+        <tr><th>1,024</th><td>64</td><td>16,384</td><td>tiled GEMM</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>With few tiles, each thread group would have to walk through a sum of 4,096 products on its own while the rest of the GPU waits. So when the output is small and the sums are long, MLX uses <span class="term">split-K</span>. It cuts every sum into two halves of 2,048, gives each half to a different thread group, and adds the two half-totals at the end. That doubles the number of jobs. On Pro and Max chips it does this while there are at most 2,048 tiles. 128 rows is exactly 8 tiles tall, which makes 2,048 tiles. 129 rows needs a 9th tile row, the count jumps to 2,304, and MLX switches to the normal tiled plan. That is where the 129 comes from.</p>
+  <p>Think of it as adding up 4,096 receipts. With plenty of work to go round, one clerk adds the whole pile. When the office is quiet, each pile goes to two clerks who add half each, and then someone adds their two totals. Both methods are correct, but section 03 showed that the order of adding changes what gets rounded away.</p>
+
+  <figure class="wide">
+    <svg viewBox="0 0 960 300" role="img" aria-label="Three plans for summing 4096 products: one row uses a single-row kernel; 2 to 128 rows split the sum into two halves of 2048 and add them at the end; 129 or more rows use the tiled kernel that walks the whole sum">
+      <text x="30" y="28" font-size="12" fill="var(--muted)" letter-spacing="0.1em">HOW ONE OUTPUT NUMBER (A SUM OF 4,096 PRODUCTS) GETS ADDED UP</text>
+      <!-- plan 1 -->
+      <text x="30" y="72" font-size="13" font-weight="700">1 row</text>
+      <text x="30" y="90" font-size="11" fill="var(--muted)">gemv</text>
+      <rect x="170" y="56" width="620" height="30" rx="4" fill="color-mix(in srgb, var(--accent-2) 22%, transparent)" stroke="var(--accent-2)" stroke-width="1.5"/>
+      <text x="480" y="76" text-anchor="middle" font-size="12">4,096 products, added by the single-row kernel</text>
+      <text x="930" y="76" text-anchor="end" font-size="13" font-weight="600">result A</text>
+      <!-- plan 2 -->
+      <text x="30" y="152" font-size="13" font-weight="700">2 – 128 rows</text>
+      <text x="30" y="170" font-size="11" fill="var(--muted)">split-K</text>
+      <rect x="170" y="136" width="306" height="30" rx="4" fill="color-mix(in srgb, var(--accent) 18%, transparent)" stroke="var(--accent)" stroke-width="1.5"/>
+      <rect x="484" y="136" width="306" height="30" rx="4" fill="color-mix(in srgb, var(--accent) 18%, transparent)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="323" y="156" text-anchor="middle" font-size="12">first 2,048, one core group</text>
+      <text x="637" y="156" text-anchor="middle" font-size="12">last 2,048, another</text>
+      <path d="M323 166 V186 H637 V166" fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="480" y="202" text-anchor="middle" font-size="11" fill="var(--accent)">then add the two halves</text>
+      <text x="930" y="156" text-anchor="end" font-size="13" font-weight="600">result B</text>
+      <!-- plan 3 -->
+      <text x="30" y="252" font-size="13" font-weight="700">129+ rows</text>
+      <text x="30" y="270" font-size="11" fill="var(--muted)">tiled GEMM</text>
+      <rect x="170" y="236" width="620" height="30" rx="4" fill="color-mix(in srgb, var(--accent-3) 20%, transparent)" stroke="var(--accent-3)" stroke-width="1.5"/>
+      <g stroke="var(--accent-3)" stroke-width="1" opacity="0.6">
+        <line x1="247" y1="236" x2="247" y2="266"/><line x1="325" y1="236" x2="325" y2="266"/><line x1="402" y1="236" x2="402" y2="266"/><line x1="480" y1="236" x2="480" y2="266"/><line x1="557" y1="236" x2="557" y2="266"/><line x1="635" y1="236" x2="635" y2="266"/><line x1="712" y1="236" x2="712" y2="266"/>
+      </g>
+      <text x="480" y="286" text-anchor="middle" font-size="11" fill="var(--muted)">one core group walks the whole sum, chunk by chunk</text>
+      <text x="930" y="256" text-anchor="end" font-size="13" font-weight="600">result C</text>
+    </svg>
+    <figcaption><strong>MLX's three plans on an M4 Pro.</strong> From <code>mlx/backend/metal/matmul.cpp</code>, v0.32.2. Only the middle plan cuts each sum in two.</figcaption>
+  </figure>
+
+  <p>Split-K is the float16 example from section 03 at full size. Adding in two halves and then combining rounds at different moments than adding in one pass.</p>
+
+  <h3>What it does to your row</h3>
+  <p>We multiplied the same row alone, then as row 0 inside bigger batches, and counted how many of its 4,096 outputs changed. <span class="proof mac">ran on Mac</span></p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Batch size</th><th>Plan</th><th>bf16 changed</th><th>float16 changed</th><th>32-bit changed</th></tr></thead>
+      <tbody>
+        <tr><th>1</th><td>single row</td><td class="same">0</td><td class="same">0</td><td class="same">0</td></tr>
+        <tr><th>2, 8, 128</th><td>split-K</td><td class="hit">1</td><td class="hit">15</td><td class="hit">3,785</td></tr>
+        <tr><th>129, 512</th><td>tiled GEMM</td><td class="hit">1</td><td class="hit">12</td><td class="hit">3,852</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Inside a plan, the result does not move. Batch 2, 8 and 128 all give the same numbers, and so do 129 and 512. It changes only when the plan changes. We then checked every batch size from 1 to 1,024, one at a time. The row changed at exactly two places, 2 and 129. <span class="proof mac">ran on Mac</span></p>
+
+  <figure class="wide">
+    <svg viewBox="0 0 960 200" role="img" aria-label="Batch sizes 1 to 1024 on a doubling scale, split into three regions: 1, 2 to 128, and 129 and above">
+      <text x="40" y="30" font-size="12" fill="var(--muted)" letter-spacing="0.1em">SAME ROW × SAME WEIGHTS, BATCH SIZE 1 → 1,024 (EACH TICK DOUBLES)</text>
+      <rect x="40" y="56" width="86" height="50" rx="4" fill="color-mix(in srgb, var(--accent-2) 22%, transparent)" stroke="var(--accent-2)" stroke-width="1.5"/>
+      <rect x="130" y="56" width="523" height="50" rx="4" fill="color-mix(in srgb, var(--accent) 18%, transparent)" stroke="var(--accent)" stroke-width="1.5"/>
+      <rect x="657" y="56" width="263" height="50" rx="4" fill="color-mix(in srgb, var(--accent-3) 20%, transparent)" stroke="var(--accent-3)" stroke-width="1.5"/>
+      <text x="83" y="86" text-anchor="middle" font-size="13" font-weight="600">result A</text>
+      <text x="391" y="86" text-anchor="middle" font-size="13" font-weight="600">result B</text>
+      <text x="788" y="86" text-anchor="middle" font-size="13" font-weight="600">result C</text>
+      <g font-size="11" fill="var(--muted)" text-anchor="middle">
+        <line x1="40" y1="112" x2="40" y2="120" stroke="var(--muted)"/><text x="40" y="136">1</text>
+        <line x1="128" y1="112" x2="128" y2="120" stroke="var(--muted)"/><text x="128" y="136">2</text>
+        <line x1="216" y1="112" x2="216" y2="120" stroke="var(--muted)"/><text x="216" y="136">4</text>
+        <line x1="304" y1="112" x2="304" y2="120" stroke="var(--muted)"/><text x="304" y="136">8</text>
+        <line x1="392" y1="112" x2="392" y2="120" stroke="var(--muted)"/><text x="392" y="136">16</text>
+        <line x1="480" y1="112" x2="480" y2="120" stroke="var(--muted)"/><text x="480" y="136">32</text>
+        <line x1="568" y1="112" x2="568" y2="120" stroke="var(--muted)"/><text x="568" y="136">64</text>
+        <line x1="656" y1="112" x2="656" y2="120" stroke="var(--muted)"/><text x="645" y="136">128</text>
+        <text x="675" y="136" fill="var(--text)" font-weight="600">129</text>
+        <line x1="744" y1="112" x2="744" y2="120" stroke="var(--muted)"/><text x="744" y="136">256</text>
+        <line x1="832" y1="112" x2="832" y2="120" stroke="var(--muted)"/><text x="832" y="136">512</text>
+        <line x1="920" y1="112" x2="920" y2="120" stroke="var(--muted)"/><text x="920" y="136">1024</text>
+      </g>
+      <text x="40" y="176" font-size="12" fill="var(--muted)">Inside each region the bits are identical. Crossing a boundary changes them.</text>
+    </svg>
+    <figcaption><strong>Three plans, three results.</strong> The result changed at batch size 2 and again at 129, and at no other size. It was the same for bf16, float16 and 32-bit floats. <span class="proof mac">ran on Mac</span></figcaption>
+  </figure>
+
+  <p>More precision does not fix it. With 32 bits almost every output changes, because there are so many digits that nearly every sum lands on a slightly different last digit. bf16 keeps so few digits that most differences round away, and only 1 output of 4,096 changed. The largest change was 0.001, in float16. Section 08 shows that a change this small can still change a word.</p>
+
+  <h3>What it costs to avoid</h3>
+  <p>The simplest way to get batch invariance is to always use one plan. With 2 users, that means padding the batch with 127 empty rows so MLX takes the 129-row plan. Your row then comes out identical whatever the real batch size. It also took 2.5 to 3.1 times longer than the 2-row split-K plan in three runs (for example 0.40 ms versus 1.17 ms), because the GPU now multiplies 129 rows instead of 2. <span class="proof mac">ran on Mac</span> The article's batch-invariant kernels also give up some speed, mostly at small batches. <span class="proof paper">paper</span></p>
+  <p class="src">Script: <code>lab/batch_invariance.py</code> prints both tables, the tile counts and the timings. The full 1-to-1,024 sweep is part 4e of <code>lab/experiments.py</code>.</p>
+
+  <h2 data-n="07">Three places a model adds things up</h2>
+  <p>A transformer model repeats the same block of steps many times (24 blocks in Qwen2.5-0.5B). Three kinds of step inside it add up long lists, so those are the three places where batch size can matter.</p>
+  <dl class="define">
+    <dt>Matrix multiplication (matmul)</dt>
+    <dd>Each output number is one row of the input times one column of the weights: 4,096 products added together. Most of a model's work is this.</dd>
+    <dt>RMSNorm</dt>
+    <dd>Rescales each row so its numbers stay in a sensible range. To do that it adds up the squares of every number in the row.</dd>
+    <dt>Attention</dt>
+    <dd>Lets the new token look back at every earlier token. It scores the new token against each earlier one and takes a weighted sum over all of them. The earlier tokens' data is kept in memory so it isn't recomputed each step. That store is the <span class="term">KV cache</span>, and it grows by one entry per token.</dd>
+  </dl>
+  <p>We tested each one alone versus inside a batch. <span class="proof mac">ran on Mac</span></p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Step</th><th>What it adds up</th><th>On the Mac</th></tr></thead>
+      <tbody>
+        <tr><th>RMSNorm</th><td>squares of one row</td><td class="same">no change, 1 to 1,024 rows</td></tr>
+        <tr><th>Matmul</th><td>row × column products</td><td class="hit">changes at 2 and 129 rows</td></tr>
+        <tr><th>Attention, more users</th><td>scores over the KV cache</td><td class="same">no change with 4 users</td></tr>
+        <tr><th>Attention, more new tokens</th><td>scores over the KV cache</td><td class="hit">changes by 0.000244 once the cache holds 4,096+ tokens and 8+ new tokens arrive together</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The article fixes each one with the same rule: <strong>choose one plan for adding up and use it at every batch size.</strong> <span class="proof paper">paper</span></p>
+  <ul class="rules">
+    <li><strong>RMSNorm</strong><span>One core per row, and that core adds the whole row itself. More rows just means more cores busy. The kernel must not start splitting rows when the batch is small, even though that leaves cores idle. Small batches run a little slower.</span></li>
+    <li><strong>Matmul</strong><span>Compile one kernel setup and use it for every size, with no split-K for small batches. This ran about 20% slower than NVIDIA's cuBLAS library, most of it at very small batches.</span></li>
+    <li><strong>Attention</strong><span>While generating, each user adds only one new token per step, so kernels cut the KV cache into pieces to keep the GPU busy. Normally the <em>number</em> of pieces depends on the batch. The article fixes the <em>size</em> of each piece instead. A cache of 1,000 tokens is always cut into 256 + 256 + 256 + 232, however many requests are running.</span></li>
+  </ul>
+
+  <h2 data-n="08">A tie decides the word</h2>
+  <p>A change of 0.001 does nothing most of the time. The highest-scoring token usually leads by a wide margin, and a tiny nudge does not change the winner. It matters only when two tokens are nearly tied.</p>
+  <p>In our run, the answers first split after 203 identical tokens, following "…has since become a fundamental tool in the study of". We gave every batch size exactly the same 203 tokens and printed the top candidates for the next one. <span class="proof mac">ran on Mac</span></p>
+
+  <figure class="wide">
+    <svg viewBox="0 0 960 250" role="img" aria-label="Score scale from 20.625 to 21.25. At batch 1, particle and quantum both score 21.0. At batch 2, quantum scores 21.125 and wins.">
+      <text x="40" y="26" font-size="12" fill="var(--muted)" letter-spacing="0.1em">SCORE OF THE NEXT TOKEN. NEAR 21, BF16 CAN ONLY STORE THESE VALUES</text>
+      <g font-size="12" fill="var(--muted)" text-anchor="middle">
+        <line x1="220" y1="44" x2="220" y2="206" stroke="var(--grid)" stroke-width="1.5"/><text x="220" y="226">20.75</text>
+        <line x1="380" y1="44" x2="380" y2="206" stroke="var(--grid)" stroke-width="1.5"/><text x="380" y="226">20.875</text>
+        <line x1="540" y1="44" x2="540" y2="206" stroke="var(--grid)" stroke-width="1.5"/><text x="540" y="226">21.0</text>
+        <line x1="700" y1="44" x2="700" y2="206" stroke="var(--grid)" stroke-width="1.5"/><text x="700" y="226">21.125</text>
+        <line x1="860" y1="44" x2="860" y2="206" stroke="var(--grid)" stroke-width="1.5"/><text x="860" y="226">21.25</text>
+      </g>
+      <text x="40" y="90" font-size="14" font-weight="600">batch 1</text>
+      <line x1="150" y1="86" x2="900" y2="86" stroke="var(--line)" stroke-width="1.5"/>
+      <circle cx="220" cy="86" r="7" fill="var(--muted)"/><text x="220" y="70" text-anchor="middle" font-size="12" fill="var(--muted)">physics</text>
+      <circle cx="540" cy="86" r="9" fill="var(--ok)"/><text x="540" y="68" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ok)">particle = quantum (tie)</text>
+      <text x="920" y="90" text-anchor="end" font-size="12" fill="var(--ok)">→ "particle"</text>
+      <text x="40" y="170" font-size="14" font-weight="600">batch 2</text>
+      <line x1="150" y1="166" x2="900" y2="166" stroke="var(--line)" stroke-width="1.5"/>
+      <circle cx="220" cy="166" r="7" fill="var(--muted)"/><text x="220" y="150" text-anchor="middle" font-size="12" fill="var(--muted)">physics</text>
+      <circle cx="540" cy="166" r="8" fill="var(--ok)"/><text x="540" y="150" text-anchor="middle" font-size="12" fill="var(--ok)">particle</text>
+      <circle cx="700" cy="166" r="9" fill="var(--err)"/><text x="700" y="150" text-anchor="middle" font-size="13" font-weight="600" fill="var(--err)">quantum</text>
+      <text x="920" y="170" text-anchor="end" font-size="12" fill="var(--err)">→ "quantum"</text>
+    </svg>
+    <figcaption><strong>One rounding step flips the word.</strong> Near 21, bf16 values are 0.125 apart, with nothing in between. Alone, both tokens round to exactly 21.0 and the tie goes to "particle". In a batch of 2, "quantum" lands one step higher and wins. <span class="proof mac">ran on Mac</span></figcaption>
+  </figure>
+
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Batch size</th><th>" particle"</th><th>" quantum"</th><th>Token chosen</th></tr></thead>
+      <tbody>
+        <tr><th>1</th><td>21.0</td><td>21.0</td><td class="same">particle</td></tr>
+        <tr><th>2</th><td>21.0</td><td>21.125</td><td class="hit">quantum</td></tr>
+        <tr><th>3</th><td>21.0</td><td>21.0</td><td class="same">particle</td></tr>
+        <tr><th>4</th><td>21.0</td><td>21.125</td><td class="hit">quantum</td></tr>
+        <tr><th>8</th><td>20.875</td><td>21.0</td><td class="hit">quantum</td></tr>
+        <tr><th>16</th><td>21.0</td><td>21.0</td><td class="same">particle</td></tr>
+        <tr><th>32</th><td>21.0</td><td>21.0</td><td class="same">particle</td></tr>
+        <tr><th>64</th><td>20.875</td><td>21.0</td><td class="hit">quantum</td></tr>
+        <tr><th>128</th><td>21.0</td><td>21.0</td><td class="same">particle</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">Source: <code>lab/logit_gap.py</code>. The batch sizes that chose "quantum" here (2, 4, 8, 64) are exactly the ones whose full answers split after token 203. Sizes 3, 16, 32 and 128 kept "particle" here. Their answers split somewhere else: after 110 tokens (128), 225 (16) or 232 (3 and 32).</p>
+  <p>The batch-size pattern is not as clean as the three regions in section 06. The model has many layers, and they run matmuls of different shapes. Some of those shapes take other routes in MLX. For example, MLX's source sends 2 to 15 rows through a separate "wide" matrix-vector kernel in bf16 and float16. Every layer's small difference feeds into the next layer.</p>
+  <p>After one token differs, every later token is predicted from different text, so the two answers drift further apart. It is the same kind of split as the article's "Queens, New York" versus "New York City".</p>
+
+  <h2 data-n="09">Keep the batch shape fixed</h2>
+  <p>We did not write new kernels. We used the simplest fix the diagnosis suggests: always run the GPU with exactly 32 rows. Real requests fill the first rows and filler rows fill the rest. The GPU then always sees the same shapes, picks the same plans, and adds in the same order, whatever the traffic. <span class="proof mac">ran on Mac</span></p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Real requests</th><th>Rows the GPU runs</th><th>Same answer as the first run?</th><th>Time, 300 tokens</th></tr></thead>
+      <tbody>
+        <tr><th>1</th><td>32</td><td class="same">yes</td><td>4.20 s</td></tr>
+        <tr><th>2</th><td>32</td><td class="same">yes</td><td>4.12 s</td></tr>
+        <tr><th>8</th><td>32</td><td class="same">yes</td><td>4.05 s</td></tr>
+        <tr><th>32</th><td>32</td><td class="same">yes</td><td>4.04 s</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>It works, and the cost is visible. One request alone normally takes 1.73 s. Padded to 32 rows it takes 4.20 s, about 2.4 times as long, because the GPU does 32 rows of work to answer one. It also stops working once more than 32 requests arrive at once.</p>
+  <p>The article's fix wastes no work, because it changes the kernels so the order never depends on batch size. It still costs speed. <span class="proof paper">paper</span></p>
+  <div class="race-bars">
+    <div class="race-item"><span class="race-label">vLLM default</span><div class="race-track"><div class="race-fill" style="width: 47.3%"></div></div><span class="race-val">26 s</span></div>
+    <div class="race-item"><span class="race-label">Deterministic</span><div class="race-track"><div class="race-fill" style="width: 100%"></div></div><span class="race-val">55 s</span></div>
+    <div class="race-item"><span class="race-label">+ better attention</span><div class="race-track"><div class="race-fill accent" style="width: 76.4%"></div></div><span class="race-val">42 s</span></div>
+  </div>
+  <p class="src">Qwen3-8B on one GPU, 1,000 requests of 90–110 tokens. Shorter is better. <span class="proof paper">paper</span> With these kernels, all 1,000 Feynman answers from section 01 came out identical.</p>
+
+  <h2 data-n="10">Training needs the same numbers twice</h2>
+  <p>One place this matters a lot is <span class="term">reinforcement learning</span> (RL), where a model improves by trying answers and being scored. Two separate systems are involved. The <em>sampler</em> generates answers quickly, usually with an inference server that batches. The <em>trainer</em> then recomputes the probability of each chosen token and nudges the model toward the better answers.</p>
+  <p>The trainer assumes its probabilities match the ones the sampler used. If the two ran at different batch sizes, they don't quite match, so the model is learning from slightly different behaviour than it produced. The article measured the gap with <span class="term">KL divergence</span>, a single number for how far apart two sets of probabilities are. 0 means identical. <span class="proof paper">paper</span></p>
+  <ul class="rules">
+    <li><strong>No correction</strong><span>The gap spikes around training step 318 and the reward collapses.</span></li>
+    <li><strong>A standard correction</strong><span>Importance weighting, which reweights each sample by how different the two probabilities are. The gap stays around 0.001 with occasional spikes, and training stays stable.</span></li>
+    <li><strong>Batch-invariant kernels</strong><span>Sampler and trainer produce the same bits. The gap is exactly 0 for the whole run.</span></li>
+  </ul>
+
+  <h2>Summary</h2>
+  <ol class="steps">
+    <li class="step"><strong>Temperature 0 does not guarantee one answer.</strong><span>The article ran a large model 1,000 times on one prompt and got 80 different answers. On the Mac, a 0.5B model gave 8 different answers across 11 batch sizes. (Section 01)</span></li>
+    <li class="step"><strong>Servers batch requests, and you don't choose your batch.</strong><span>Reading the weights once for many users is far cheaper: 32 users took 4.0 s together instead of 55 s one after another. How many users share your batch depends on traffic at that moment. (Section 02)</span></li>
+    <li class="step"><strong>Computers round after every addition, so order matters.</strong><span>Numbers live in a fixed number of bits, and the gaps between storable values grow with size. In float16, 2048 + 1 + 1 + 1 + 1 is 2048 added left to right and 2052 added in two halves. (Sections 03 and 04)</span></li>
+    <li class="step"><strong>Random GPU timing is not the cause.</strong><span>The same calculation repeated 1,000 times gave identical bits. The forward pass of a model has no atomic adds, so each run adds in the same order. (Section 05)</span></li>
+    <li class="step"><strong>Batch size changes the plan, and the plan changes the order.</strong><span>With few rows, MLX cuts each sum in two to keep the GPU busy (split-K). On the M4 Pro that happens from 2 to 128 rows, and a different plan runs at 1 row and from 129 up. Your row's result changes at each switch. Matmul and attention do this. RMSNorm did not. (Sections 06 and 07)</span></li>
+    <li class="step"><strong>A near-tie turns rounding into a different word.</strong><span>After 203 tokens, " particle" and " quantum" both scored exactly 21.0 when the request ran alone. In a batch of 2, " quantum" scored 21.125 and won, and the rest of the answer followed from there. (Section 08)</span></li>
+    <li class="step"><strong>Use one plan at every batch size.</strong><span>Padding every batch to 32 rows gave 4 of 4 identical answers, at 2.4 times the time for a single request. The article's batch-invariant kernels made all 1,000 answers identical, at 42 s instead of 26 s. (Section 09)</span></li>
+    <li class="step"><strong>It matters most for training.</strong><span>In reinforcement learning, the system that writes answers and the system that learns from them must compute the same numbers. With batch-invariant kernels the gap between them was exactly 0. (Section 10)</span></li>
+  </ol>
+
+  <h2 data-n="11">Run it on another Mac</h2>
+  <p>Every "ran on Mac" number comes from these scripts. On any Apple Silicon Mac:</p>
+<pre class="term"><span class="prompt">$</span> python3 -m venv .venv &amp;&amp; source .venv/bin/activate
+<span class="prompt">$</span> pip install -r lab/requirements.txt
+<span class="prompt">$</span> python3 lab/rounding.py          <span class="out"># section 03, any computer, no install</span>
+<span class="prompt">$</span> python lab/batch_invariance.py    <span class="out"># section 06, ~1 s</span>
+<span class="prompt">$</span> python lab/experiments.py         <span class="out"># sections 03–07, ~15 s, no download</span>
+<span class="prompt">$</span> python lab/model_experiment.py    <span class="out"># sections 02, 09, ~4 min, 1 GB model</span>
+<span class="prompt">$</span> python lab/logit_gap.py           <span class="out"># section 08, ~30 s</span></pre>
+  <p>Expect the pattern to hold and the exact numbers to move. On a base M-series chip the matmul switch should come earlier than 129, because of the smaller split-K limit. The token where answers split will differ too. Three things should hold on every Mac: repeating a calculation gives identical bits, RMSNorm does not change with batch size, and a fixed batch shape gives identical answers.</p>
+
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li>Horace He and Thinking Machines Lab: <a href="https://thinkingmachines.ai/blog/defeating-nondeterminism-in-llm-inference/">Defeating Nondeterminism in LLM Inference</a>, Connectionism, September 2025. DOI 10.64434/tml.20250910. All numbers tagged "paper".</li>
+    <li>Reference kernels: <a href="https://github.com/thinking-machines-lab/batch-invariant-ops">thinking-machines-lab/batch-invariant-ops</a>.</li>
+    <li>MLX matmul dispatch: <a href="https://github.com/ml-explore/mlx/blob/v0.32.2/mlx/backend/metal/matmul.cpp">mlx/backend/metal/matmul.cpp at v0.32.2</a>. Split-K, gemv and wide-gemv routing.</li>
+    <li><a href="https://github.com/ml-explore/mlx">MLX</a> 0.32.2, <a href="https://github.com/ml-explore/mlx-lm">mlx-lm</a> 0.31.3, model <a href="https://huggingface.co/mlx-community/Qwen2.5-0.5B-Instruct-bf16">mlx-community/Qwen2.5-0.5B-Instruct-bf16</a>. All numbers tagged "ran on Mac", Apple M4 Pro.</li>
+  </ul>
+</section>
+
+</article>
+<script>
+const RUNS = {{DATA}};
+(() => {
+  const row = document.getElementById('bs-row');
+  const out = document.getElementById('ex-out');
+  const esc = (s) => s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const show = (r, btn) => {
+    row.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'));
+    if (r.first_different_token == null) {
+      out.innerHTML = `<p class="ex-head"><strong>Batch size ${r.batch_size}:</strong> all ${r.tokens} tokens identical to the batch-1 answer.</p>`;
+      return;
+    }
+    out.innerHTML =
+      `<p class="ex-head"><strong>Batch size ${r.batch_size}:</strong> identical for ${r.first_different_token} tokens, then token ${r.first_different_token + 1} differs.</p>` +
+      `<div class="ex-line"><span class="who">Alone</span><span class="txt"><span class="shared">…${esc(r.shared_text_before)}</span><span class="a">${esc(r.alone_continues)}</span></span></div>` +
+      `<div class="ex-line"><span class="who">In batch ${r.batch_size}</span><span class="txt"><span class="shared">…${esc(r.shared_text_before)}</span><span class="b">${esc(r.in_batch_continues)}</span></span></div>`;
+  };
+  RUNS.forEach((r, i) => {
+    if (i === 0) return; // first entry is the baseline run itself
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'bs-btn';
+    b.id = 'bs-' + i;
+    b.textContent = r.batch_size;
+    b.dataset.same = r.first_different_token == null ? '1' : '0';
+    b.addEventListener('click', () => show(r, b));
+    row.appendChild(b);
+  });
+  const start = [...row.children].find((b) => b.textContent === '2');
+  const idx = RUNS.findIndex((r, i) => i > 0 && r.batch_size === 2);
+  show(RUNS[idx], start);
+})();
+</script>
+{{JS}}

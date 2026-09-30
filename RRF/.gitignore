@@ -1,0 +1,7 @@
+# Downloaded and generated at run time
+data/
+cache/
+out/
+
+__pycache__/
+.DS_Store

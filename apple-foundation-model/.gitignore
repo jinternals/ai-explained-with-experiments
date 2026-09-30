@@ -1,0 +1,25 @@
+# Swift Package Manager build output
+.build/
+.swiftpm/
+
+# The app bundle and signing files that scripts/build-app.sh writes
+build/
+
+# Xcode, if the package is opened there
+DerivedData/
+xcuserdata/
+*.xcuserstate
+
+# Signing material: never commit provisioning profiles or private keys
+*.provisionprofile
+*.mobileprovision
+*.p12
+*.cer
+
+# Local environment and editor files
+.env
+.env.*
+.DS_Store
+.vscode/
+.idea/
+*.swp

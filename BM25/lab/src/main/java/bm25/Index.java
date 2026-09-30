@@ -1,0 +1,160 @@
+package bm25;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import java.io.IOException;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpRequest.BodyPublishers;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * A small OpenSearch client for keyword search only: build an index with a chosen text analyzer,
+ * change BM25's k1 and b, search, and ask OpenSearch to explain a score or show how text is split.
+ */
+public final class Index {
+
+    public record Hit(String id, double score) {}
+
+    private static final String OPENSEARCH_URL = System.getenv().getOrDefault("OPENSEARCH_URL", "http://opensearch:9200");
+    private static final HttpClient HTTP = HttpClient.newHttpClient();
+    private static final int BULK_SIZE = 1_000;
+
+    private final String name;
+
+    public Index(String name) {
+        this.name = name;
+    }
+
+    /** Block until OpenSearch answers, and return its version. */
+    public static String waitUntilReady() throws InterruptedException {
+        long deadline = System.nanoTime() + Duration.ofMinutes(5).toNanos();
+        while (System.nanoTime() < deadline) {
+            try {
+                return call("GET", "/", null).path("version").path("number").asText();
+            } catch (IOException notReadyYet) {
+                Thread.sleep(2_000);
+            }
+        }
+        throw new IllegalStateException("OpenSearch did not start in time");
+    }
+
+    public static List<String> ids(List<Hit> hits) {
+        return hits.stream().map(Hit::id).toList();
+    }
+
+    // ------------------------------------------------------------ building
+
+    /**
+     * (Re)create the index. Title and text are analyzed with the given analyzer:
+     * "standard" (lowercase, split on word boundaries) or "english" (also drops stop words and stems).
+     */
+    public void create(String analyzer, double k1, double b) throws IOException, InterruptedException {
+        request("DELETE", "/" + name, null); // fine if it didn't exist
+        call("PUT", "/" + name, Json.object(
+                "settings", Json.object("index", Json.object(
+                        "number_of_shards", 1,
+                        "number_of_replicas", 0,
+                        "similarity", Json.object("default", bm25(k1, b)))),
+                "mappings", Json.object("properties", Json.object(
+                        "title", Json.object("type", "text", "analyzer", analyzer),
+                        "text", Json.object("type", "text", "analyzer", analyzer)))));
+    }
+
+    public void add(List<Document> documents) throws IOException, InterruptedException {
+        for (int start = 0; start < documents.size(); start += BULK_SIZE) {
+            StringBuilder ndjson = new StringBuilder();
+            for (int i = start; i < Math.min(start + BULK_SIZE, documents.size()); i++) {
+                Document doc = documents.get(i);
+                ndjson.append(Json.write(Json.object("index", Json.object("_id", doc.id())))).append('\n');
+                ndjson.append(Json.write(Json.object("title", doc.title(), "text", doc.text()))).append('\n');
+            }
+            JsonNode response = call("POST", "/" + name + "/_bulk", ndjson.toString(), "application/x-ndjson");
+            if (response.path("errors").asBoolean()) {
+                throw new IOException("Bulk indexing failed for batch starting at " + start);
+            }
+        }
+        // One segment, so every search sees the same document statistics.
+        call("POST", "/" + name + "/_forcemerge?max_num_segments=1", null);
+        call("POST", "/" + name + "/_refresh", null);
+    }
+
+    /**
+     * Change k1 and b without re-indexing. Lucene stores each field's length when indexing and applies
+     * k1 and b at search time, so closing the index, changing the setting and reopening it is enough.
+     */
+    public void setBm25(double k1, double b) throws IOException, InterruptedException {
+        call("POST", "/" + name + "/_close", null);
+        call("PUT", "/" + name + "/_settings", Json.object("index", Json.object("similarity", Json.object("default", bm25(k1, b)))));
+        call("POST", "/" + name + "/_open", null);
+        call("GET", "/_cluster/health/" + name + "?wait_for_status=yellow&timeout=60s", null);
+    }
+
+    // ------------------------------------------------------------ searching
+
+    /** BM25 over title and text as separate fields, like BEIR's "multifield" baseline. */
+    public List<Hit> search(String text, int size) throws IOException, InterruptedException {
+        JsonNode response = call("POST", "/" + name + "/_search",
+                Json.object("size", size, "query", query(text), "_source", false));
+        List<Hit> hits = new ArrayList<>();
+        for (JsonNode hit : response.path("hits").path("hits")) {
+            hits.add(new Hit(hit.get("_id").asText(), hit.get("_score").asDouble()));
+        }
+        return hits;
+    }
+
+    /** OpenSearch's own breakdown of how it scored one document for one query. */
+    public JsonNode explain(String text, String docId) throws IOException, InterruptedException {
+        return call("POST", "/" + name + "/_explain/" + docId, Json.object("query", query(text)));
+    }
+
+    /** The terms an analyzer turns a piece of text into. */
+    public List<String> analyze(String analyzer, String text) throws IOException, InterruptedException {
+        JsonNode response = call("POST", "/" + name + "/_analyze", Json.object("analyzer", analyzer, "text", text));
+        List<String> terms = new ArrayList<>();
+        response.path("tokens").forEach(token -> terms.add(token.get("token").asText()));
+        return terms;
+    }
+
+    // ------------------------------------------------------------ internals
+
+    private static Map<String, Object> query(String text) {
+        return Json.object("multi_match", Json.object("query", text, "fields", List.of("title", "text"), "tie_breaker", 0.5));
+    }
+
+    private static Map<String, Object> bm25(double k1, double b) {
+        return Json.object("type", "BM25", "k1", k1, "b", b);
+    }
+
+    private static JsonNode call(String method, String path, Object body) throws IOException, InterruptedException {
+        return call(method, path, body == null ? null : Json.write(body), "application/json");
+    }
+
+    private static JsonNode call(String method, String path, String body, String contentType)
+            throws IOException, InterruptedException {
+        HttpResponse<String> response = request(method, path, body, contentType);
+        if (response.statusCode() >= 300) {
+            throw new IOException(method + " " + path + " failed: HTTP " + response.statusCode() + " " + response.body());
+        }
+        return Json.read(response.body());
+    }
+
+    private static HttpResponse<String> request(String method, String path, String body) throws IOException, InterruptedException {
+        return request(method, path, body, "application/json");
+    }
+
+    private static HttpResponse<String> request(String method, String path, String body, String contentType)
+            throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder(URI.create(OPENSEARCH_URL + path))
+                .timeout(Duration.ofMinutes(5))
+                .header("Content-Type", contentType)
+                .method(method, body == null ? BodyPublishers.noBody() : BodyPublishers.ofString(body))
+                .build();
+        return HTTP.send(request, BodyHandlers.ofString());
+    }
+}

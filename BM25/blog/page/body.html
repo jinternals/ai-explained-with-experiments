@@ -1,0 +1,302 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BM25, Without the Scary Math</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+{{CSS}}
+
+/* ---- This document --------------------------------------------------------- */
+/* Visible at rest: the reveal only adds motion, it never hides content. */
+figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels { opacity: 1; transform: none; }
+figure.wide, .wide, .breakout, .full-bleed { transform: translateX(-50%); }
+@media (max-width: 48rem) { figure.wide, .wide, .breakout, .full-bleed { transform: none; } }
+h1, h2, h3 { text-wrap: balance; }
+.doc p, .doc li { text-wrap: pretty; }
+.term { font-weight: 600; color: var(--text); border-bottom: 1px dotted var(--accent-line); }
+.src { color: var(--muted); font-size: 0.85rem; margin: 0.6rem 0 0; }
+mark.pending { background: color-mix(in srgb, var(--err) 18%, transparent); color: var(--err); padding: 0 0.3em; border-radius: 3px; }
+ul.rules { padding-left: 0; margin-bottom: 1.1rem; }
+ul.rules > li { position: relative; padding-left: 1.6rem; margin: 0; }
+ul.rules > li::before { left: 0; top: 0.05em; }
+ul.rules > li > strong { display: block; color: var(--text); }
+ul.rules > li > span { display: block; color: var(--muted); }
+.matrix td { font-variant-numeric: tabular-nums; }
+.matrix td.up { color: var(--ok); font-weight: 600; }
+.matrix td.down { color: var(--err); font-weight: 600; }
+.matrix tr.total th, .matrix tr.total td { border-top: 2px solid var(--line); color: var(--text); font-weight: 600; }
+.tokens { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.25rem 0 0; padding: 0; list-style: none; }
+.tokens li { margin: 0; font-family: var(--mono); font-size: 0.88rem; padding: 0.1em 0.5em; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.tokens li::before { content: none; }
+.token-rows { display: grid; gap: 0.9rem; margin: 1.25rem 0 1.5rem; }
+.token-rows .label { font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+table.grid td.heat { text-align: center; }
+table.grid td.heat.up { background: color-mix(in srgb, var(--accent) calc(var(--h) * 40%), transparent); }
+table.grid td.heat.down { background: color-mix(in srgb, var(--err) calc(var(--h) * 40%), transparent); }
+table.grid td.is-default { outline: 2px solid var(--muted); outline-offset: -2px; }
+table.grid td.is-best { outline: 2px solid var(--ok); outline-offset: -2px; font-weight: 700; color: var(--text); }
+table.grid th { text-align: center; }
+.stats { grid-template-columns: repeat(2, 1fr); }
+.formula-box { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 1.25rem 1.4rem; margin: 1.25rem 0 1.5rem; display: grid; gap: 1.2rem; overflow-x: auto; box-shadow: var(--shadow-md); }
+.eq { display: flex; align-items: center; flex-wrap: nowrap; gap: 0.5rem; font-family: var(--mono); font-size: 1rem; white-space: nowrap; }
+.eq .name { font-weight: 700; font-size: 1.05rem; }
+.eq .idf { color: var(--accent); }
+.eq .tf { color: var(--accent-2); }
+.eq .big { font-size: 1.6rem; line-height: 1; }
+.frac { display: inline-flex; flex-direction: column; align-items: stretch; vertical-align: middle; }
+.frac > span { display: flex; align-items: center; justify-content: center; gap: 0.4rem; text-align: center; }
+.frac > span:first-child { border-bottom: 1.5px solid currentColor; padding: 0 0.35em 0.25em; }
+.frac > span:last-child { padding: 0.25em 0.35em 0; }
+.formula-note { font-size: 0.85rem; color: var(--muted); margin: -0.4rem 0 0; }
+dl.symbols { display: grid; grid-template-columns: auto 1fr; gap: 0.35rem 1rem; margin: 0 0 1.5rem; font-size: 0.95rem; }
+dl.symbols dt { font-family: var(--mono); font-weight: 600; color: var(--text); }
+dl.symbols dd { margin: 0; color: var(--muted); }
+@media (max-width: 30rem) { .stats { grid-template-columns: 1fr; } }
+pre { margin: 1.25rem 0 1.5rem; }
+</style>
+
+<article class="doc">
+
+<header class="doc-header">
+  <div class="chrome">
+    <span>How search works, part 1</span>
+    <span><b>OpenSearch 2.19.1</b> · BEIR</span>
+  </div>
+  <h1>BM25, Without the Scary Math</h1>
+  <p class="dek">Keyword search gave one paper a score of {{e:score|2}}. This post rebuilds that number one word at a time, shows what BM25's two settings do, and tests what changes results on {{d:total.queries|int}} real questions.</p>
+  <p class="meta">Every number on this page was printed by the Java lab in section 11, unless it says it was worked out from the formula.</p>
+</header>
+
+<div class="summary">
+  <p><strong>Short version.</strong> BM25 scores a document by adding up points for each word of the question that the document contains. Rare words earn more points than common ones. Using a word again earns a little more each time, but less and less. And a long document gets a small penalty, so it can't win only because it contains more words.</p>
+  <p><strong>What we measured.</strong> Across 42 combinations of BM25's two settings, k1 and b, the best one beat OpenSearch's defaults by at most {{d:max_tuning|3}} nDCG@10 on any of the three datasets. Only extreme settings did real damage. Reducing words to their stem ("sweeteners" becomes "sweeten") mattered more: {{d:gain.nfcorpus.stemming|signed3}} on NFCorpus, {{d:gain.scifact.stemming|signed3}} on SciFact and {{d:gain.fiqa.stemming|signed3}} on FiQA. With stemming and the BEIR paper's settings, we reproduce the paper's BM25 scores for NFCorpus and FiQA to three decimals.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><span class="num">{{e:score|2}}</span><span class="unit">the score we take apart, word by word</span></div>
+  <div class="stat"><span class="num">{{d:example_terms|int}}</span><span class="unit">(field, word) pairs that make up that score</span></div>
+  <div class="stat"><span class="num">+{{d:gain.scifact.stemming|3}}</span><span class="unit">nDCG@10 from stemming on SciFact</span></div>
+  <div class="stat"><span class="num">42</span><span class="unit">k1 and b combinations tested on each dataset</span></div>
+</div>
+
+<section>
+
+  <h2 data-n="01">What keyword search does</h2>
+  <p>You type a question. The search engine has thousands of documents and has to decide which ones to show first. <span class="term">Keyword search</span> does this by looking for documents that contain the words of the question, giving each one a score, and listing the highest scores first.</p>
+  <p>The standard scoring method for keyword search is <span class="term">BM25</span>, short for "Best Match 25". It is the default in OpenSearch, Elasticsearch and Lucene. This post takes one real BM25 score apart and rebuilds it word by word.</p>
+  <p>The example comes from <strong>NFCorpus</strong>, a public test set of {{e:terms.1.N|int}} medical research papers with real questions. We loaded it into OpenSearch and searched for "{{e:query|text}}". The top result was "{{e:document.title|text}}", with a score of <strong>{{e:score|2}}</strong>. OpenSearch can explain exactly how it reached that number, and the rest of this post follows that explanation.</p>
+
+  <h2 data-n="02">Three ideas</h2>
+  <p>BM25 is built on three ideas:</p>
+  <ul class="rules">
+    <li><strong>Rare words count more.</strong><span>A document containing "sweeteners" tells you much more than one containing "of", because almost every document contains "of".</span></li>
+    <li><strong>Repeating a word helps, less each time.</strong><span>A document that says "sweeteners" four times is probably more about sweeteners than one that says it once, but not four times more. The setting <span class="term">k1</span> controls how fast the extra credit runs out.</span></li>
+    <li><strong>Long documents get a small penalty.</strong><span>A long document contains more words because it is long, so it would win too often. The setting <span class="term">b</span> controls how strongly length is taken into account.</span></li>
+  </ul>
+  <p>Written as a formula, the first idea becomes <span class="term">IDF</span> (inverse document frequency) and the other two become <span class="term">TF</span> (term frequency). For every word of the question that the document contains, BM25 multiplies IDF by TF, then adds up the results:</p>
+  <div class="formula-box">
+    <div class="eq"><span class="name">score</span> = <span class="big">Σ</span> <span class="name idf">IDF</span> × <span class="name tf">TF</span></div>
+    <p class="formula-note">Σ means "add this up for every word of the question that appears in the document".</p>
+    <div class="eq"><span class="name idf">IDF</span> = ln ( 1 + <span class="frac"><span>N − n + 0.5</span><span>n + 0.5</span></span> )</div>
+    <div class="eq"><span class="name tf">TF</span> = <span class="frac"><span>freq × (k1 + 1)</span><span>freq + k1 × ( 1 − b + b × <span class="frac"><span>length</span><span>avg length</span></span> )</span></span></div>
+  </div>
+  <dl class="symbols">
+    <dt>N</dt><dd>how many documents there are ({{e:terms.1.N|int}} in NFCorpus)</dd>
+    <dt>n</dt><dd>how many of them contain the word</dd>
+    <dt>freq</dt><dd>how many times the word appears in this document</dd>
+    <dt>length</dt><dd>how many terms this document has; <em>avg length</em> is the average over all documents</dd>
+    <dt>k1</dt><dd>how quickly repeats stop adding more (OpenSearch's default: 1.2)</dd>
+    <dt>b</dt><dd>how much document length counts, from 0 (not at all) to 1 (fully); default 0.75</dd>
+    <dt>ln</dt><dd>the natural logarithm: it grows fast for small numbers and slowly for large ones</dd>
+  </dl>
+  <p>The next sections go through IDF and TF with the real numbers behind the 28.64.</p>
+
+  <h2 data-n="03">First, the text is split into words</h2>
+  <p>Before any scoring, OpenSearch runs every document and every question through an <span class="term">analyzer</span>, which turns text into the list of words, called <span class="term">terms</span>, that it will match. OpenSearch's default is the <em>standard</em> analyzer: split on spaces and punctuation, and lowercase. The <em>english</em> analyzer also drops very common words, called stop words, and cuts words down to their stem, so that "sweetener" and "sweeteners" become the same term. Here is what each one does, as printed by OpenSearch's analyze API:</p>
+  <div class="token-rows">
+    <div><span class="label">Question, standard analyzer</span><ul class="tokens">{{tokens:analyzed_query.standard}}</ul></div>
+    <div><span class="label">Question, english analyzer</span><ul class="tokens">{{tokens:analyzed_query.english}}</ul></div>
+    <div><span class="label">Title of the top result, standard analyzer</span><ul class="tokens">{{tokens:analyzed_title.standard}}</ul></div>
+    <div><span class="label">Title of the top result, english analyzer</span><ul class="tokens">{{tokens:analyzed_title.english}}</ul></div>
+  </div>
+  <p>With the standard analyzer, a document that says "sweetener" does not match the question's "sweeteners" at all. With the english analyzer both become "sweeten". Section 09 shows how much that alone changes.</p>
+
+  <h2 data-n="04">IDF: rare words count more</h2>
+  <p><span class="term">IDF</span> only needs two counts: how many documents there are (N) and how many of them contain the word (n). NFCorpus has {{e:terms.1.N|int}} documents. In their text field:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Word</th><th>Documents containing it (n)</th><th>IDF</th></tr></thead>
+      <tbody>
+        <tr><th>of</th><td>{{e:terms.0.n|int}} of {{e:terms.0.N|int}}</td><td>{{e:terms.0.idf|4}}</td></tr>
+        <tr><th>artificial</th><td>{{e:terms.1.n|int}}</td><td>{{e:terms.1.idf|2}}</td></tr>
+        <tr><th>sweeteners</th><td>{{e:terms.2.n|int}}</td><td>{{e:terms.2.idf|2}}</td></tr>
+        <tr><th>neurobiology</th><td>–</td><td>not in this document</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>"of" is in almost every document, so its IDF is almost zero and it barely affects the score. "sweeteners" is in only {{e:terms.2.n|int}} documents, so it counts for a lot. Putting the numbers for "sweeteners" into the IDF formula: ln(1 + ({{e:terms.2.N|int}} − {{e:terms.2.n|int}} + 0.5) ÷ ({{e:terms.2.n|int}} + 0.5)) = {{e:terms.2.idf|4}}.</p>
+  <p>The word "neurobiology" is in the question but not in this document, so it adds nothing here. BM25 only rewards words that match.</p>
+
+  <h2 data-n="05">TF: repeating a word helps, less each time</h2>
+  <p><span class="term">TF</span> looks at how often the word appears, with less extra credit for each repeat. With the default k1 = 1.2, a word appearing twice counts about 1.4 times as much as appearing once, not twice as much. The table shows this, worked out from the formula for a document of average length:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Word appears</th><th>1 time</th><th>2 times</th><th>3 times</th><th>5 times</th><th>10 times</th></tr></thead>
+      <tbody>
+        <tr><th>k1 = 0.5</th><td>{{e:saturation.0.5.0|2}}</td><td>{{e:saturation.0.5.1|2}}</td><td>{{e:saturation.0.5.2|2}}</td><td>{{e:saturation.0.5.4|2}}</td><td>{{e:saturation.0.5.9|2}}</td></tr>
+        <tr><th>k1 = 1.2 (default)</th><td>{{e:saturation.1.2.0|2}}</td><td>{{e:saturation.1.2.1|2}}</td><td>{{e:saturation.1.2.2|2}}</td><td>{{e:saturation.1.2.4|2}}</td><td>{{e:saturation.1.2.9|2}}</td></tr>
+        <tr><th>k1 = 2.0</th><td>{{e:saturation.2.0.0|2}}</td><td>{{e:saturation.2.0.1|2}}</td><td>{{e:saturation.2.0.2|2}}</td><td>{{e:saturation.2.0.4|2}}</td><td>{{e:saturation.2.0.9|2}}</td></tr>
+        <tr><th>k1 = 5.0</th><td>{{e:saturation.5.0.0|2}}</td><td>{{e:saturation.5.0.1|2}}</td><td>{{e:saturation.5.0.2|2}}</td><td>{{e:saturation.5.0.4|2}}</td><td>{{e:saturation.5.0.9|2}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">Relative to one appearance, with b = 0.75. Worked out from the formula, not measured.</p>
+  <p>With a small k1 the credit runs out almost at once: ten appearances count less than 1.5 times one. With a large k1, repeats keep adding more. k1 = 0 would ignore repeats completely, and only "is the word there or not" would matter.</p>
+
+  <h2 data-n="06">TF, continued: long documents get a small penalty</h2>
+  <p>TF also compares the document's length with the average length of that field. With b = 0.75, a word appearing once in a document twice as long as average counts {{e:length.0.75.2.0|2}} times as much as in an average-length document. In a document half the average length it counts {{e:length.0.75.0.5|2}} times as much.</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Document length vs. average</th><th>half</th><th>average</th><th>2×</th><th>4×</th></tr></thead>
+      <tbody>
+        <tr><th>b = 0 (length ignored)</th><td>{{e:length.0.0.0.5|2}}</td><td>{{e:length.0.0.1.0|2}}</td><td>{{e:length.0.0.2.0|2}}</td><td>{{e:length.0.0.4.0|2}}</td></tr>
+        <tr><th>b = 0.4</th><td>{{e:length.0.4.0.5|2}}</td><td>{{e:length.0.4.1.0|2}}</td><td>{{e:length.0.4.2.0|2}}</td><td>{{e:length.0.4.4.0|2}}</td></tr>
+        <tr><th>b = 0.75 (default)</th><td>{{e:length.0.75.0.5|2}}</td><td>{{e:length.0.75.1.0|2}}</td><td>{{e:length.0.75.2.0|2}}</td><td>{{e:length.0.75.4.0|2}}</td></tr>
+        <tr><th>b = 1</th><td>{{e:length.1.0.0.5|2}}</td><td>{{e:length.1.0.1.0|2}}</td><td>{{e:length.1.0.2.0|2}}</td><td>{{e:length.1.0.4.0|2}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">One appearance of a word, relative to an average-length document, with k1 = 1.2. Worked out from the formula, not measured.</p>
+  <p>Our document's text is {{e:terms.1.dl|0}} terms long, shorter than the NFCorpus average of {{e:terms.1.avgdl|0}}, so its words count a little extra. Its title is {{e:terms.4.dl|0}} terms against an average of {{e:terms.4.avgdl|0}}. Length here means the number of terms the analyzer produced.</p>
+  <p>Putting the numbers for "sweeteners" in the text into the TF formula, with k1 = 1.2 and b = 0.75 (so 1 − b = 0.25): TF = {{e:terms.2.freq|0}} × 2.2 ÷ ({{e:terms.2.freq|0}} + 1.2 × (0.25 + 0.75 × {{e:terms.2.dl|0}} ÷ {{e:terms.2.avgdl|1}})) = {{d:tf_full.2|3}}.</p>
+
+  <h2 data-n="07">Putting 28.64 together</h2>
+  <p>Each (field, word) score is IDF × TF. For "sweeteners" in the text, {{e:terms.2.idf|4}} × {{d:tf_full.2|3}} = {{e:terms.2.score|2}}. Here is every piece, from OpenSearch's explain API:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Field</th><th>Word</th><th>Times in field</th><th>Field length</th><th>IDF</th><th>TF</th><th>IDF × TF</th></tr></thead>
+      <tbody>
+        <tr><th>text</th><td>of</td><td>{{e:terms.0.freq|0}}</td><td>{{e:terms.0.dl|0}}</td><td>{{e:terms.0.idf|4}}</td><td>{{d:tf_full.0|3}}</td><td>{{e:terms.0.score|2}}</td></tr>
+        <tr><th>text</th><td>artificial</td><td>{{e:terms.1.freq|0}}</td><td>{{e:terms.1.dl|0}}</td><td>{{e:terms.1.idf|2}}</td><td>{{d:tf_full.1|3}}</td><td>{{e:terms.1.score|2}}</td></tr>
+        <tr><th>text</th><td>sweeteners</td><td>{{e:terms.2.freq|0}}</td><td>{{e:terms.2.dl|0}}</td><td>{{e:terms.2.idf|2}}</td><td>{{d:tf_full.2|3}}</td><td>{{e:terms.2.score|2}}</td></tr>
+        <tr class="total"><th>text</th><td colspan="5">total</td><td>{{e:field_totals.text|2}}</td></tr>
+        <tr><th>title</th><td>of</td><td>{{e:terms.3.freq|0}}</td><td>{{e:terms.3.dl|0}}</td><td>{{e:terms.3.idf|2}}</td><td>{{d:tf_full.3|3}}</td><td>{{e:terms.3.score|2}}</td></tr>
+        <tr><th>title</th><td>artificial</td><td>{{e:terms.4.freq|0}}</td><td>{{e:terms.4.dl|0}}</td><td>{{e:terms.4.idf|2}}</td><td>{{d:tf_full.4|3}}</td><td>{{e:terms.4.score|2}}</td></tr>
+        <tr><th>title</th><td>sweeteners</td><td>{{e:terms.5.freq|0}}</td><td>{{e:terms.5.dl|0}}</td><td>{{e:terms.5.idf|2}}</td><td>{{d:tf_full.5|3}}</td><td>{{e:terms.5.score|2}}</td></tr>
+        <tr class="total"><th>title</th><td colspan="5">total</td><td>{{e:field_totals.title|2}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">If you run OpenSearch's explain API yourself, it shows TF in two pieces: k1 + 1 = {{e:terms.2.boost|1}}, which it labels "boost", and the rest, labelled "tf" ({{e:terms.2.tf|4}} for "sweeteners" in the text). Multiply them to get TF as written here.</p>
+  <p>The title and the text are scored separately, and IDF is counted per field. "sweeteners" appears in the title of only {{e:terms.5.n|int}} document, this one, so in the title it has the highest IDF of all ({{e:terms.5.idf|2}}).</p>
+  <p>Last, the two fields are combined the way the search asked for: the better field counts in full and the other counts half. That is {{e:field_totals.text|2}} + 0.5 × {{e:field_totals.title|2}} = <strong>{{e:score|2}}</strong>. The half comes from the query's <code>tie_breaker: 0.5</code> setting, which gives a document some credit for matching in a second field without letting the two fields add up in full.</p>
+
+  <h2 data-n="08">How much k1 and b matter</h2>
+  <p>The defaults, k1 = 1.2 and b = 0.75, are rules of thumb. To see how much they matter, we need many questions and a way to score the answers.</p>
+  <p>We used three public test sets from the <a href="https://github.com/beir-cellar/beir">BEIR</a> benchmark: <strong>NFCorpus</strong> (nutrition and medical research), <strong>SciFact</strong> (scientific claims and research abstracts) and <strong>FiQA</strong> (finance questions and forum answers). That is {{d:total.queries|int}} questions, and for each one the test set marks which documents are relevant. To score a list of results we use <span class="term">nDCG@10</span>, a number from 0 to 1 for how good the top 10 is. A relevant document near the very top counts for more than one in 9th place. Higher is better, and 1 would be a perfect top 10.</p>
+  <p>We tried every combination of seven k1 values and six b values on all three. OpenSearch applies k1 and b when it searches, not when it indexes, so each combination only needed the index reopened, not rebuilt.</p>
+  <p>Here is NFCorpus with the english analyzer. The grey outline marks the default (k1 1.2, b 0.75) and the green outline the best combination.</p>
+  <figure>
+    <div class="matrix-wrap">{{grid:nfcorpus.english}}</div>
+    <figcaption><strong>NFCorpus, nDCG@10 for every k1 and b.</strong> Purple cells beat the default, red cells fall short of it; the stronger the colour, the bigger the difference.</figcaption>
+  </figure>
+  <p>Most of the grid is close to the default, and the low scores are at the edges. The top row, k1 = 0, ignores how often a word appears, and every b gives the same {{b:datasets.nfcorpus.analyzers.english.grid.k1=0.0,b=0.0.ndcg@10|3}}, because with nothing to adjust, length makes no difference either. The first column, b = 0, ignores document length.</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Dataset</th><th>Analyzer</th><th>Defaults (1.2, 0.75)</th><th>Best combination</th><th>Worst to best</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td>standard</td><td>{{b:datasets.nfcorpus.analyzers.standard.default.ndcg@10|3}}</td><td>{{b:datasets.nfcorpus.analyzers.standard.best.ndcg@10|3}} ({{b:datasets.nfcorpus.analyzers.standard.best.setting|text}})</td><td>{{d:spread.nfcorpus.standard.min|3}} – {{d:spread.nfcorpus.standard.max|3}}</td></tr>
+        <tr><th></th><td>english</td><td>{{b:datasets.nfcorpus.analyzers.english.default.ndcg@10|3}}</td><td>{{b:datasets.nfcorpus.analyzers.english.best.ndcg@10|3}} ({{b:datasets.nfcorpus.analyzers.english.best.setting|text}})</td><td>{{d:spread.nfcorpus.english.min|3}} – {{d:spread.nfcorpus.english.max|3}}</td></tr>
+        <tr><th>SciFact</th><td>standard</td><td>{{b:datasets.scifact.analyzers.standard.default.ndcg@10|3}}</td><td>{{b:datasets.scifact.analyzers.standard.best.ndcg@10|3}} ({{b:datasets.scifact.analyzers.standard.best.setting|text}})</td><td>{{d:spread.scifact.standard.min|3}} – {{d:spread.scifact.standard.max|3}}</td></tr>
+        <tr><th></th><td>english</td><td>{{b:datasets.scifact.analyzers.english.default.ndcg@10|3}}</td><td>{{b:datasets.scifact.analyzers.english.best.ndcg@10|3}} ({{b:datasets.scifact.analyzers.english.best.setting|text}})</td><td>{{d:spread.scifact.english.min|3}} – {{d:spread.scifact.english.max|3}}</td></tr>
+        <tr><th>FiQA</th><td>standard</td><td>{{b:datasets.fiqa.analyzers.standard.default.ndcg@10|3}}</td><td>{{b:datasets.fiqa.analyzers.standard.best.ndcg@10|3}} ({{b:datasets.fiqa.analyzers.standard.best.setting|text}})</td><td>{{d:spread.fiqa.standard.min|3}} – {{d:spread.fiqa.standard.max|3}}</td></tr>
+        <tr><th></th><td>english</td><td>{{b:datasets.fiqa.analyzers.english.default.ndcg@10|3}}</td><td>{{b:datasets.fiqa.analyzers.english.best.ndcg@10|3}} ({{b:datasets.fiqa.analyzers.english.best.setting|text}})</td><td>{{d:spread.fiqa.english.min|3}} – {{d:spread.fiqa.english.max|3}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The table shows two things:</p>
+  <ul class="rules">
+    <li><strong>The defaults are close to the best.</strong><span>The best combination beat the defaults by at most {{d:max_tuning|3}}. With stemming on FiQA, the default was the best combination.</span></li>
+    <li><strong>The extremes cost a lot, most of all on FiQA.</strong><span>With the standard analyzer, FiQA's worst setting scored {{d:spread.fiqa.standard.min|3}}, against {{d:spread.fiqa.standard.max|3}} for its best. FiQA documents are forum answers of uneven length: a tenth are {{b:datasets.fiqa.document_words.p10|int}} words or shorter, a tenth are {{b:datasets.fiqa.document_words.p90|int}} or longer, and the longest has {{b:datasets.fiqa.document_words.max|int}}. With b = 0 and k1 = 3, length is ignored while repeats count for a lot, and nDCG@10 falls to {{b:datasets.fiqa.analyzers.standard.grid.k1=3.0,b=0.0.ndcg@10|3}}. NFCorpus and SciFact abstracts are more even in length, and their worst settings cost much less.</span></li>
+  </ul>
+  <p>Tuning k1 and b won us little on these datasets. Knowing what they do still helps you avoid the settings that hurt, such as k1 = 0, or b = 0 on documents of very different lengths.</p>
+
+  <h2 data-n="09">What made the bigger difference</h2>
+  <p>The analyzer mattered more. Keeping OpenSearch's default k1 and b and only switching from the standard to the english analyzer:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Dataset</th><th>standard</th><th>english</th><th>Change</th><th>Questions better / same / worse</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td>{{b:datasets.nfcorpus.analyzers.standard.default.ndcg@10|3}}</td><td>{{b:datasets.nfcorpus.analyzers.english.default.ndcg@10|3}}</td><td class="up">{{d:gain.nfcorpus.stemming|signed3}}</td><td>{{b:datasets.nfcorpus.english_vs_standard_at_default.better|int}} / {{b:datasets.nfcorpus.english_vs_standard_at_default.same|int}} / {{b:datasets.nfcorpus.english_vs_standard_at_default.worse|int}}</td></tr>
+        <tr><th>SciFact</th><td>{{b:datasets.scifact.analyzers.standard.default.ndcg@10|3}}</td><td>{{b:datasets.scifact.analyzers.english.default.ndcg@10|3}}</td><td class="up">{{d:gain.scifact.stemming|signed3}}</td><td>{{b:datasets.scifact.english_vs_standard_at_default.better|int}} / {{b:datasets.scifact.english_vs_standard_at_default.same|int}} / {{b:datasets.scifact.english_vs_standard_at_default.worse|int}}</td></tr>
+        <tr><th>FiQA</th><td>{{b:datasets.fiqa.analyzers.standard.default.ndcg@10|3}}</td><td>{{b:datasets.fiqa.analyzers.english.default.ndcg@10|3}}</td><td class="up">{{d:gain.fiqa.stemming|signed3}}</td><td>{{b:datasets.fiqa.english_vs_standard_at_default.better|int}} / {{b:datasets.fiqa.english_vs_standard_at_default.same|int}} / {{b:datasets.fiqa.english_vs_standard_at_default.worse|int}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Stemming improved the average on all three datasets. Question by question it is closer: on FiQA it helped {{b:datasets.fiqa.english_vs_standard_at_default.better|int}} questions and hurt {{b:datasets.fiqa.english_vs_standard_at_default.worse|int}}. "{{b:datasets.nfcorpus.stemming_examples.0.query|text}}" went from {{b:datasets.nfcorpus.stemming_examples.0.standard|2}} to {{b:datasets.nfcorpus.stemming_examples.0.english|2}}. Two of its six relevant papers only ever say "avocado", which the standard analyzer cannot match to the question's "avocados". "{{b:datasets.fiqa.stemming_examples.0.query|text}}" went from {{b:datasets.fiqa.stemming_examples.0.standard|2}} to {{b:datasets.fiqa.stemming_examples.0.english|2}}. It can also go the other way: "{{b:datasets.nfcorpus.stemming_examples.5.query|text}}" fell from {{b:datasets.nfcorpus.stemming_examples.5.standard|2}} to {{b:datasets.nfcorpus.stemming_examples.5.english|2}}.</p>
+
+  <h3>Matching the BEIR paper's numbers</h3>
+  <p>The paper that introduced BEIR also reports BM25 scores for these test sets. OpenSearch out of the box, with the standard analyzer and default settings, comes in a little lower. The BEIR paper used Anserini, a search toolkit built on Lucene, with k1 = 0.9 and b = 0.4. The paper calls these "the default Lucene parameters", but they are Anserini's defaults; Lucene's own defaults are 1.2 and 0.75. Anserini also stems English words by default (its indexer's <code>-stemmer</code> option <a href="https://github.com/castorini/anserini/blob/master/src/main/java/io/anserini/index/IndexCollection.java">defaults to Porter</a>). Matching both gives:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Dataset</th><th>BEIR paper</th><th>Ours: standard, defaults</th><th>Ours: english, k1 0.9, b 0.4</th><th>Ours: english, defaults</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td>0.325</td><td>{{b:datasets.nfcorpus.analyzers.standard.default.ndcg@10|3}}</td><td class="up">{{b:datasets.nfcorpus.analyzers.english.k1_0.9_b_0.4.ndcg@10|3}}</td><td>{{b:datasets.nfcorpus.analyzers.english.default.ndcg@10|3}}</td></tr>
+        <tr><th>SciFact</th><td>0.665</td><td>{{b:datasets.scifact.analyzers.standard.default.ndcg@10|3}}</td><td>{{b:datasets.scifact.analyzers.english.k1_0.9_b_0.4.ndcg@10|3}}</td><td>{{b:datasets.scifact.analyzers.english.default.ndcg@10|3}}</td></tr>
+        <tr><th>FiQA</th><td>0.236</td><td>{{b:datasets.fiqa.analyzers.standard.default.ndcg@10|3}}</td><td class="up">{{b:datasets.fiqa.analyzers.english.k1_0.9_b_0.4.ndcg@10|3}}</td><td>{{b:datasets.fiqa.analyzers.english.default.ndcg@10|3}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">BEIR paper: Table 2, BM25 column. Ours: this lab, OpenSearch 2.19.1.</p>
+  <p>NFCorpus and FiQA now match the paper to three decimals. SciFact comes out higher than the paper. We have not tracked down why; Anserini and OpenSearch still differ in details such as their stop-word lists and exactly how the title and text scores are combined. The last column shows that OpenSearch's defaults with the english analyzer beat the paper's published BM25 on all three datasets.</p>
+
+  <h2 data-n="10">In code</h2>
+  <p>Both choices are index settings in OpenSearch. This is the index the lab builds, with the english analyzer and BEIR's k1 and b:</p>
+<pre><span class="k">PUT</span> /nfcorpus
+{
+  <span class="s">"settings"</span>: {
+    <span class="s">"index"</span>: {
+      <span class="s">"similarity"</span>: { <span class="s">"default"</span>: { <span class="s">"type"</span>: <span class="s">"BM25"</span>, <span class="s">"k1"</span>: <span class="n">0.9</span>, <span class="s">"b"</span>: <span class="n">0.4</span> } }
+    }
+  },
+  <span class="s">"mappings"</span>: {
+    <span class="s">"properties"</span>: {
+      <span class="s">"title"</span>: { <span class="s">"type"</span>: <span class="s">"text"</span>, <span class="s">"analyzer"</span>: <span class="s">"english"</span> },
+      <span class="s">"text"</span>:  { <span class="s">"type"</span>: <span class="s">"text"</span>, <span class="s">"analyzer"</span>: <span class="s">"english"</span> }
+    }
+  }
+}</pre>
+  <p>Changing the analyzer means re-indexing, because the stored terms change. Changing k1 or b does not: close the index, update <code>index.similarity.default</code>, and open it again. To see how any score was reached, send the same query to <code>/nfcorpus/_explain/&lt;document id&gt;</code>. That is where every number in section 07 came from.</p>
+
+  <h2>Summary</h2>
+  <ol class="steps">
+    <li class="step"><strong>BM25 adds up points for each matching word.</strong><span>The top result for "{{e:query|text}}" scored {{e:score|2}} from six (field, word) pairs. "Neurobiology" wasn't in it and added nothing. (Sections 01 and 07)</span></li>
+    <li class="step"><strong>Rare words count more.</strong><span>"sweeteners", in {{e:terms.2.n|int}} of {{e:terms.2.N|int}} documents, had an IDF of {{e:terms.2.idf|2}}. "of", in {{e:terms.0.n|int}}, had {{e:terms.0.idf|3}}. (Section 04)</span></li>
+    <li class="step"><strong>Repeats help, less each time, and long documents get a small penalty.</strong><span>k1 controls the first, b the second. (Sections 05 and 06)</span></li>
+    <li class="step"><strong>k1 and b barely moved results.</strong><span>With the english analyzer, the best of 42 combinations beat the defaults by {{d:gain.nfcorpus.tuning_english|3}} on NFCorpus and {{d:gain.scifact.tuning_english|3}} on SciFact. On FiQA the defaults were already the best. (Section 08)</span></li>
+    <li class="step"><strong>How words are split mattered more.</strong><span>Stemming changed nDCG@10 by {{d:gain.nfcorpus.stemming|signed3}} on NFCorpus, {{d:gain.scifact.stemming|signed3}} on SciFact and {{d:gain.fiqa.stemming|signed3}} on FiQA. (Section 09)</span></li>
+  </ol>
+
+  <h2 data-n="11">Run it yourself</h2>
+  <p>The lab is Java 21 with OpenSearch in Docker. It downloads the three test sets on its first run and needs nothing else.</p>
+<pre class="term"><span class="prompt">$</span> docker compose run --rm --build lab example     <span class="out"># sections 03–07</span>
+<span class="prompt">$</span> docker compose run --rm --build lab benchmark   <span class="out"># sections 08–09</span>
+<span class="prompt">$</span> docker compose down
+<span class="prompt">$</span> python3 blog/build_page.py                      <span class="out"># rebuild this page from out/*.json</span></pre>
+
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li>S. Robertson and H. Zaragoza, <a href="https://www.staff.city.ac.uk/~sbrp622/papers/foundations_bm25_review.pdf">The Probabilistic Relevance Framework: BM25 and Beyond</a>, Foundations and Trends in Information Retrieval, 2009. Where BM25 comes from.</li>
+    <li>N. Thakur et al., <a href="https://arxiv.org/abs/2104.08663">BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models</a>, NeurIPS 2021 Datasets and Benchmarks. Section 4: "We use Anserini with the default Lucene parameters (k=0.9 and b=0.4). We index the title (if available) and passage as separate fields." Table 2 gives BM25 nDCG@10 of 0.325 (NFCorpus), 0.665 (SciFact) and 0.236 (FiQA).</li>
+    <li><a href="https://lucene.apache.org/core/9_12_0/core/org/apache/lucene/search/similarities/BM25Similarity.html">Lucene BM25Similarity</a>: the implementation OpenSearch uses, with defaults k1 = 1.2 and b = 0.75.</li>
+    <li>OpenSearch documentation: <a href="https://docs.opensearch.org/latest/analyzers/language-analyzers/english/">English analyzer</a>, <a href="https://docs.opensearch.org/latest/api-reference/search-apis/explain/">Explain API</a>, <a href="https://docs.opensearch.org/latest/api-reference/analyze-apis/">Analyze API</a>.</li>
+  </ul>
+</section>
+
+</article>
+
+{{JS}}

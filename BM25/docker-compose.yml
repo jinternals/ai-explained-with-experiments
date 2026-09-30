@@ -1,0 +1,19 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.19.1
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g
+
+  # The lab:  docker compose run --rm --build lab [example | benchmark]
+  lab:
+    build: ./lab
+    depends_on:
+      - opensearch
+    environment:
+      - OPENSEARCH_URL=http://opensearch:9200
+    volumes:
+      - ./data:/data     # downloaded BEIR datasets
+      - ./out:/out       # results JSON

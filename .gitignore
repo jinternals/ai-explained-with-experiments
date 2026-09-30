@@ -1,0 +1,37 @@
+# Everything that is downloaded or rebuilt by running the labs stays out of the repo.
+# Each project also has its own .gitignore for its data/ and cache/ folders.
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Java / Maven
+target/
+
+# Swift
+.build/
+.swiftpm/
+DerivedData/
+xcuserdata/
+
+# Node
+node_modules/
+
+# Logs and scratch output
+*.log
+
+# Signing material and local secrets
+*.provisionprofile
+*.mobileprovision
+*.p12
+*.cer
+.env
+.env.*
+
+# Editors and macOS
+.idea/
+.vscode/
+*.swp
+.DS_Store

@@ -1,0 +1,139 @@
+{
+  "model": "mlx-community/Qwen2.5-0.5B-Instruct-bf16",
+  "prompt": "Tell me about Richard Feynman.",
+  "max_tokens": 300,
+  "chip": "Apple M4 Pro",
+  "mlx": "0.32.2",
+  "A_plain": [
+    {
+      "batch_size": 1,
+      "first_different_token": null,
+      "tokens": 300,
+      "seconds": 1.73
+    },
+    {
+      "batch_size": 1,
+      "first_different_token": null,
+      "tokens": 300,
+      "seconds": 1.72
+    },
+    {
+      "batch_size": 2,
+      "first_different_token": 203,
+      "tokens": 300,
+      "seconds": 1.83,
+      "shared_text_before": " This method has since become a fundamental tool in the study of",
+      "alone_continues": " particle physics.\n\nFeynman was known for",
+      "in_batch_continues": " quantum mechanics and has been used in many areas of"
+    },
+    {
+      "batch_size": 3,
+      "first_different_token": 232,
+      "tokens": 300,
+      "seconds": 1.83,
+      "shared_text_before": " in a way that was easy to understand. He was a",
+      "alone_continues": " popular speaker and wrote several books on physics, including",
+      "in_batch_continues": " prolific writer and speaker, and his books and lectures"
+    },
+    {
+      "batch_size": 4,
+      "first_different_token": 203,
+      "tokens": 300,
+      "seconds": 1.9,
+      "shared_text_before": " This method has since become a fundamental tool in the study of",
+      "alone_continues": " particle physics.\n\nFeynman was known for",
+      "in_batch_continues": " quantum physics.\n\nFeynman was known for"
+    },
+    {
+      "batch_size": 8,
+      "first_different_token": 203,
+      "tokens": 300,
+      "seconds": 2.1,
+      "shared_text_before": " This method has since become a fundamental tool in the study of",
+      "alone_continues": " particle physics.\n\nFeynman was known for",
+      "in_batch_continues": " quantum physics.\n\nFeynman was known for"
+    },
+    {
+      "batch_size": 16,
+      "first_different_token": 225,
+      "tokens": 300,
+      "seconds": 3.62,
+      "shared_text_before": " his ability to explain complex scientific concepts in a way that was",
+      "alone_continues": " easy to understand. He was a popular speaker and",
+      "in_batch_continues": " both entertaining and educational. He was a popular speaker"
+    },
+    {
+      "batch_size": 32,
+      "first_different_token": 232,
+      "tokens": 300,
+      "seconds": 4.02,
+      "shared_text_before": " in a way that was easy to understand. He was a",
+      "alone_continues": " popular speaker and wrote several books on physics, including",
+      "in_batch_continues": " prolific writer and speaker, and his books and lectures"
+    },
+    {
+      "batch_size": 64,
+      "first_different_token": 203,
+      "tokens": 300,
+      "seconds": 4.99,
+      "shared_text_before": " This method has since become a fundamental tool in the study of",
+      "alone_continues": " particle physics.\n\nFeynman was known for",
+      "in_batch_continues": " quantum physics.\n\nFeynman was known for"
+    },
+    {
+      "batch_size": 128,
+      "first_different_token": 110,
+      "tokens": 300,
+      "seconds": 8.99,
+      "shared_text_before": " a physicist and a chemist. Feynman's early",
+      "alone_continues": " life was marked by a fascination with science and a",
+      "in_batch_continues": " education was in mathematics and physics, and he went"
+    },
+    {
+      "batch_size": 129,
+      "first_different_token": 203,
+      "tokens": 300,
+      "seconds": 11.48,
+      "shared_text_before": " This method has since become a fundamental tool in the study of",
+      "alone_continues": " particle physics.\n\nFeynman was known for",
+      "in_batch_continues": " quantum physics.\n\nFeynman was known for"
+    },
+    {
+      "batch_size": 160,
+      "first_different_token": 203,
+      "tokens": 300,
+      "seconds": 12.48,
+      "shared_text_before": " This method has since become a fundamental tool in the study of",
+      "alone_continues": " particle physics.\n\nFeynman was known for",
+      "in_batch_continues": " quantum physics.\n\nFeynman was known for"
+    }
+  ],
+  "A_distinct_completions": 8,
+  "A_baseline_text": "Richard Feynman was an American theoretical physicist and the most famous popularizer of science in the 20th century. He was a professor at the California Institute of Technology (Caltech) and the University of California, Berkeley, and was known for his ability to communicate complex scientific concepts in a way that was accessible to the general public.\n\nFeynman was born on October 11, 1918, in Los Angeles, California. He was the son of a physicist and a chemist. Feynman's early life was marked by a fascination with science and a desire to understand the world around him. He was particularly interested in the behavior of subatomic particles and the principles of quantum mechanics.\n\nFeynman's work in physics was groundbreaking and had a profound impact on the field. He developed the Feynman diagram method, which is a technique for visualizing and calculating the behavior of particles in quantum mechanics. This method has since become a fundamental tool in the study of particle physics.\n\nFeynman was known for his ability to explain complex scientific concepts in a way that was easy to understand. He was a popular speaker and wrote several books on physics, including \"The Feynman Lectures on Physics\" and \"The Feynman Lectures on Quantum Mechanics.\" He was also a prolific writer, publishing over 100 books and articles on various scientific topics.\n\nFeynman's work had a significant impact on the development of modern",
+  "B_fixed_batch": [
+    {
+      "real_requests": 1,
+      "gpu_batch": 32,
+      "identical_to_first": true,
+      "seconds": 4.2
+    },
+    {
+      "real_requests": 2,
+      "gpu_batch": 32,
+      "identical_to_first": true,
+      "seconds": 4.12
+    },
+    {
+      "real_requests": 8,
+      "gpu_batch": 32,
+      "identical_to_first": true,
+      "seconds": 4.05
+    },
+    {
+      "real_requests": 32,
+      "gpu_batch": 32,
+      "identical_to_first": true,
+      "seconds": 4.04
+    }
+  ]
+}

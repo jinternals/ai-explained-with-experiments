@@ -1,0 +1,34 @@
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.19.1
+    environment:
+      - discovery.type=single-node
+      - DISABLE_SECURITY_PLUGIN=true
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+      - OPENSEARCH_JAVA_OPTS=-Xms2g -Xmx2g
+
+  # The lab, in Java:  docker compose run --rm --build lab [goa | step3 | benchmark]
+  lab:
+    build: ./lab
+    depends_on:
+      - opensearch
+    environment:
+      - OPENSEARCH_URL=http://opensearch:9200
+    volumes:
+      - ./data:/data     # downloaded BEIR datasets
+      - ./cache:/cache   # computed embeddings
+      - ./out:/out       # results JSON
+
+  # The original Python version:  docker compose run --rm --build lab-python python benchmark.py
+  lab-python:
+    build: ./lab-python
+    profiles: ["python"]
+    depends_on:
+      - opensearch
+    environment:
+      - OPENSEARCH_URL=http://opensearch:9200
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./data:/data
+      - ./cache:/cache
+      - ./out/python:/out

@@ -1,0 +1,908 @@
+{
+  "opensearch_version" : "2.19.1",
+  "model" : "cross-encoder/ms-marco-MiniLM-L6-v2",
+  "model_revision" : "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+  "cpus" : 12,
+  "depth" : 100,
+  "k" : 60,
+  "timing" : {
+    "dataset" : "nfcorpus",
+    "queries_timed" : 50,
+    "cross_encoder_rerank" : {
+      "10" : {
+        "median_ms" : 350.4,
+        "mean_ms" : 347.4,
+        "pairs_per_second" : 29
+      },
+      "20" : {
+        "median_ms" : 672.1,
+        "mean_ms" : 666.3,
+        "pairs_per_second" : 30
+      },
+      "50" : {
+        "median_ms" : 1635.3,
+        "mean_ms" : 1657.2,
+        "pairs_per_second" : 30
+      },
+      "100" : {
+        "median_ms" : 4001.4,
+        "mean_ms" : 4029.7,
+        "pairs_per_second" : 25
+      }
+    },
+    "embed_query_median_ms" : 10.7,
+    "keyword_search_top100_median_ms" : 8.9,
+    "vector_search_top100_median_ms" : 6.6,
+    "whole_corpus_documents" : 3633,
+    "whole_corpus_estimated_seconds_per_query" : 145.3
+  },
+  "datasets" : {
+    "nfcorpus" : {
+      "documents" : 3633,
+      "queries" : 323,
+      "pairs_scored" : 47258,
+      "ndcg@10" : {
+        "keyword" : {
+          "0" : 0.3066,
+          "10" : 0.3224,
+          "20" : 0.3314,
+          "50" : 0.3411,
+          "100" : 0.3431
+        },
+        "meaning" : {
+          "0" : 0.3148,
+          "10" : 0.3278,
+          "20" : 0.3379,
+          "50" : 0.3344,
+          "100" : 0.3383
+        },
+        "rrf" : {
+          "0" : 0.3384,
+          "10" : 0.3488,
+          "20" : 0.354,
+          "50" : 0.3525,
+          "100" : 0.3525
+        }
+      },
+      "recall@100" : {
+        "keyword" : 0.2443,
+        "meaning" : 0.3087,
+        "rrf" : 0.3312
+      },
+      "perfect_rerank_ndcg@10" : {
+        "keyword" : 0.5412,
+        "meaning" : 0.6277,
+        "rrf" : 0.6574
+      },
+      "rrf_ce100_vs_rrf" : {
+        "better" : 112,
+        "same" : 126,
+        "worse" : 85
+      },
+      "meaning_ce100_vs_meaning" : {
+        "better" : 105,
+        "same" : 121,
+        "worse" : 97
+      },
+      "examples" : [ {
+        "kind" : "helped",
+        "query_id" : "PLAIN-2081",
+        "query" : "shelf life",
+        "ndcg@10" : {
+          "rrf" : 0.0,
+          "rrf_then_cross_encoder" : 1.0
+        },
+        "rrf_top3" : [ {
+          "id" : "MED-2510",
+          "title" : "Comparative and meta-analytic insights into life extension via dietary restriction.",
+          "relevance" : 0,
+          "cross_encoder_score" : -8.619
+        }, {
+          "id" : "MED-2671",
+          "title" : "Microbiology of fresh and restructured lamb meat: a review.",
+          "relevance" : 0,
+          "cross_encoder_score" : -3.617
+        }, {
+          "id" : "MED-2505",
+          "title" : "Ten years of life: Is it a matter of choice?",
+          "relevance" : 0,
+          "cross_encoder_score" : -9.064
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "MED-4303",
+          "title" : "Oxidative stability and shelf-life evaluation of selected culinary oils.",
+          "relevance" : 1,
+          "cross_encoder_score" : 0.85
+        }, {
+          "id" : "MED-2700",
+          "title" : "The effect of blood removal on oxidation and shelf life of broiler breast meat.",
+          "relevance" : 0,
+          "cross_encoder_score" : -1.367
+        }, {
+          "id" : "MED-859",
+          "title" : "gamma-Irradiation dose: effects on baby-leaf spinach ascorbic acid, carotenoids, folate, alpha-tocopherol, and phylloqu…",
+          "relevance" : 0,
+          "cross_encoder_score" : -3.282
+        } ]
+      }, {
+        "kind" : "helped",
+        "query_id" : "PLAIN-3026",
+        "query" : "Vitamin C-Enriched Bacon",
+        "ndcg@10" : {
+          "rrf" : 0.5,
+          "rrf_then_cross_encoder" : 1.0
+        },
+        "rrf_top3" : [ {
+          "id" : "MED-3157",
+          "title" : "Effect of vitamin C supplements on physical performance.",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.019
+        }, {
+          "id" : "MED-5131",
+          "title" : "Vitamin B12 sources and bioavailability.",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.223
+        }, {
+          "id" : "MED-4470",
+          "title" : "Effects of vitamins C and E on N-nitroso compound formation, carcinogenesis, and cancer.",
+          "relevance" : 2,
+          "cross_encoder_score" : -3.89
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "MED-4470",
+          "title" : "Effects of vitamins C and E on N-nitroso compound formation, carcinogenesis, and cancer.",
+          "relevance" : 2,
+          "cross_encoder_score" : -3.89
+        }, {
+          "id" : "MED-936",
+          "title" : "Effect of vitamin C supplements on urinary oxalate and pH in calcium stone-forming patients.",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.718
+        }, {
+          "id" : "MED-3453",
+          "title" : "Supplementation with vitamin C and N-acetyl-cysteine increases oxidative stress in humans after an acute muscle injury …",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.962
+        } ]
+      }, {
+        "kind" : "helped",
+        "query_id" : "PLAIN-2680",
+        "query" : "Counteracting the Effects of Dioxins Through Diet",
+        "ndcg@10" : {
+          "rrf" : 0.0986,
+          "rrf_then_cross_encoder" : 0.492
+        },
+        "rrf_top3" : [ {
+          "id" : "MED-1961",
+          "title" : "Reducing exposure to dioxins and related compounds through foods in the next generation.",
+          "relevance" : 0,
+          "cross_encoder_score" : 3.125
+        }, {
+          "id" : "MED-2388",
+          "title" : "Simultaneous exposure of non-diabetics to high levels of dioxins and mercury increases their risk of insulin resistance.",
+          "relevance" : 0,
+          "cross_encoder_score" : -1.972
+        }, {
+          "id" : "MED-5105",
+          "title" : "Dioxins, dibenzofurans, dioxin-like PCBs, and DDE in U.S. fast food, 1995.",
+          "relevance" : 0,
+          "cross_encoder_score" : -2.079
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "MED-3100",
+          "title" : "Flavones and flavonols at dietary levels inhibit a transformation of aryl hydrocarbon receptor induced by dioxin.",
+          "relevance" : 2,
+          "cross_encoder_score" : 4.803
+        }, {
+          "id" : "MED-1961",
+          "title" : "Reducing exposure to dioxins and related compounds through foods in the next generation.",
+          "relevance" : 0,
+          "cross_encoder_score" : 3.125
+        }, {
+          "id" : "MED-3109",
+          "title" : "You AhR what you eat: linking diet and immunity.",
+          "relevance" : 2,
+          "cross_encoder_score" : 2.261
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "PLAIN-882",
+        "query" : "Chernobyl",
+        "ndcg@10" : {
+          "rrf" : 0.8572,
+          "rrf_then_cross_encoder" : 0.5175
+        },
+        "rrf_top3" : [ {
+          "id" : "MED-3632",
+          "title" : "An unexpected mortality increase in the United States follows arrival of the radioactive plume from Fukushima: is there…",
+          "relevance" : 1,
+          "cross_encoder_score" : -0.616
+        }, {
+          "id" : "MED-3622",
+          "title" : "Dietary and clastogenic factors in children who immigrated to Israel from regions contaminated by the Chernobyl acciden…",
+          "relevance" : 1,
+          "cross_encoder_score" : 1.717
+        }, {
+          "id" : "MED-3636",
+          "title" : "Death by polonium-210: lessons learned from the murder of former Soviet spy Alexander Litvinenko.",
+          "relevance" : 1,
+          "cross_encoder_score" : -8.466
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "MED-3622",
+          "title" : "Dietary and clastogenic factors in children who immigrated to Israel from regions contaminated by the Chernobyl acciden…",
+          "relevance" : 1,
+          "cross_encoder_score" : 1.717
+        }, {
+          "id" : "MED-3632",
+          "title" : "An unexpected mortality increase in the United States follows arrival of the radioactive plume from Fukushima: is there…",
+          "relevance" : 1,
+          "cross_encoder_score" : -0.616
+        }, {
+          "id" : "MED-3535",
+          "title" : "Cherries and health: a review.",
+          "relevance" : 0,
+          "cross_encoder_score" : -3.492
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "PLAIN-2830",
+        "query" : "Neurobiology of Artificial Sweeteners",
+        "ndcg@10" : {
+          "rrf" : 0.6388,
+          "rrf_then_cross_encoder" : 0.2471
+        },
+        "rrf_top3" : [ {
+          "id" : "MED-4120",
+          "title" : "Sucrose activates human taste pathways differently from artificial sweetener.",
+          "relevance" : 2,
+          "cross_encoder_score" : 2.447
+        }, {
+          "id" : "MED-1625",
+          "title" : "Sugar substitutes: Health controversy over perceived benefits",
+          "relevance" : 0,
+          "cross_encoder_score" : 1.532
+        }, {
+          "id" : "MED-5054",
+          "title" : "The potential toxicity of artificial sweeteners.",
+          "relevance" : 0,
+          "cross_encoder_score" : 3.309
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "MED-1623",
+          "title" : "Possible neurologic effects of aspartame, a widely used food additive.",
+          "relevance" : 0,
+          "cross_encoder_score" : 3.502
+        }, {
+          "id" : "MED-5054",
+          "title" : "The potential toxicity of artificial sweeteners.",
+          "relevance" : 0,
+          "cross_encoder_score" : 3.309
+        }, {
+          "id" : "MED-1624",
+          "title" : "Direct and indirect cellular effects of aspartame on the brain.",
+          "relevance" : 0,
+          "cross_encoder_score" : 3.26
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "PLAIN-924",
+        "query" : "cocaine",
+        "ndcg@10" : {
+          "rrf" : 0.7788,
+          "rrf_then_cross_encoder" : 0.3301
+        },
+        "rrf_top3" : [ {
+          "id" : "MED-3044",
+          "title" : "Cue-induced cocaine craving: neuroanatomical specificity for drug users and drug stimuli.",
+          "relevance" : 1,
+          "cross_encoder_score" : 1.712
+        }, {
+          "id" : "MED-3055",
+          "title" : "Food and drug reward: overlapping circuits in human obesity and addiction.",
+          "relevance" : 1,
+          "cross_encoder_score" : -7.724
+        }, {
+          "id" : "MED-3052",
+          "title" : "Obesity and addiction: neurobiological overlaps.",
+          "relevance" : 1,
+          "cross_encoder_score" : -7.469
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "MED-3044",
+          "title" : "Cue-induced cocaine craving: neuroanatomical specificity for drug users and drug stimuli.",
+          "relevance" : 1,
+          "cross_encoder_score" : 1.712
+        }, {
+          "id" : "MED-2173",
+          "title" : "MPTP: an industrial chemical and contaminant of illicit narcotics stimulates a new era in research on Parkinson's disea…",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.013
+        }, {
+          "id" : "MED-3046",
+          "title" : "Changes in brain activation associated with reward processing in smokers and nonsmokers. A positron emission tomography…",
+          "relevance" : 1,
+          "cross_encoder_score" : -6.009
+        } ]
+      } ]
+    },
+    "scifact" : {
+      "documents" : 5183,
+      "queries" : 300,
+      "pairs_scored" : 51789,
+      "ndcg@10" : {
+        "keyword" : {
+          "0" : 0.6563,
+          "10" : 0.6683,
+          "20" : 0.6751,
+          "50" : 0.6862,
+          "100" : 0.6828
+        },
+        "meaning" : {
+          "0" : 0.6243,
+          "10" : 0.6649,
+          "20" : 0.6804,
+          "50" : 0.6924,
+          "100" : 0.6942
+        },
+        "rrf" : {
+          "0" : 0.682,
+          "10" : 0.687,
+          "20" : 0.6951,
+          "50" : 0.6947,
+          "100" : 0.6909
+        }
+      },
+      "recall@100" : {
+        "keyword" : 0.8842,
+        "meaning" : 0.9227,
+        "rrf" : 0.9477
+      },
+      "perfect_rerank_ndcg@10" : {
+        "keyword" : 0.8858,
+        "meaning" : 0.9237,
+        "rrf" : 0.9483
+      },
+      "rrf_ce100_vs_rrf" : {
+        "better" : 57,
+        "same" : 184,
+        "worse" : 59
+      },
+      "meaning_ce100_vs_meaning" : {
+        "better" : 86,
+        "same" : 171,
+        "worse" : 43
+      },
+      "examples" : [ {
+        "kind" : "helped",
+        "query_id" : "690",
+        "query" : "Less than 10% of the gabonese children with Schimmelpenning-Feuerstein-Mims syndrome (SFM) had a plasma lactate of more than 5mmol/L.",
+        "ndcg@10" : {
+          "rrf" : 0.0,
+          "rrf_then_cross_encoder" : 1.0
+        },
+        "rrf_top3" : [ {
+          "id" : "15692098",
+          "title" : "Hutchinson-Gilford progeria syndrome: review of the phenotype",
+          "relevance" : 0,
+          "cross_encoder_score" : -7.086
+        }, {
+          "id" : "25420421",
+          "title" : "Changes in white blood cells and platelets in children with falciparum malaria: relationship to disease outcome.",
+          "relevance" : 0,
+          "cross_encoder_score" : -7.686
+        }, {
+          "id" : "18174210",
+          "title" : "Increased Microerythrocyte Count in Homozygous α+-Thalassaemia Contributes to Protection against Severe Malarial Anaemia",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.296
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "18750453",
+          "title" : "Assessment of Volume Depletion in Children with Malaria",
+          "relevance" : 1,
+          "cross_encoder_score" : -4.079
+        }, {
+          "id" : "23908217",
+          "title" : "Bone disease in pediatric patients undergoing dialysis with CAPD or CCPD.",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.231
+        }, {
+          "id" : "18174210",
+          "title" : "Increased Microerythrocyte Count in Homozygous α+-Thalassaemia Contributes to Protection against Severe Malarial Anaemia",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.296
+        } ]
+      }, {
+        "kind" : "helped",
+        "query_id" : "1241",
+        "query" : "The myocardial lineage develops from cardiac progenitors of mesodermal origin.",
+        "ndcg@10" : {
+          "rrf" : 0.0,
+          "rrf_then_cross_encoder" : 1.0
+        },
+        "rrf_top3" : [ {
+          "id" : "32797183",
+          "title" : "Smooth muscle lineage diversity in the chick embryo. Two types of aortic smooth muscle cell differ in growth and recept…",
+          "relevance" : 0,
+          "cross_encoder_score" : -0.744
+        }, {
+          "id" : "2828460",
+          "title" : "Developmental heterogeneity of cardiac fibroblasts does not predict pathological proliferation and activation.",
+          "relevance" : 0,
+          "cross_encoder_score" : -0.981
+        }, {
+          "id" : "6148876",
+          "title" : "Islet1 derivatives in the heart are of both neural crest and second heart field origin.",
+          "relevance" : 0,
+          "cross_encoder_score" : -0.144
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "4427392",
+          "title" : "Human cardiovascular progenitor cells develop from a KDR+ embryonic-stem-cell-derived population",
+          "relevance" : 1,
+          "cross_encoder_score" : 4.744
+        }, {
+          "id" : "6148876",
+          "title" : "Islet1 derivatives in the heart are of both neural crest and second heart field origin.",
+          "relevance" : 0,
+          "cross_encoder_score" : -0.144
+        }, {
+          "id" : "32797183",
+          "title" : "Smooth muscle lineage diversity in the chick embryo. Two types of aortic smooth muscle cell differ in growth and recept…",
+          "relevance" : 0,
+          "cross_encoder_score" : -0.744
+        } ]
+      }, {
+        "kind" : "helped",
+        "query_id" : "1368",
+        "query" : "Vitamin D deficiency effects the term of delivery.",
+        "ndcg@10" : {
+          "rrf" : 0.0,
+          "rrf_then_cross_encoder" : 1.0
+        },
+        "rrf_top3" : [ {
+          "id" : "23267371",
+          "title" : "Vitamin D: The \"sunshine\" vitamin.",
+          "relevance" : 0,
+          "cross_encoder_score" : -0.051
+        }, {
+          "id" : "9555784",
+          "title" : "Vitamin d deficiency in postmenopausal women - biological correlates.",
+          "relevance" : 0,
+          "cross_encoder_score" : -1.03
+        }, {
+          "id" : "30720103",
+          "title" : "Vitamin D status: measurement, interpretation, and clinical application.",
+          "relevance" : 0,
+          "cross_encoder_score" : -3.301
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "2425364",
+          "title" : "Association between maternal serum 25-hydroxyvitamin D level and pregnancy and neonatal outcomes: systematic review and…",
+          "relevance" : 1,
+          "cross_encoder_score" : 0.966
+        }, {
+          "id" : "8856690",
+          "title" : "Molecular Mechanisms of Vitamin D Action",
+          "relevance" : 0,
+          "cross_encoder_score" : 0.227
+        }, {
+          "id" : "23267371",
+          "title" : "Vitamin D: The \"sunshine\" vitamin.",
+          "relevance" : 0,
+          "cross_encoder_score" : -0.051
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "388",
+        "query" : "Ethanol stress decreases the expression of IBP in bacteria.",
+        "ndcg@10" : {
+          "rrf" : 1.0,
+          "rrf_then_cross_encoder" : 0.3155
+        },
+        "rrf_top3" : [ {
+          "id" : "1148122",
+          "title" : "Regulatory and metabolic rewiring during laboratory evolution of ethanol tolerance in E. coli",
+          "relevance" : 1,
+          "cross_encoder_score" : -6.251
+        }, {
+          "id" : "21602220",
+          "title" : "Complex physiology and compound stress responses during fermentation of alkali-pretreated corn stover hydrolysate by an…",
+          "relevance" : 0,
+          "cross_encoder_score" : -2.602
+        }, {
+          "id" : "471735",
+          "title" : "Two-stage control of an oxidative stress regulon: the Escherichia coli SoxR protein triggers redox-inducible expression…",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.678
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "21602220",
+          "title" : "Complex physiology and compound stress responses during fermentation of alkali-pretreated corn stover hydrolysate by an…",
+          "relevance" : 0,
+          "cross_encoder_score" : -2.602
+        }, {
+          "id" : "9194077",
+          "title" : "Effects of Hypoxia and Oxidative Stress on Expression of Neprilysin in Human Neuroblastoma Cells and Rat Cortical Neuro…",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.318
+        }, {
+          "id" : "471735",
+          "title" : "Two-stage control of an oxidative stress regulon: the Escherichia coli SoxR protein triggers redox-inducible expression…",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.678
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "94",
+        "query" : "Albendazole is used to treat lymphatic filariasis.",
+        "ndcg@10" : {
+          "rrf" : 1.0,
+          "rrf_then_cross_encoder" : 0.0
+        },
+        "rrf_top3" : [ {
+          "id" : "1215116",
+          "title" : "“Rapid-Impact Interventions”: How a Policy of Integrated Control for Africa's Neglected Tropical Diseases Could Benefit…",
+          "relevance" : 1,
+          "cross_encoder_score" : -7.358
+        }, {
+          "id" : "20610557",
+          "title" : "Alkylating agent melphalan augments the efficacy of adoptive immunotherapy using tumor-specific CD4+ T cells.",
+          "relevance" : 0,
+          "cross_encoder_score" : -3.985
+        }, {
+          "id" : "41294031",
+          "title" : "Glucocorticoid with cyclophosphamide for paraquat-induced lung fibrosis.",
+          "relevance" : 0,
+          "cross_encoder_score" : -6.171
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "20610557",
+          "title" : "Alkylating agent melphalan augments the efficacy of adoptive immunotherapy using tumor-specific CD4+ T cells.",
+          "relevance" : 0,
+          "cross_encoder_score" : -3.985
+        }, {
+          "id" : "39424916",
+          "title" : "Wedelolactone exhibits anti-fibrotic effects on human hepatic stellate cell line LX-2.",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.882
+        }, {
+          "id" : "25388309",
+          "title" : "Pharmacological characterization of 1-(5-chloro-6-(trifluoromethoxy)-1H-benzoimidazol-2-yl)-1H-pyrazole-4-carboxylic ac…",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.982
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "659",
+        "query" : "Ivermectin is used to treat lymphatic filariasis.",
+        "ndcg@10" : {
+          "rrf" : 1.0,
+          "rrf_then_cross_encoder" : 0.0
+        },
+        "rrf_top3" : [ {
+          "id" : "1215116",
+          "title" : "“Rapid-Impact Interventions”: How a Policy of Integrated Control for Africa's Neglected Tropical Diseases Could Benefit…",
+          "relevance" : 1,
+          "cross_encoder_score" : -7.627
+        }, {
+          "id" : "46926352",
+          "title" : "Dendritic cells, T cells and lymphatics: dialogues in migration and beyond.",
+          "relevance" : 0,
+          "cross_encoder_score" : -9.13
+        }, {
+          "id" : "20610557",
+          "title" : "Alkylating agent melphalan augments the efficacy of adoptive immunotherapy using tumor-specific CD4+ T cells.",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.663
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "39424916",
+          "title" : "Wedelolactone exhibits anti-fibrotic effects on human hepatic stellate cell line LX-2.",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.779
+        }, {
+          "id" : "46765242",
+          "title" : "Interaction of cytosine arabinoside and lovastatin in human leukemia cells.",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.485
+        }, {
+          "id" : "20610557",
+          "title" : "Alkylating agent melphalan augments the efficacy of adoptive immunotherapy using tumor-specific CD4+ T cells.",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.663
+        } ]
+      } ]
+    },
+    "fiqa" : {
+      "documents" : 57638,
+      "queries" : 648,
+      "pairs_scored" : 117766,
+      "ndcg@10" : {
+        "keyword" : {
+          "0" : 0.2389,
+          "10" : 0.2764,
+          "20" : 0.3037,
+          "50" : 0.3253,
+          "100" : 0.3344
+        },
+        "meaning" : {
+          "0" : 0.3638,
+          "10" : 0.3686,
+          "20" : 0.3804,
+          "50" : 0.3768,
+          "100" : 0.3756
+        },
+        "rrf" : {
+          "0" : 0.3432,
+          "10" : 0.3527,
+          "20" : 0.3786,
+          "50" : 0.3759,
+          "100" : 0.3695
+        }
+      },
+      "recall@100" : {
+        "keyword" : 0.5061,
+        "meaning" : 0.6836,
+        "rrf" : 0.6826
+      },
+      "perfect_rerank_ndcg@10" : {
+        "keyword" : 0.5531,
+        "meaning" : 0.7269,
+        "rrf" : 0.726
+      },
+      "rrf_ce100_vs_rrf" : {
+        "better" : 199,
+        "same" : 283,
+        "worse" : 166
+      },
+      "meaning_ce100_vs_meaning" : {
+        "better" : 193,
+        "same" : 271,
+        "worse" : 184
+      },
+      "examples" : [ {
+        "kind" : "helped",
+        "query_id" : "2316",
+        "query" : "What exchange rate does El Al use when converting final payment amount to shekels?",
+        "ndcg@10" : {
+          "rrf" : 0.0,
+          "rrf_then_cross_encoder" : 1.0
+        },
+        "rrf_top3" : [ {
+          "id" : "154417",
+          "title" : "XE.com will do an ACH transfer for no fee, and they'll give you a better exchange rate than your bank.  I use them for …",
+          "relevance" : 0,
+          "cross_encoder_score" : -7.793
+        }, {
+          "id" : "493576",
+          "title" : "There is a way I discovered of finding the current exchange rate before committing to buy, go to send payments, put in …",
+          "relevance" : 0,
+          "cross_encoder_score" : -6.912
+        }, {
+          "id" : "282028",
+          "title" : "\"The \"\"hidden\"\" fees in any transfer are usually: Foreign exchange transfer services are usually the cheapest option fo…",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.225
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "348955",
+          "title" : "In older days the merchants and their merchant banks[or service providers] would take funds in their currency. Say in t…",
+          "relevance" : 1,
+          "cross_encoder_score" : -1.511
+        }, {
+          "id" : "482343",
+          "title" : "\"The rate for \"\"checks and transfers\"\" is set by each bank multiple times during the day based on the market. It is as …",
+          "relevance" : 1,
+          "cross_encoder_score" : -2.016
+        }, {
+          "id" : "59571",
+          "title" : "\"Your bank Lloyds sent the Australian bank $500 AUD, having converted $317.90 GBP at a rate of 1.5728 AUD per GBP which…",
+          "relevance" : 0,
+          "cross_encoder_score" : -4.599
+        } ]
+      }, {
+        "kind" : "helped",
+        "query_id" : "90",
+        "query" : "Filing personal with 1099s versus business s-corp?",
+        "ndcg@10" : {
+          "rrf" : 0.0,
+          "rrf_then_cross_encoder" : 1.0
+        },
+        "rrf_top3" : [ {
+          "id" : "170933",
+          "title" : "\"S-Corp are taxed very different. Unlike LLC where you just add the profit to your income with S-Corp you have to pay y…",
+          "relevance" : 0,
+          "cross_encoder_score" : -0.442
+        }, {
+          "id" : "370542",
+          "title" : "\"Be careful of the other answers here. Many are wrong or partially wrong. The question implies that you knew this, but …",
+          "relevance" : 0,
+          "cross_encoder_score" : 0.624
+        }, {
+          "id" : "482165",
+          "title" : "It depends on the structure of your business. Are you a sole proprietor filing Schedule C on your 1040, or an S-corp, o…",
+          "relevance" : 0,
+          "cross_encoder_score" : 0.351
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "31793",
+          "title" : "Depends whom the 1099 was issued to. If it was issued to your corporation - then its your corporation's income, not you…",
+          "relevance" : 1,
+          "cross_encoder_score" : 2.806
+        }, {
+          "id" : "80866",
+          "title" : "I see a lot of people making the mistake or being given bad advise in structuring a new business. If you have more than…",
+          "relevance" : 0,
+          "cross_encoder_score" : 2.14
+        }, {
+          "id" : "194955",
+          "title" : "Do not mix personal accounts and corporate accounts. If you're paid as your self person - this money belongs to you, no…",
+          "relevance" : 0,
+          "cross_encoder_score" : 1.952
+        } ]
+      }, {
+        "kind" : "helped",
+        "query_id" : "9824",
+        "query" : "Where can end-of-day data be downloaded for corporate bonds?",
+        "ndcg@10" : {
+          "rrf" : 0.0,
+          "rrf_then_cross_encoder" : 1.0
+        },
+        "rrf_top3" : [ {
+          "id" : "329582",
+          "title" : "Bonds are extremely illiquid and have traditionally traded in bulk.  This has changed in recent years, but bonds used t…",
+          "relevance" : 0,
+          "cross_encoder_score" : -7.766
+        }, {
+          "id" : "43060",
+          "title" : "When the laws allow for bonds to be issued for anything other than infrastructure projects, you end up in financial rui…",
+          "relevance" : 0,
+          "cross_encoder_score" : -8.558
+        }, {
+          "id" : "466255",
+          "title" : "You'd have to buy that information. Quoting from this page, Commercial Historical Data Higher resolution and more compl…",
+          "relevance" : 0,
+          "cross_encoder_score" : -8.191
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "574777",
+          "title" : "Here is one from a Bloomberg partnership, it is free. To get the end of day prices, you may need some programming done.…",
+          "relevance" : 1,
+          "cross_encoder_score" : -1.046
+        }, {
+          "id" : "336284",
+          "title" : "\"the \"\"how\"\" all depends on your level of computer savvy. Are you an Excel spreadsheet user or can you write in program…",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.294
+        }, {
+          "id" : "549009",
+          "title" : "\"you want more information on what? The general bond market? This article is getting at something different, but the fi…",
+          "relevance" : 0,
+          "cross_encoder_score" : -5.682
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "2154",
+        "query" : "What tax software automatically determines the best filing status, etc?",
+        "ndcg@10" : {
+          "rrf" : 0.6309,
+          "rrf_then_cross_encoder" : 0.0
+        },
+        "rrf_top3" : [ {
+          "id" : "141511",
+          "title" : "Largely it comes down to the complexity of your return (likely relatively simple if it's your first time filing) and yo…",
+          "relevance" : 0,
+          "cross_encoder_score" : -1.61
+        }, {
+          "id" : "476632",
+          "title" : "\"Rob - I'm sorry your first visit here has been unpleasant.  What you are asking for is beyond the capability of most s…",
+          "relevance" : 1,
+          "cross_encoder_score" : -5.705
+        }, {
+          "id" : "333681",
+          "title" : "I did my own taxes previously using both H&R Block Tax Cut and TurboTax.  When I had a simple return and was single, it…",
+          "relevance" : 0,
+          "cross_encoder_score" : -8.463
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "141511",
+          "title" : "Largely it comes down to the complexity of your return (likely relatively simple if it's your first time filing) and yo…",
+          "relevance" : 0,
+          "cross_encoder_score" : -1.61
+        }, {
+          "id" : "12987",
+          "title" : "Unfortunately, if your taxes are too complicated for the 1040EZ form, then your tax situation is effectively unique and…",
+          "relevance" : 0,
+          "cross_encoder_score" : -3.037
+        }, {
+          "id" : "211045",
+          "title" : "Politics is certainly part of the equation, in two ways that I can think of. These don't necessarily reflect my views; …",
+          "relevance" : 0,
+          "cross_encoder_score" : -3.904
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "9644",
+        "query" : "If early exercise is a bad idea, why American option is more expensive than European [duplicate]",
+        "ndcg@10" : {
+          "rrf" : 1.0,
+          "rrf_then_cross_encoder" : 0.3333
+        },
+        "rrf_top3" : [ {
+          "id" : "194605",
+          "title" : "There are a few situations in which it may be advantageous to exercise early. Wikipedia actually has a good explanation…",
+          "relevance" : 1,
+          "cross_encoder_score" : 3.015
+        }, {
+          "id" : "333408",
+          "title" : "Owners of American-style options may exercise at any time before the   option expires, while owners of European-style o…",
+          "relevance" : 0,
+          "cross_encoder_score" : 1.674
+        }, {
+          "id" : "358520",
+          "title" : "Really all you need to know is that American style can be exercised at any point, European options cannot be exercised …",
+          "relevance" : 0,
+          "cross_encoder_score" : 4.14
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "358520",
+          "title" : "Really all you need to know is that American style can be exercised at any point, European options cannot be exercised …",
+          "relevance" : 0,
+          "cross_encoder_score" : 4.14
+        }, {
+          "id" : "278373",
+          "title" : "\"According to the book of Hull, american and european calls on non-dividend paying stocks should have the same value. A…",
+          "relevance" : 0,
+          "cross_encoder_score" : 4.073
+        }, {
+          "id" : "364575",
+          "title" : "OK, my fault for not doing more research. Wikipedia explains this well: http://en.wikipedia.org/wiki/Option_style#Diffe…",
+          "relevance" : 0,
+          "cross_encoder_score" : 3.603
+        } ]
+      }, {
+        "kind" : "hurt",
+        "query_id" : "8512",
+        "query" : "Is it possible to transfer stock I already own into my Roth IRA without having to sell the stock?",
+        "ndcg@10" : {
+          "rrf" : 1.0,
+          "rrf_then_cross_encoder" : 0.0
+        },
+        "rrf_top3" : [ {
+          "id" : "32811",
+          "title" : "\"No. A deposit to an IRA must be in cash. A conversion from traditional IRA to Roth can be \"\"in kind\"\" i.e. As a stock …",
+          "relevance" : 1,
+          "cross_encoder_score" : -0.042
+        }, {
+          "id" : "469809",
+          "title" : "Absolutely. An IRA works just like any other brokerage account except that there are constraints on contributions and w…",
+          "relevance" : 0,
+          "cross_encoder_score" : 2.28
+        }, {
+          "id" : "488737",
+          "title" : "I am not a lawyer but I do not see a legal problem here. However, if the puts in the Roth IRA are not purchased at fair…",
+          "relevance" : 0,
+          "cross_encoder_score" : 2.485
+        } ],
+        "cross_encoder_top3" : [ {
+          "id" : "66626",
+          "title" : "\"I recommend a Roth IRA. At your age you could turn 25K into a million and never pay taxes on these earnings. Of course…",
+          "relevance" : 0,
+          "cross_encoder_score" : 4.028
+        }, {
+          "id" : "371922",
+          "title" : "\"I will give a slightly different answer which is actually an addendum to JoeTaxpayer's (soon-to-be-edited) answer. Do …",
+          "relevance" : 0,
+          "cross_encoder_score" : 3.053
+        }, {
+          "id" : "488737",
+          "title" : "I am not a lawyer but I do not see a legal problem here. However, if the puts in the Roth IRA are not purchased at fair…",
+          "relevance" : 0,
+          "cross_encoder_score" : 2.485
+        } ]
+      } ]
+    }
+  }
+}

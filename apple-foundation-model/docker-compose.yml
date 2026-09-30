@@ -1,0 +1,31 @@
+# Open WebUI, already connected to Foundation Model Server.
+#
+#   1. Start the app (menu bar) or: swift run FoundationModelServer --headless
+#   2. docker compose up -d
+#   3. Open http://localhost:3000 and pick "apple-on-device"
+#
+# Stop with: docker compose down   (chats are kept in the open-webui volume)
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    ports:
+      - "3000:8080"
+    environment:
+      # The app on this Mac, reached from inside the container.
+      - OPENAI_API_BASE_URL=http://host.docker.internal:11535/v1
+      # Any text works unless you set an API key in the app; then put that key here.
+      - OPENAI_API_KEY=${FOUNDATION_MODEL_API_KEY:-not-needed}
+      - ENABLE_OPENAI_API=true
+      # No Ollama on this setup.
+      - ENABLE_OLLAMA_API=false
+      # Single-user local testing: no sign-in screen. Remove this line to require accounts.
+      - WEBUI_AUTH=false
+      - DEFAULT_MODELS=apple-on-device
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - open-webui:/app/backend/data
+    restart: unless-stopped
+
+volumes:
+  open-webui:

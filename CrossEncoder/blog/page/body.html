@@ -1,0 +1,292 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cross-Encoder Re-Ranking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Space+Grotesk:wght@500;600;700&display=swap">
+<style>
+{{CSS}}
+
+/* ---- This document --------------------------------------------------------- */
+/* Visible at rest: the reveal only adds motion, it never hides content. */
+figure, .stats, .summary, .callout, .race-bars, .quadrant, .stepper, .panels { opacity: 1; transform: none; }
+figure.wide, .wide, .breakout, .full-bleed { transform: translateX(-50%); }
+@media (max-width: 48rem) { figure.wide, .wide, .breakout, .full-bleed { transform: none; } }
+h1, h2, h3 { text-wrap: balance; }
+.doc p, .doc li { text-wrap: pretty; }
+.term { font-weight: 600; color: var(--text); border-bottom: 1px dotted var(--accent-line); }
+.src { color: var(--muted); font-size: 0.85rem; margin: 0.6rem 0 0; }
+mark.pending { background: color-mix(in srgb, var(--err) 18%, transparent); color: var(--err); padding: 0 0.3em; border-radius: 3px; }
+ul.rules { padding-left: 0; margin-bottom: 1.1rem; }
+ul.rules > li { position: relative; padding-left: 1.6rem; margin: 0; }
+ul.rules > li::before { left: 0; top: 0.05em; }
+ul.rules > li > strong { display: block; color: var(--text); }
+ul.rules > li > span { display: block; color: var(--muted); }
+.matrix td { font-variant-numeric: tabular-nums; }
+.matrix td.up { color: var(--ok); font-weight: 600; }
+.matrix td.down { color: var(--err); font-weight: 600; }
+.matrix td.wrap, .matrix th.wrap { white-space: normal; min-width: 14rem; max-width: 30rem; }
+.matrix tr.rel th::after { content: "relevant"; color: var(--ok); font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; margin-left: 0.5rem; }
+.stats { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 30rem) { .stats { grid-template-columns: 1fr; } }
+pre { margin: 1.25rem 0 1.5rem; }
+</style>
+
+<article class="doc">
+
+<header class="doc-header">
+  <div class="chrome">
+    <span>Hybrid search, part 2</span>
+    <span><b>OpenSearch 2.19.1</b> · ms-marco-MiniLM-L6-v2</span>
+  </div>
+  <h1>Cross-Encoder Re-Ranking</h1>
+  <p class="dek">Search finds a hundred candidates in milliseconds. A cross-encoder then reads each one next to the question and puts them in a new order. This post tests that second step on {{d:total.queries|int}} real questions and measures what it costs.</p>
+  <p class="meta">Follows <a href="https://medium.com/jinternals/reciprocal-rank-fusion-without-the-scary-math-68421476c505">Reciprocal Rank Fusion, Without the Scary Math</a>. Every number on this page was printed by the Java lab in section 11.</p>
+</header>
+
+<div class="summary">
+  <p><strong>Short version.</strong> Meaning search turns the question and each document into lists of numbers separately, then compares the lists. A cross-encoder reads the question and one document together, as one piece of text, and gives a single relevance score. That is more careful and much slower, so it is only used on the top results from a fast search.</p>
+  <p><strong>What we measured.</strong> Re-ranking the top 100 RRF results changed nDCG@10 from {{b:datasets.nfcorpus.ndcg@10.rrf.0|3}} to {{b:datasets.nfcorpus.ndcg@10.rrf.100|3}} on NFCorpus, from {{b:datasets.scifact.ndcg@10.rrf.0|3}} to {{b:datasets.scifact.ndcg@10.rrf.100|3}} on SciFact and from {{b:datasets.fiqa.ndcg@10.rrf.0|3}} to {{b:datasets.fiqa.ndcg@10.rrf.100|3}} on FiQA. It took {{b:timing.cross_encoder_rerank.100.median_ms|0}} ms per question on {{b:cpus|int}} CPU cores. The search itself took {{b:timing.keyword_search_top100_median_ms|0}} ms.</p>
+</div>
+
+<div class="stats">
+  <div class="stat"><span class="num">{{d:gain_pct.nfcorpus.rrf|signed0}}%</span><span class="unit">nDCG@10 on NFCorpus after re-ranking RRF's top 100</span></div>
+  <div class="stat"><span class="num">{{d:gain_pct.scifact.rrf|signed0}}%</span><span class="unit">on SciFact</span></div>
+  <div class="stat"><span class="num">{{d:gain_pct.fiqa.rrf|signed0}}%</span><span class="unit">on FiQA</span></div>
+  <div class="stat"><span class="num">{{b:timing.cross_encoder_rerank.100.median_ms|0}} ms</span><span class="unit">to re-rank 100 results for one question, on CPU</span></div>
+</div>
+
+<section>
+
+  <h2 data-n="01">Where this fits</h2>
+  <p>The previous post merged two searchers. <span class="term">Keyword search</span> (BM25) looks for the question's exact words. <span class="term">Meaning search</span> looks for documents that mean the same thing. <span class="term">Reciprocal Rank Fusion</span> (RRF) merges their two ranked lists into one by adding up points for each document's position.</p>
+  <p>That post ended by noting that RRF works well as a first step in systems that re-sort the top results with a slower, smarter model afterwards. The slower, smarter model is usually a <span class="term">cross-encoder</span>, and the re-sorting step is called <span class="term">re-ranking</span>. This post tests it on the same data, with the same search engine, and the same way of scoring.</p>
+
+  <h2 data-n="02">How meaning search compares text</h2>
+  <p>Meaning search uses a model called a <span class="term">bi-encoder</span>. Ours is all-MiniLM-L6-v2. It reads one piece of text on its own and turns it into a list of 384 numbers, called an <span class="term">embedding</span>. Texts that mean similar things get similar lists.</p>
+  <p>The question and the document are read <em>separately</em>, at different times:</p>
+  <ul class="rules">
+    <li><strong>Ahead of time</strong><span>Every document is turned into its 384 numbers once, when it is added to the search engine. For NFCorpus that is 3,633 documents, done once.</span></li>
+    <li><strong>At search time</strong><span>Only the question is turned into 384 numbers. The search engine then finds the documents whose numbers are closest, using a measure called <span class="term">cosine similarity</span>: 1 means pointing the same way, 0 means unrelated.</span></li>
+  </ul>
+  <p>This is why meaning search is fast. On our setup, turning a question into numbers took {{b:timing.embed_query_median_ms|1}} ms, and finding the 100 closest documents took {{b:timing.vector_search_top100_median_ms|1}} ms. <span class="src">(Medians over {{b:timing.queries_timed|int}} NFCorpus questions.)</span></p>
+  <p>The price of that speed is that the model never sees the question and the document at the same time. Each is reduced to 384 numbers without knowing what it will be compared with, so details that matter only for this particular question can be lost.</p>
+
+  <h2 data-n="03">How a cross-encoder compares text</h2>
+  <p>A cross-encoder takes the question and one document, joins them into a single piece of text, and reads them together. Inside the model, every word of the question can look at every word of the document, and the other way round. At the end it outputs one number: how well this document answers this question.</p>
+
+  <figure class="wide">
+    <svg viewBox="0 0 960 300" role="img" aria-label="Left: a bi-encoder reads the question and the document separately into two lists of 384 numbers, then compares the lists with cosine similarity. Right: a cross-encoder reads the question and the document joined together and outputs one score.">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--muted)"/></marker>
+      </defs>
+      <text x="30" y="28" font-size="12" fill="var(--muted)" letter-spacing="0.1em">BI-ENCODER (MEANING SEARCH)</text>
+      <rect x="30" y="50" width="170" height="44" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="115" y="77" text-anchor="middle" font-size="13">question</text>
+      <rect x="30" y="170" width="170" height="44" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="115" y="197" text-anchor="middle" font-size="13">document</text>
+      <path d="M200 72 H240" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar)"/>
+      <path d="M200 192 H240" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar)"/>
+      <rect x="242" y="50" width="96" height="44" rx="6" fill="color-mix(in srgb, var(--accent-2) 18%, transparent)" stroke="var(--accent-2)" stroke-width="1.5"/>
+      <text x="290" y="77" text-anchor="middle" font-size="12">model</text>
+      <rect x="242" y="170" width="96" height="44" rx="6" fill="color-mix(in srgb, var(--accent-2) 18%, transparent)" stroke="var(--accent-2)" stroke-width="1.5"/>
+      <text x="290" y="197" text-anchor="middle" font-size="12">model</text>
+      <path d="M338 72 H370" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar)"/>
+      <path d="M338 192 H370" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar)"/>
+      <text x="374" y="70" font-size="12">[0.12, −0.40, …]</text>
+      <text x="374" y="86" font-size="11" fill="var(--muted)">384 numbers</text>
+      <text x="374" y="190" font-size="12">[0.09, −0.31, …]</text>
+      <text x="374" y="206" font-size="11" fill="var(--muted)">384 numbers, made ahead of time</text>
+      <path d="M420 96 V166" stroke="var(--accent-2)" stroke-width="1.5" stroke-dasharray="4 4"/>
+      <text x="430" y="136" font-size="12" fill="var(--accent-2)">cosine similarity</text>
+      <text x="30" y="262" font-size="12" fill="var(--muted)">The two texts never meet inside the model.</text>
+
+      <line x1="540" y1="20" x2="540" y2="280" stroke="var(--line)" stroke-dasharray="4 6"/>
+
+      <text x="570" y="28" font-size="12" fill="var(--muted)" letter-spacing="0.1em">CROSS-ENCODER (RE-RANKER)</text>
+      <rect x="570" y="110" width="200" height="64" rx="6" fill="var(--surface)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="670" y="136" text-anchor="middle" font-size="13">question</text>
+      <text x="670" y="156" text-anchor="middle" font-size="13">+ document</text>
+      <path d="M770 142 H800" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar)"/>
+      <rect x="802" y="110" width="80" height="64" rx="6" fill="color-mix(in srgb, var(--accent) 18%, transparent)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="842" y="147" text-anchor="middle" font-size="12">model</text>
+      <path d="M882 142 H906" stroke="var(--muted)" stroke-width="1.5" marker-end="url(#ar)"/>
+      <text x="930" y="147" text-anchor="middle" font-size="16" font-weight="700" fill="var(--accent)">3.5</text>
+      <text x="570" y="254" font-size="12" fill="var(--muted)">Read together. One score per pair.</text>
+      <text x="570" y="272" font-size="12" fill="var(--muted)">Nothing can be made ahead of time.</text>
+    </svg>
+    <figcaption><strong>Two ways to compare a question with a document.</strong> The bi-encoder's document numbers are computed once and reused for every question. The cross-encoder has to run again for every (question, document) pair.</figcaption>
+  </figure>
+
+  <p>Our cross-encoder is <a href="https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2">cross-encoder/ms-marco-MiniLM-L6-v2</a>. It is small: 6 layers, trained on <a href="https://microsoft.github.io/msmarco/">MS MARCO</a>, a large set of real Bing search questions with passages that people marked as answering them. It reads at most 512 tokens per pair, so long documents get cut off.</p>
+  <p>Its output is a single number with no fixed range. In the worked example below it runs from {{e:documents.8.cross_encoder_score|1}} to {{e:documents.4.cross_encoder_score|1}}. Higher means more relevant, and only the order matters. You can squash it into 0 to 1 with a sigmoid function if you want something that looks like a probability, but the ranking stays the same.</p>
+
+  <h2 data-n="04">Why it only re-ranks a short list</h2>
+  <p>Nothing can be prepared ahead of time. To rank a whole collection with a cross-encoder, you would run it once for every document, for every question.</p>
+  <p>On our setup ({{b:cpus|int}} CPU cores in Docker), re-ranking 100 documents for one question took {{b:timing.cross_encoder_rerank.100.median_ms|0}} ms, about {{b:timing.cross_encoder_rerank.100.pairs_per_second|int}} pairs per second. At that rate, scoring all {{b:timing.whole_corpus_documents|int}} NFCorpus documents for one question would take about {{b:timing.whole_corpus_estimated_seconds_per_query|0}} seconds. FiQA has 57,638 documents. <span class="src">(The whole-collection time is worked out from the measured rate, not run.)</span></p>
+  <p>So real systems split the work in two:</p>
+  <ul class="rules">
+    <li><strong>Stage 1: find candidates, fast</strong><span>Keyword search, meaning search, or RRF of both, returns the top 100 or so. This takes milliseconds because the documents were prepared ahead of time.</span></li>
+    <li><strong>Stage 2: re-rank, carefully</strong><span>The cross-encoder scores only those candidates and sorts them by its score. The user sees the new top 10.</span></li>
+  </ul>
+  <p>For scale, the model card lists 1,800 documents per second for this model, measured on an NVIDIA V100 GPU. A GPU would make stage 2 much faster. The two-stage split would still be needed for large collections.</p>
+
+  <h2 data-n="05">The worked example</h2>
+  <p>Here is the question from Step 3 of the RRF post: <strong>"{{e:query|text}}"</strong>. We take the same top-5 lists from keyword search and meaning search, merge them with RRF, and then let the cross-encoder re-rank the merged list. We also scored the two relevant papers that neither searcher found. <span class="src">(out/example.json)</span></p>
+  <figure class="wide"><div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th class="wrap">Paper</th><th>RRF rank</th><th>Cross-encoder score</th><th>New rank</th><th>Cosine</th></tr></thead>
+      <tbody>
+        <tr class="rel"><th class="wrap">{{e:documents.0.title|text}}</th><td>{{e:documents.0.rrf_rank|int}}</td><td>{{e:documents.0.cross_encoder_score|2}}</td><td>{{e:documents.0.cross_encoder_rank|int}}</td><td>{{e:documents.0.cosine|2}}</td></tr>
+        <tr><th class="wrap">{{e:documents.1.title|text}}</th><td>{{e:documents.1.rrf_rank|int}}</td><td>{{e:documents.1.cross_encoder_score|2}}</td><td>{{e:documents.1.cross_encoder_rank|int}}</td><td>{{e:documents.1.cosine|2}}</td></tr>
+        <tr><th class="wrap">{{e:documents.2.title|text}}</th><td>{{e:documents.2.rrf_rank|int}}</td><td>{{e:documents.2.cross_encoder_score|2}}</td><td>{{e:documents.2.cross_encoder_rank|int}}</td><td>{{e:documents.2.cosine|2}}</td></tr>
+        <tr><th class="wrap">{{e:documents.3.title|text}}</th><td>{{e:documents.3.rrf_rank|int}}</td><td>{{e:documents.3.cross_encoder_score|2}}</td><td>{{e:documents.3.cross_encoder_rank|int}}</td><td>{{e:documents.3.cosine|2}}</td></tr>
+        <tr><th class="wrap">{{e:documents.4.title|text}}</th><td>{{e:documents.4.rrf_rank|int}}</td><td>{{e:documents.4.cross_encoder_score|2}}</td><td>{{e:documents.4.cross_encoder_rank|int}}</td><td>{{e:documents.4.cosine|2}}</td></tr>
+        <tr><th class="wrap">{{e:documents.5.title|text}}</th><td>{{e:documents.5.rrf_rank|int}}</td><td>{{e:documents.5.cross_encoder_score|2}}</td><td>{{e:documents.5.cross_encoder_rank|int}}</td><td>{{e:documents.5.cosine|2}}</td></tr>
+        <tr><th class="wrap">{{e:documents.6.title|text}}</th><td>{{e:documents.6.rrf_rank|int}}</td><td>{{e:documents.6.cross_encoder_score|2}}</td><td>{{e:documents.6.cross_encoder_rank|int}}</td><td>{{e:documents.6.cosine|2}}</td></tr>
+        <tr><th class="wrap">{{e:documents.7.title|text}}</th><td>{{e:documents.7.rrf_rank|int}}</td><td>{{e:documents.7.cross_encoder_score|2}}</td><td>{{e:documents.7.cross_encoder_rank|int}}</td><td>{{e:documents.7.cosine|2}}</td></tr>
+        <tr class="rel"><th class="wrap">{{e:documents.8.title|text}}</th><td>not found</td><td>{{e:documents.8.cross_encoder_score|2}}</td><td>–</td><td>{{e:documents.8.cosine|2}}</td></tr>
+        <tr class="rel"><th class="wrap">{{e:documents.9.title|text}}</th><td>not found</td><td>{{e:documents.9.cross_encoder_score|2}}</td><td>–</td><td>{{e:documents.9.cosine|2}}</td></tr>
+      </tbody>
+    </table>
+  </div></figure>
+  <p>The cross-encoder made this question <strong>worse</strong>. RRF had the one relevant paper it found in 1st place. The cross-encoder moved it to {{e:documents.0.cross_encoder_rank|int}}th and put "Possible neurologic effects of aspartame" first. nDCG@10 dropped from {{e:ndcg@10.rrf|3}} to {{e:ndcg@10.rrf_then_cross_encoder|3}}.</p>
+  <p>Read the question again, though. "Neurologic effects of aspartame", a widely used sweetener, is a reasonable answer to "neurobiology of artificial sweeteners". The disagreement comes from the labels. NFCorpus marks a paper relevant when a NutritionFacts.org article cites it, not when a person judged it a good answer to this exact question.</p>
+  <p>Three more things this small example shows:</p>
+  <ul class="rules">
+    <li><strong>It separates near-misses more clearly.</strong><span>Cosine similarity rated the paper on cherry phenolics ({{e:documents.7.cosine|2}}) as close to the question as the relevant sucrose paper ({{e:documents.0.cosine|2}}). The cross-encoder split them clearly: {{e:documents.7.cross_encoder_score|1}} against {{e:documents.0.cross_encoder_score|1}}.</span></li>
+    <li><strong>It can only reorder what it is given.</strong><span>The two relevant papers the searchers missed got the two lowest scores of all. The cross-encoder also judged them poor answers to this question, another sign of how loosely NFCorpus's labels match the wording of its questions.</span></li>
+    <li><strong>It is not free.</strong><span>Scoring these {{e:pairs_scored|int}} pairs took {{e:milliseconds|0}} ms, after a warm-up call.</span></li>
+  </ul>
+  <p>One question tells us very little, and this one was picked because it teaches well. The next section runs the same test on every question.</p>
+
+  <h2 data-n="06">Across {{d:total.queries|int}} questions</h2>
+  <p>The setup is the one from the RRF post: OpenSearch 2.19.1, BM25 over title and text, all-MiniLM-L6-v2 for meaning search, RRF with k = 60, and the top 100 from each. The data is NFCorpus, SciFact and FiQA from the <a href="https://github.com/beir-cellar/beir">BEIR</a> benchmark, which come with relevance labels for every question.</p>
+  <p>For every question we took each first-stage list, re-sorted its top 100 by cross-encoder score, and measured the new top 10 with <span class="term">nDCG@10</span>. That is a number from 0 to 1 for how good the top 10 is, where a relevant document near the very top counts for more. Higher is better. In total the cross-encoder scored {{d:total.pairs|int}} (question, document) pairs.</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Dataset</th><th>First stage</th><th>nDCG@10 before</th><th>After re-ranking top 100</th><th>Change</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td>keyword</td><td>{{b:datasets.nfcorpus.ndcg@10.keyword.0|3}}</td><td>{{b:datasets.nfcorpus.ndcg@10.keyword.100|3}}</td><td>{{d:gain_pct.nfcorpus.keyword|signed0}}%</td></tr>
+        <tr><th></th><td>meaning</td><td>{{b:datasets.nfcorpus.ndcg@10.meaning.0|3}}</td><td>{{b:datasets.nfcorpus.ndcg@10.meaning.100|3}}</td><td>{{d:gain_pct.nfcorpus.meaning|signed0}}%</td></tr>
+        <tr><th></th><td>RRF</td><td>{{b:datasets.nfcorpus.ndcg@10.rrf.0|3}}</td><td>{{b:datasets.nfcorpus.ndcg@10.rrf.100|3}}</td><td>{{d:gain_pct.nfcorpus.rrf|signed0}}%</td></tr>
+        <tr><th>SciFact</th><td>keyword</td><td>{{b:datasets.scifact.ndcg@10.keyword.0|3}}</td><td>{{b:datasets.scifact.ndcg@10.keyword.100|3}}</td><td>{{d:gain_pct.scifact.keyword|signed0}}%</td></tr>
+        <tr><th></th><td>meaning</td><td>{{b:datasets.scifact.ndcg@10.meaning.0|3}}</td><td>{{b:datasets.scifact.ndcg@10.meaning.100|3}}</td><td>{{d:gain_pct.scifact.meaning|signed0}}%</td></tr>
+        <tr><th></th><td>RRF</td><td>{{b:datasets.scifact.ndcg@10.rrf.0|3}}</td><td>{{b:datasets.scifact.ndcg@10.rrf.100|3}}</td><td>{{d:gain_pct.scifact.rrf|signed0}}%</td></tr>
+        <tr><th>FiQA</th><td>keyword</td><td>{{b:datasets.fiqa.ndcg@10.keyword.0|3}}</td><td>{{b:datasets.fiqa.ndcg@10.keyword.100|3}}</td><td>{{d:gain_pct.fiqa.keyword|signed0}}%</td></tr>
+        <tr><th></th><td>meaning</td><td>{{b:datasets.fiqa.ndcg@10.meaning.0|3}}</td><td>{{b:datasets.fiqa.ndcg@10.meaning.100|3}}</td><td>{{d:gain_pct.fiqa.meaning|signed0}}%</td></tr>
+        <tr><th></th><td>RRF</td><td>{{b:datasets.fiqa.ndcg@10.rrf.0|3}}</td><td>{{b:datasets.fiqa.ndcg@10.rrf.100|3}}</td><td>{{d:gain_pct.fiqa.rrf|signed0}}%</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>The table shows three patterns:</p>
+  <ul class="rules">
+    <li><strong>Re-ranking improved all nine combinations.</strong><span>Every dataset, every first stage. The top 10 got better on average each time.</span></li>
+    <li><strong>The weaker the first stage, the bigger the gain.</strong><span>Keyword search on FiQA was the weakest list in the whole test, and re-ranking lifted it by {{d:gain_pct.fiqa.keyword|signed0}}%. The cross-encoder rescues relevant documents that keyword search found but ranked too low.</span></li>
+    <li><strong>After re-ranking, the first stages end up close together.</strong><span>On SciFact the three lists started between {{b:datasets.scifact.ndcg@10.meaning.0|3}} and {{b:datasets.scifact.ndcg@10.rrf.0|3}}, and finished between {{b:datasets.scifact.ndcg@10.keyword.100|3}} and {{b:datasets.scifact.ndcg@10.meaning.100|3}}. With a re-ranker on top, RRF was no longer clearly the best first stage: re-ranked meaning search scored a little higher on SciFact and FiQA.</span></li>
+  </ul>
+  <p class="src">This run's RRF scores are slightly different from the RRF post's (NFCorpus {{b:datasets.nfcorpus.ndcg@10.rrf.0|4}} here, 0.3418 there). Keyword search matches exactly ({{b:datasets.nfcorpus.ndcg@10.keyword.0|4}} in both). Only meaning search moved ({{b:datasets.nfcorpus.ndcg@10.meaning.0|4}} here, 0.3146 there), which fits the vector index being rebuilt on every run: OpenSearch's k-NN search is approximate, so a rebuilt index can return a slightly different top 100.</p>
+
+  <h2 data-n="07">How many results to re-rank</h2>
+  <p>Re-ranking more candidates gives the cross-encoder more chances to find something good, and costs more time. We re-ranked the top 10, 20, 50 and 100 of the RRF list. Re-ranking only the top 10 cannot bring in anything new; it can only change the order inside the top 10.</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>RRF, then re-rank top</th><th>NFCorpus</th><th>SciFact</th><th>FiQA</th><th>Time per question</th></tr></thead>
+      <tbody>
+        <tr><th>none</th><td>{{b:datasets.nfcorpus.ndcg@10.rrf.0|3}}</td><td>{{b:datasets.scifact.ndcg@10.rrf.0|3}}</td><td>{{b:datasets.fiqa.ndcg@10.rrf.0|3}}</td><td>–</td></tr>
+        <tr><th>10</th><td>{{b:datasets.nfcorpus.ndcg@10.rrf.10|3}}</td><td>{{b:datasets.scifact.ndcg@10.rrf.10|3}}</td><td>{{b:datasets.fiqa.ndcg@10.rrf.10|3}}</td><td>{{b:timing.cross_encoder_rerank.10.median_ms|0}} ms</td></tr>
+        <tr><th>20</th><td>{{b:datasets.nfcorpus.ndcg@10.rrf.20|3}}</td><td>{{b:datasets.scifact.ndcg@10.rrf.20|3}}</td><td>{{b:datasets.fiqa.ndcg@10.rrf.20|3}}</td><td>{{b:timing.cross_encoder_rerank.20.median_ms|0}} ms</td></tr>
+        <tr><th>50</th><td>{{b:datasets.nfcorpus.ndcg@10.rrf.50|3}}</td><td>{{b:datasets.scifact.ndcg@10.rrf.50|3}}</td><td>{{b:datasets.fiqa.ndcg@10.rrf.50|3}}</td><td>{{b:timing.cross_encoder_rerank.50.median_ms|0}} ms</td></tr>
+        <tr><th>100</th><td>{{b:datasets.nfcorpus.ndcg@10.rrf.100|3}}</td><td>{{b:datasets.scifact.ndcg@10.rrf.100|3}}</td><td>{{b:datasets.fiqa.ndcg@10.rrf.100|3}}</td><td>{{b:timing.cross_encoder_rerank.100.median_ms|0}} ms</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="src">Times are medians over {{b:timing.queries_timed|int}} NFCorpus questions, measured without any cache, on {{b:cpus|int}} CPU cores in Docker. NFCorpus documents are research abstracts, so most pairs are long.</p>
+  <p>For RRF, <strong>re-ranking the top 20 did better than re-ranking the top 100</strong> on all three datasets. It also costs about a sixth of the time: {{b:timing.cross_encoder_rerank.20.median_ms|0}} ms instead of {{b:timing.cross_encoder_rerank.100.median_ms|0}} ms per question.</p>
+  <p>The likely reason going deeper hurt: the extra candidates are mostly not relevant, and each one is another chance for the cross-encoder to lift a wrong document into the top 10. Keyword search behaved differently. On NFCorpus and FiQA it kept improving all the way to 100, which suggests its relevant documents often sit further down its list.</p>
+
+  <h2 data-n="08">A re-ranker can only reorder what it is given</h2>
+  <p>If a relevant document is not in the top 100, no re-ranker will find it. Two numbers show how much room stage 2 has:</p>
+  <ul class="rules">
+    <li><strong>Recall@100</strong><span>The share of all relevant documents that the first stage put anywhere in its top 100.</span></li>
+    <li><strong>Perfect re-ranking</strong><span>The nDCG@10 you would get if the top 100 were put in exactly the right order using the labels themselves. No real re-ranker can beat this.</span></li>
+  </ul>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>RRF top 100</th><th>Recall@100</th><th>nDCG@10 before</th><th>After cross-encoder</th><th>Perfect re-ranking</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td>{{b:datasets.nfcorpus.recall@100.rrf|pct}}</td><td>{{b:datasets.nfcorpus.ndcg@10.rrf.0|3}}</td><td>{{b:datasets.nfcorpus.ndcg@10.rrf.100|3}}</td><td>{{b:datasets.nfcorpus.perfect_rerank_ndcg@10.rrf|3}}</td></tr>
+        <tr><th>SciFact</th><td>{{b:datasets.scifact.recall@100.rrf|pct}}</td><td>{{b:datasets.scifact.ndcg@10.rrf.0|3}}</td><td>{{b:datasets.scifact.ndcg@10.rrf.100|3}}</td><td>{{b:datasets.scifact.perfect_rerank_ndcg@10.rrf|3}}</td></tr>
+        <tr><th>FiQA</th><td>{{b:datasets.fiqa.recall@100.rrf|pct}}</td><td>{{b:datasets.fiqa.ndcg@10.rrf.0|3}}</td><td>{{b:datasets.fiqa.ndcg@10.rrf.100|3}}</td><td>{{b:datasets.fiqa.perfect_rerank_ndcg@10.rrf|3}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>On NFCorpus, RRF's top 100 holds only a third of the relevant documents, so two thirds are out of reach before re-ranking starts. Even so, putting that top 100 in perfect order would reach {{b:datasets.nfcorpus.perfect_rerank_ndcg@10.rrf|3}}, and the cross-encoder reached {{b:datasets.nfcorpus.ndcg@10.rrf.100|3}}. The same gap shows on SciFact, where the top 100 already holds {{b:datasets.scifact.recall@100.rrf|pct}} of the relevant documents.</p>
+  <p>So on these datasets the cross-encoder's own judgement is the bigger limit, not the candidate list. It is a small 6-layer model trained on web search questions, and here it is judging nutrition research, scientific claims and personal finance. Larger re-rankers, or ones trained on data closer to these topics, are the usual next step.</p>
+
+  <h2 data-n="09">Question by question</h2>
+  <p>An average can hide a lot. Here is how often re-ranking RRF's top 100 made a question's top 10 better, left it the same, or made it worse:</p>
+  <div class="matrix-wrap">
+    <table class="matrix">
+      <thead><tr><th>Dataset</th><th>Better</th><th>Same</th><th>Worse</th></tr></thead>
+      <tbody>
+        <tr><th>NFCorpus</th><td class="up">{{b:datasets.nfcorpus.rrf_ce100_vs_rrf.better|int}}</td><td>{{b:datasets.nfcorpus.rrf_ce100_vs_rrf.same|int}}</td><td class="down">{{b:datasets.nfcorpus.rrf_ce100_vs_rrf.worse|int}}</td></tr>
+        <tr><th>SciFact</th><td class="up">{{b:datasets.scifact.rrf_ce100_vs_rrf.better|int}}</td><td>{{b:datasets.scifact.rrf_ce100_vs_rrf.same|int}}</td><td class="down">{{b:datasets.scifact.rrf_ce100_vs_rrf.worse|int}}</td></tr>
+        <tr><th>FiQA</th><td class="up">{{b:datasets.fiqa.rrf_ce100_vs_rrf.better|int}}</td><td>{{b:datasets.fiqa.rrf_ce100_vs_rrf.same|int}}</td><td class="down">{{b:datasets.fiqa.rrf_ce100_vs_rrf.worse|int}}</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>On SciFact, re-ranking made {{b:datasets.scifact.rrf_ce100_vs_rrf.worse|int}} questions worse and only {{b:datasets.scifact.rrf_ce100_vs_rrf.better|int}} better. The average still went up, because the wins were bigger than the losses. Two SciFact questions show both sides:</p>
+  <ul class="rules">
+    <li><strong>Helped: "{{b:datasets.scifact.examples.2.query|text}}"</strong><span>nDCG@10 went from {{b:datasets.scifact.examples.2.ndcg@10.rrf|3}} to {{b:datasets.scifact.examples.2.ndcg@10.rrf_then_cross_encoder|3}}. RRF's first result was "{{b:datasets.scifact.examples.2.rrf_top3.0.title|text}}" (relevance {{b:datasets.scifact.examples.2.rrf_top3.0.relevance|int}}). The cross-encoder's first result was "{{b:datasets.scifact.examples.2.cross_encoder_top3.0.title|text}}" (relevance {{b:datasets.scifact.examples.2.cross_encoder_top3.0.relevance|int}}).</span></li>
+    <li><strong>Hurt: "{{b:datasets.scifact.examples.5.query|text}}"</strong><span>nDCG@10 went from {{b:datasets.scifact.examples.5.ndcg@10.rrf|3}} to {{b:datasets.scifact.examples.5.ndcg@10.rrf_then_cross_encoder|3}}. RRF's first result was "{{b:datasets.scifact.examples.5.rrf_top3.0.title|text}}" (relevance {{b:datasets.scifact.examples.5.rrf_top3.0.relevance|int}}). The cross-encoder's first result was "{{b:datasets.scifact.examples.5.cross_encoder_top3.0.title|text}}" (relevance {{b:datasets.scifact.examples.5.cross_encoder_top3.0.relevance|int}}).</span></li>
+  </ul>
+
+  <h2 data-n="10">In code</h2>
+  <p>With LangChain4j, a cross-encoder is a <code>ScoringModel</code>. You give it the question and the candidate texts, and you get one score per candidate back. This is the core of the lab's <code>Reranker.java</code>:</p>
+<pre><span class="k">var</span> model = <span class="k">new</span> OnnxScoringModel(<span class="s">"model.onnx"</span>, <span class="s">"tokenizer.json"</span>);   <span class="c">// ms-marco-MiniLM-L6-v2</span>
+
+List&lt;TextSegment&gt; texts = candidates.stream()
+        .map(doc -&gt; TextSegment.from(doc.title() + <span class="s">" "</span> + doc.text()))
+        .toList();
+List&lt;Double&gt; scores = model.scoreAll(texts, question).content();
+
+<span class="c">// Sort the candidates by score, highest first. That is the whole re-ranking step.</span></pre>
+  <p>The model runs inside the Java process with ONNX Runtime, so no Python or separate server is needed. Inside OpenSearch, the same step can be done with a <a href="https://docs.opensearch.org/latest/search-plugins/search-pipelines/rerank-processor/">rerank processor</a> in a search pipeline, using a cross-encoder model deployed through ML Commons.</p>
+
+  <h2>Summary</h2>
+  <ol class="steps">
+    <li class="step"><strong>Meaning search reads the question and each document separately.</strong><span>Documents become 384 numbers ahead of time, so search takes milliseconds, but the model never sees the question and the document together. (Section 02)</span></li>
+    <li class="step"><strong>A cross-encoder reads them together.</strong><span>It joins the question and one document and outputs one score. It is more careful, and it has to run again for every pair. (Section 03)</span></li>
+    <li class="step"><strong>So it only re-ranks a short list.</strong><span>Re-ranking 100 candidates took {{b:timing.cross_encoder_rerank.100.median_ms|0}} ms per question on CPU. Scoring all of NFCorpus would take about {{b:timing.whole_corpus_estimated_seconds_per_query|0}} seconds per question. (Section 04)</span></li>
+    <li class="step"><strong>It can disagree with the labels.</strong><span>On the worked example it moved the one labelled paper from 1st to {{e:documents.0.cross_encoder_rank|int}}th, in favour of a paper that arguably fits the question better. (Section 05)</span></li>
+    <li class="step"><strong>Across all questions:</strong><span>re-ranking RRF's top 100 changed nDCG@10 by {{d:gain_pct.nfcorpus.rrf|signed0}}% on NFCorpus, {{d:gain_pct.scifact.rrf|signed0}}% on SciFact and {{d:gain_pct.fiqa.rrf|signed0}}% on FiQA. (Sections 06 and 07)</span></li>
+    <li class="step"><strong>Re-rank the top 20, not the top 100.</strong><span>For RRF, the top 20 did better on all three datasets and took about a sixth of the time. (Section 07)</span></li>
+    <li class="step"><strong>It cannot find what stage 1 missed.</strong><span>RRF's top 100 held {{b:datasets.nfcorpus.recall@100.rrf|pct}} of the relevant NFCorpus documents. Even within those, a perfect order would score far higher than the cross-encoder did. (Section 08)</span></li>
+  </ol>
+
+  <h2 data-n="11">Run it yourself</h2>
+  <p>The lab is Java 21 with OpenSearch in Docker, the same setup as the RRF lab.</p>
+<pre class="term"><span class="prompt">$</span> docker compose run --rm --build lab example     <span class="out"># section 05, about a minute</span>
+<span class="prompt">$</span> docker compose run --rm --build lab benchmark   <span class="out"># sections 04 and 06–09</span>
+<span class="prompt">$</span> docker compose down
+<span class="prompt">$</span> python3 blog/build_page.py                      <span class="out"># rebuild this page from out/*.json</span></pre>
+  <p>The first benchmark run scores {{d:total.pairs|int}} pairs on the CPU and saves the scores in <code>cache/scores/</code>, so later runs only redo the arithmetic. The timing section never uses that cache.</p>
+
+</section>
+
+<section id="sources">
+  <h2>Sources</h2>
+  <ul class="sources">
+    <li><a href="https://huggingface.co/cross-encoder/ms-marco-MiniLM-L6-v2">cross-encoder/ms-marco-MiniLM-L6-v2</a>, revision {{b:model_revision|text}}. The model card's speed and quality table, including the V100 figure.</li>
+    <li>N. Thakur et al., <a href="https://arxiv.org/abs/2104.08663">BEIR: A Heterogeneous Benchmark for Zero-shot Evaluation of Information Retrieval Models</a>, NeurIPS 2021 Datasets and Benchmarks. The source of NFCorpus, SciFact and FiQA.</li>
+    <li><a href="https://microsoft.github.io/msmarco/">MS MARCO</a>, the Bing question-and-passage dataset the cross-encoder was trained on.</li>
+    <li><a href="https://www.sbert.net/examples/applications/retrieve_rerank/README.html">Retrieve &amp; Re-Rank</a>, Sentence Transformers documentation. The two-stage pattern this post tests.</li>
+    <li>LangChain4j <code>langchain4j-onnx-scoring</code> 1.20.0-beta30, and OpenSearch's <a href="https://docs.opensearch.org/latest/search-plugins/search-pipelines/rerank-processor/">rerank processor</a>.</li>
+    <li>The previous post: <a href="https://medium.com/jinternals/reciprocal-rank-fusion-without-the-scary-math-68421476c505">Reciprocal Rank Fusion, Without the Scary Math</a>.</li>
+  </ul>
+</section>
+
+</article>
+
+{{JS}}

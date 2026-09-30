@@ -1,0 +1,133 @@
+{
+  "model": "mlx-community/Qwen2.5-0.5B-Instruct-bf16",
+  "step": 203,
+  "text_before": " This method has since become a fundamental tool in the study of",
+  "by_batch": {
+    "1": [
+      [
+        " particle",
+        21.0
+      ],
+      [
+        " quantum",
+        21.0
+      ],
+      [
+        " physics",
+        20.75
+      ]
+    ],
+    "2": [
+      [
+        " quantum",
+        21.125
+      ],
+      [
+        " particle",
+        21.0
+      ],
+      [
+        " physics",
+        20.75
+      ]
+    ],
+    "3": [
+      [
+        " particle",
+        21.0
+      ],
+      [
+        " quantum",
+        21.0
+      ],
+      [
+        " physics",
+        20.625
+      ]
+    ],
+    "4": [
+      [
+        " quantum",
+        21.125
+      ],
+      [
+        " particle",
+        21.0
+      ],
+      [
+        " physics",
+        20.75
+      ]
+    ],
+    "8": [
+      [
+        " quantum",
+        21.0
+      ],
+      [
+        " particle",
+        20.875
+      ],
+      [
+        " physics",
+        20.625
+      ]
+    ],
+    "16": [
+      [
+        " particle",
+        21.0
+      ],
+      [
+        " quantum",
+        21.0
+      ],
+      [
+        " physics",
+        20.75
+      ]
+    ],
+    "32": [
+      [
+        " particle",
+        21.0
+      ],
+      [
+        " quantum",
+        21.0
+      ],
+      [
+        " physics",
+        20.75
+      ]
+    ],
+    "64": [
+      [
+        " quantum",
+        21.0
+      ],
+      [
+        " particle",
+        20.875
+      ],
+      [
+        " physics",
+        20.625
+      ]
+    ],
+    "128": [
+      [
+        " particle",
+        21.0
+      ],
+      [
+        " quantum",
+        21.0
+      ],
+      [
+        " physics",
+        20.75
+      ]
+    ]
+  }
+}

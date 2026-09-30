@@ -1,0 +1,128 @@
+{
+  "dataset" : "nfcorpus",
+  "query_id" : "PLAIN-2830",
+  "query" : "Neurobiology of Artificial Sweeteners",
+  "model" : "cross-encoder/ms-marco-MiniLM-L6-v2",
+  "model_revision" : "233902d25c440f23af6f7d6e94d2946bac0bee0a",
+  "top_n" : 5,
+  "k" : 60,
+  "pairs_scored" : 10,
+  "milliseconds" : 391.5,
+  "rrf_order" : [ "MED-4120", "MED-1625", "MED-5054", "MED-1624", "MED-1623", "MED-5053", "MED-3380", "MED-3521" ],
+  "cross_encoder_order" : [ "MED-1623", "MED-5054", "MED-1624", "MED-4120", "MED-1625", "MED-5053", "MED-3521", "MED-3380" ],
+  "ndcg@10" : {
+    "rrf" : 0.6388,
+    "rrf_then_cross_encoder" : 0.2751
+  },
+  "documents" : [ {
+    "id" : "MED-4120",
+    "title" : "Sucrose activates human taste pathways differently from artificial sweetener.",
+    "relevance" : 2,
+    "keyword_rank" : 2,
+    "meaning_rank" : 4,
+    "rrf_rank" : 1,
+    "rrf_score" : 0.031754032258064516,
+    "cosine" : 0.6139,
+    "cross_encoder_score" : 2.447,
+    "cross_encoder_rank" : 4
+  }, {
+    "id" : "MED-1625",
+    "title" : "Sugar substitutes: Health controversy over perceived benefits",
+    "relevance" : 0,
+    "keyword_rank" : 3,
+    "meaning_rank" : 3,
+    "rrf_rank" : 2,
+    "rrf_score" : 0.031746031746031744,
+    "cosine" : 0.6222,
+    "cross_encoder_score" : 1.532,
+    "cross_encoder_rank" : 5
+  }, {
+    "id" : "MED-5054",
+    "title" : "The potential toxicity of artificial sweeteners.",
+    "relevance" : 0,
+    "keyword_rank" : 1,
+    "meaning_rank" : null,
+    "rrf_rank" : 3,
+    "rrf_score" : 0.01639344262295082,
+    "cosine" : 0.5836,
+    "cross_encoder_score" : 3.309,
+    "cross_encoder_rank" : 2
+  }, {
+    "id" : "MED-1624",
+    "title" : "Direct and indirect cellular effects of aspartame on the brain.",
+    "relevance" : 0,
+    "keyword_rank" : null,
+    "meaning_rank" : 1,
+    "rrf_rank" : 4,
+    "rrf_score" : 0.01639344262295082,
+    "cosine" : 0.6863,
+    "cross_encoder_score" : 3.26,
+    "cross_encoder_rank" : 3
+  }, {
+    "id" : "MED-1623",
+    "title" : "Possible neurologic effects of aspartame, a widely used food additive.",
+    "relevance" : 0,
+    "keyword_rank" : null,
+    "meaning_rank" : 2,
+    "rrf_rank" : 5,
+    "rrf_score" : 0.016129032258064516,
+    "cosine" : 0.6398,
+    "cross_encoder_score" : 3.502,
+    "cross_encoder_rank" : 1
+  }, {
+    "id" : "MED-5053",
+    "title" : "Artificial sweetener consumption and urinary tract tumors in Cordoba, Argentina.",
+    "relevance" : 0,
+    "keyword_rank" : 4,
+    "meaning_rank" : null,
+    "rrf_rank" : 6,
+    "rrf_score" : 0.015625,
+    "cosine" : 0.4666,
+    "cross_encoder_score" : -0.55,
+    "cross_encoder_rank" : 6
+  }, {
+    "id" : "MED-3380",
+    "title" : "Artificial food dyes and attention deficit hyperactivity disorder.",
+    "relevance" : 0,
+    "keyword_rank" : 5,
+    "meaning_rank" : null,
+    "rrf_rank" : 7,
+    "rrf_score" : 0.015384615384615385,
+    "cosine" : 0.4585,
+    "cross_encoder_score" : -6.127,
+    "cross_encoder_rank" : 8
+  }, {
+    "id" : "MED-3521",
+    "title" : "Sweet and sour cherry phenolics and their protective effects on neuronal cells.",
+    "relevance" : 0,
+    "keyword_rank" : null,
+    "meaning_rank" : 5,
+    "rrf_rank" : 8,
+    "rrf_score" : 0.015384615384615385,
+    "cosine" : 0.6065,
+    "cross_encoder_score" : -2.358,
+    "cross_encoder_rank" : 7
+  }, {
+    "id" : "MED-4121",
+    "title" : "Effect of covert nutritive dilution on the spontaneous food intake of obese individuals: a pilot study.",
+    "relevance" : 1,
+    "keyword_rank" : null,
+    "meaning_rank" : null,
+    "rrf_rank" : null,
+    "rrf_score" : 0.0,
+    "cosine" : 0.3398,
+    "cross_encoder_score" : -8.885,
+    "cross_encoder_rank" : null
+  }, {
+    "id" : "MED-4124",
+    "title" : "Erythritol is a sweet antioxidant.",
+    "relevance" : 1,
+    "keyword_rank" : null,
+    "meaning_rank" : null,
+    "rrf_rank" : null,
+    "rrf_score" : 0.0,
+    "cosine" : 0.3179,
+    "cross_encoder_score" : -7.373,
+    "cross_encoder_rank" : null
+  } ]
+}
