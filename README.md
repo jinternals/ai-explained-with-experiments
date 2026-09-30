@@ -13,6 +13,8 @@ The three search posts build on each other; the LLM post stands on its own.
 3. **[Cross-encoder re-ranking](CrossEncoder/)**: re-sorting the top results with a slower, more careful model.
 4. **[Nondeterminism in LLM inference](LLMs/nondeterminism/)**: why temperature 0 can still give different answers.
 
+Also in the repository: **[Apple Foundation Model server](apple-foundation-model/)**, a macOS app that lets Open WebUI and other chat apps use the language model built into macOS.
+
 ## Getting started
 
 ```bash
@@ -38,6 +40,7 @@ The posts themselves are plain HTML files (`blog/index.html` or `blog/rrf-blog.h
 | [**Reciprocal Rank Fusion**](RRF/) | How does hybrid search merge a keyword list and a meaning list into one? | On 1,271 BEIR questions, RRF beat both searchers on NFCorpus (+9%) and SciFact (+4%), and lost on FiQA (−5%), where one searcher is much weaker. | Java 21, OpenSearch 2.19.1, Docker |
 | [**Cross-encoder re-ranking**](CrossEncoder/) | Does a slower model that reads the question and each document together improve search results, and what does it cost? | Re-ranking improved all 9 combinations of dataset and first stage (keyword search on FiQA +40%). For RRF, re-ranking the top 20 beat the top 100 at a sixth of the time: 0.67 s vs 4.0 s per question on CPU. | Java 21, OpenSearch 2.19.1, ONNX, Docker |
 | [**Nondeterminism in LLM inference**](LLMs/nondeterminism/) | Why can a model at temperature 0 give different answers to the same question? | The same calculation repeats bit for bit. The batch size changes the order of additions. A 0.5B model gave 8 different answers across 11 batch sizes, and 4 of 4 identical ones with the batch size fixed. | Python, MLX, Apple Silicon |
+| [**Apple Foundation Model server**](apple-foundation-model/) | Can chat apps like Open WebUI use the language model built into macOS? | Yes: a menu-bar app serves it through an OpenAI-compatible API. Tested with Open WebUI v0.11.4 and the OpenAI Python SDK: streaming, conversation history and OpenAI-style errors all work. The larger Private Cloud Compute model needs an entitlement from Apple. | Swift, Foundation Models, macOS 27 |
 
 ## BM25
 
@@ -101,13 +104,20 @@ python lab/model_experiment.py           # a real model, ~4 minutes, 1 GB downlo
 
 Needs an Apple Silicon Mac for everything except `rounding.py`. Details are in [LLMs/nondeterminism/README.md](LLMs/nondeterminism/README.md).
 
-## Tools
+## Apple Foundation Model server
 
-Apps built along the way, not posts, so they don't use the `blog/ lab/ out/` layout.
+`apple-foundation-model/` · a tool, not a post
 
-| Tool | What it does |
-|---|---|
-| [**apple-foundation-model**](apple-foundation-model/) | A macOS menu-bar app that serves Apple's on-device Foundation Model through an OpenAI-compatible API (`/v1/models`, `/v1/chat/completions`, streaming), so Open WebUI and other chat apps can use it. It has a log window and a `docker-compose.yml` that starts Open WebUI already connected. Swift, no dependencies. |
+macOS 27 includes a language model that runs entirely on your Mac, but Apple only exposes it to Swift code. This menu-bar app wraps it in the OpenAI API (`GET /v1/models`, `POST /v1/chat/completions`, with streaming), so Open WebUI and other chat apps can use it like any other model. It has a log window, an optional API key, and no third-party dependencies.
+
+```bash
+cd apple-foundation-model
+scripts/build-app.sh --install                  # build, sign and copy to ~/Applications
+open ~/Applications/"Foundation Model Server.app"
+docker compose up -d                            # Open WebUI at http://localhost:3000, already connected
+```
+
+Base URL: `http://127.0.0.1:11535/v1` (from Docker: `http://host.docker.internal:11535/v1`). Needs an Apple Silicon Mac with macOS 27, Apple Intelligence turned on, and Xcode 27. Details, including how to use Apple's Private Cloud Compute model, are in [apple-foundation-model/README.md](apple-foundation-model/README.md).
 
 ## Layout
 
