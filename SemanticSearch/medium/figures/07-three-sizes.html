@@ -1,0 +1,11 @@
+<table class="t"><thead><tr><th>Size</th><th>Compared</th><th class="n">Cosine</th></tr></thead><tbody>
+<tr><th rowspan="3">Word</th><td>bank · river</td><td class="n">0.500</td></tr>
+<tr><td>bank · money</td><td class="n">0.469</td></tr>
+<tr><td>river · money</td><td class="n">0.358</td></tr>
+<tr><th rowspan="3">Sentence</th><td>river bank · savings bank <span class="muted">(share “bank”)</span></td><td class="n loss">0.262</td></tr>
+<tr><td>river bank · picnic by the stream <span class="muted">(share nothing)</span></td><td class="n win">0.394</td></tr>
+<tr><td>savings bank · salary into an account</td><td class="n win">0.412</td></tr>
+<tr><th rowspan="2">Paragraph</th><td>parking question · the parking sentence alone</td><td class="n win">0.743</td></tr>
+<tr><td>parking question · the whole three-sentence paragraph</td><td class="n loss">0.507</td></tr>
+</tbody></table>
+<p class="cap">all-MiniLM-L6-v2, real 384-number vectors. Sentences: “She sat on the bank of the river and watched the water.” / “He opened a savings account at the bank.” / “They had a picnic beside the stream.” / “She paid her salary into her current account.”</p>
