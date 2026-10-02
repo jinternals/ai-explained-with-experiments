@@ -16,6 +16,8 @@ The four search posts build on each other; the LLM post stands on its own.
 
 Also in the repository: **[Apple Foundation Model server](apple-foundation-model/)**, a macOS app that lets Open WebUI and other chat apps use the language model built into macOS.
 
+**[Papers](papers/)**: research papers saved for reading, with an index of what each one is about.
+
 ## Getting started
 
 ```bash
@@ -173,11 +175,12 @@ AI/
 │       ├── blog/      index.html, page/ (source), build_page.py
 │       ├── lab/       rounding, batch_invariance, experiments, model_experiment, logit_gap
 │       └── out/       JSON results, named after the chip
-└── apple-foundation-model/
-    ├── Sources/       the server (FMServerCore) and the menu-bar app
-    ├── Tests/         unit tests
-    ├── Resources/     the app icon
-    └── scripts/       build-app.sh, make-icon.swift
+├── apple-foundation-model/
+│   ├── Sources/       the server (FMServerCore) and the menu-bar app
+│   ├── Tests/         unit tests
+│   ├── Resources/     the app icon
+│   └── scripts/       build-app.sh, make-icon.swift
+└── papers/            PDFs of papers to read, indexed in papers/README.md
 ```
 
 ## What isn't in the repository
