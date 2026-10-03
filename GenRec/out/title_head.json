@@ -1,0 +1,61 @@
+{
+  "valid_people": 200,
+  "popularity alone": {
+    "mrr": 0.0336,
+    "ndcg@10": 0.0334,
+    "recall@10": 0.06,
+    "median_rank": 324.25
+  },
+  "original model": {
+    "first word": {
+      "mrr": 0.0009,
+      "ndcg@10": 0.0,
+      "recall@10": 0.0,
+      "median_rank": 2042.5
+    },
+    "first word + popularity": {
+      "mrr": 0.0209,
+      "ndcg@10": 0.0252,
+      "recall@10": 0.05,
+      "median_rank": 1367.0
+    },
+    "all words": {
+      "mrr": 0.0037,
+      "ndcg@10": 0.0039,
+      "recall@10": 0.01,
+      "median_rank": 1448.0
+    },
+    "all words + popularity": {
+      "mrr": 0.0161,
+      "ndcg@10": 0.012,
+      "recall@10": 0.02,
+      "median_rank": 433.0
+    }
+  },
+  "run check300": {
+    "first word": {
+      "mrr": 0.001,
+      "ndcg@10": 0.0,
+      "recall@10": 0.0,
+      "median_rank": 1807.5
+    },
+    "first word + popularity": {
+      "mrr": 0.0184,
+      "ndcg@10": 0.0231,
+      "recall@10": 0.05,
+      "median_rank": 1179.0
+    },
+    "all words": {
+      "mrr": 0.0087,
+      "ndcg@10": 0.0072,
+      "recall@10": 0.01,
+      "median_rank": 1498.0
+    },
+    "all words + popularity": {
+      "mrr": 0.0301,
+      "ndcg@10": 0.0288,
+      "recall@10": 0.045,
+      "median_rank": 374.0
+    }
+  }
+}

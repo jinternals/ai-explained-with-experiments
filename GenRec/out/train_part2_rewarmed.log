@@ -1,0 +1,9 @@
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 6701.36it/s]
+Starting from the weights at the end of run 'part1'
+Run 'part2': 20,000 examples (7,636 are 5★), 2,494 steps of up to 7,600 tokens (about 8.0 prompts), 12.1M trainable parameters, reward weighting off, language loss on all tokens, alpha 0.5
+step     0/2494    1.2 min  ranking nan  language nan  scale 22.55 valid MRR 0.0621  nDCG@10 0.0666  Recall@10 0.116  median rank 196  *best*
+step    50/2494    4.1 min  ranking 7.133  language 0.597  memory 1.2 GB (peak 25.1) + cache 2.1 GB
+step   100/2494    7.0 min  ranking 7.484  language 0.736  memory 1.2 GB (peak 25.2) + cache 2.1 GB
+step   150/2494    9.9 min  ranking 7.325  language 0.833  memory 1.2 GB (peak 25.3) + cache 2.1 GB
+step   200/2494   12.8 min  ranking 7.319  language 0.842  memory 1.2 GB (peak 25.3) + cache 2.1 GB
+step   250/2494   16.9 min  ranking 7.297  language 0.752  scale 14.02 valid MRR 0.0296  nDCG@10 0.0319  Recall@10 0.068  median rank 236

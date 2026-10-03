@@ -1,0 +1,8 @@
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 3523.97it/s]
+Run 'part1': 20,000 examples (7,540 are 5★), 2,500 steps of 8, 12.9M trainable parameters, reward weighting off
+step     0/2500    1.1 min  loss nan  valid MRR 0.0047  nDCG@10 0.0027  Recall@10 0.004  median rank 1788  *best*
+step    50/2500    3.8 min  loss 8.229
+step   100/2500    6.6 min  loss 8.619
+step   150/2500    9.1 min  loss 8.299
+step   200/2500   11.6 min  loss 7.966
+step   250/2500   15.5 min  loss 8.224  valid MRR 0.0110  nDCG@10 0.0094  Recall@10 0.020  median rank 638  *best*

@@ -1,0 +1,32 @@
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 2480.04it/s]
+Read 500 valid prompts (0.8 min)
+Read 8,000 train prompts (15.3 min)
+Vectors: 8,000 training, 500 validation, 896 numbers each
+popularity alone: MRR 0.0323  nDCG@10 0.0316  median rank 311
+
+centre      cosine fan         lr 0.001  best epoch  9  MRR 0.0264  nDCG@10 0.0253  median rank  312  train loss 7.35 -> 6.83  (2.3 s)
+centre      cosine fan         lr 0.01   best epoch  1  MRR 0.0327  nDCG@10 0.0318  median rank  308  train loss 7.33 -> 0.18  (1.7 s)
+centre      cosine title words lr 0.001  best epoch  4  MRR 0.0346  nDCG@10 0.0365  median rank  274  train loss 7.31 -> 2.60  (1.7 s)
+centre      cosine title words lr 0.01   best epoch  1  MRR 0.0331  nDCG@10 0.0312  median rank  294  train loss 7.37 -> 0.02  (1.8 s)
+centre      cosine random      lr 0.001  best epoch  4  MRR 0.0345  nDCG@10 0.0369  median rank  268  train loss 7.31 -> 2.62  (1.9 s)
+centre      cosine random      lr 0.01   best epoch  1  MRR 0.0335  nDCG@10 0.0327  median rank  286  train loss 7.36 -> 0.02  (1.9 s)
+centre      dot    fan         lr 0.001  best epoch  7  MRR 0.0253  nDCG@10 0.0256  median rank  508  train loss 9.71 -> 0.02  (1.4 s)
+centre      dot    fan         lr 0.01   best epoch  2  MRR 0.0166  nDCG@10 0.0190  median rank 1304  train loss 69.29 -> 0.15  (1.4 s)
+centre      dot    title words lr 0.001  best epoch  7  MRR 0.0259  nDCG@10 0.0256  median rank  523  train loss 9.47 -> 0.02  (1.3 s)
+centre      dot    title words lr 0.01   best epoch  7  MRR 0.0199  nDCG@10 0.0203  median rank 1160  train loss 69.63 -> 0.15  (1.3 s)
+centre      dot    random      lr 0.001  best epoch  8  MRR 0.0243  nDCG@10 0.0243  median rank  561  train loss 9.58 -> 0.02  (1.3 s)
+centre      dot    random      lr 0.01   best epoch  3  MRR 0.0184  nDCG@10 0.0190  median rank 1270  train loss 69.05 -> 0.16  (1.3 s)
+standardise cosine fan         lr 0.001  best epoch  7  MRR 0.0280  nDCG@10 0.0271  median rank  315  train loss 7.33 -> 5.60  (1.7 s)
+standardise cosine fan         lr 0.01   best epoch  1  MRR 0.0324  nDCG@10 0.0342  median rank  292  train loss 7.32 -> 0.01  (1.7 s)
+standardise cosine title words lr 0.001  best epoch  7  MRR 0.0335  nDCG@10 0.0367  median rank  278  train loss 7.30 -> 2.43  (1.7 s)
+standardise cosine title words lr 0.01   best epoch  1  MRR 0.0339  nDCG@10 0.0360  median rank  290  train loss 7.34 -> 0.02  (1.7 s)
+standardise cosine random      lr 0.001  best epoch  4  MRR 0.0343  nDCG@10 0.0369  median rank  273  train loss 7.31 -> 2.53  (1.7 s)
+standardise cosine random      lr 0.01   best epoch  1  MRR 0.0334  nDCG@10 0.0330  median rank  283  train loss 7.36 -> 0.02  (1.7 s)
+standardise dot    fan         lr 0.001  best epoch 11  MRR 0.0292  nDCG@10 0.0281  median rank  428  train loss 8.34 -> 0.07  (1.3 s)
+standardise dot    fan         lr 0.01   best epoch  7  MRR 0.0187  nDCG@10 0.0168  median rank 1065  train loss 28.93 -> 0.03  (1.3 s)
+standardise dot    title words lr 0.001  best epoch 20  MRR 0.0279  nDCG@10 0.0274  median rank  431  train loss 7.77 -> 0.07  (1.3 s)
+standardise dot    title words lr 0.01   best epoch  2  MRR 0.0147  nDCG@10 0.0148  median rank 1174  train loss 28.90 -> 0.05  (1.3 s)
+standardise dot    random      lr 0.001  best epoch  5  MRR 0.0281  nDCG@10 0.0282  median rank  374  train loss 7.93 -> 0.07  (1.3 s)
+standardise dot    random      lr 0.01   best epoch  5  MRR 0.0183  nDCG@10 0.0177  median rank 1074  train loss 28.65 -> 0.04  (1.3 s)
+
+Best: centre, cosine, title words, lr 0.001: MRR 0.0346 (popularity 0.0323). Wrote out/probe.json and cache/probe_head.safetensors

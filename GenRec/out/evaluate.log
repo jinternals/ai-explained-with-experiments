@@ -1,0 +1,23 @@
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 3243.02it/s]
+Scored part1:last on 6,035 test people in 15.2 min
+Scored full40k:best on 6,035 test people in 16.5 min
+Scored full40k:last on 6,035 test people in 15.9 min
+
+Test set: 6,035 people, 3,706 movies
+  method                         MRR  nDCG@10  Recall@10  median   MRR vs item-kNN (95%)     nDCG@10 vs item-kNN (95%)
+  popular                     0.0231   0.0222     0.0461     340   -0.0440 [-0.0483, -0.0394]   [-0.0575, -0.0468]
+  item-kNN, last 5 likes      0.0671   0.0744     0.1374     141
+  GenRec part1:last           0.0513   0.0566     0.1074     221   -0.0157 [-0.0210, -0.0105]   [-0.0238, -0.0115]
+  GenRec full40k:best         0.0793   0.0901     0.1657     118   +0.0122 [+0.0067, +0.0176]   [+0.0093, +0.0218]
+  GenRec full40k:last         0.0820   0.0926     0.1685     115   +0.0149 [+0.0094, +0.0206]   [+0.0120, +0.0246]
+
+MRR by history length:
+  method                       up to 50 past ratings               51 to 150                over 150
+  (people)                                     1,865                   2,121                   2,049
+  popular                                     0.0265                  0.0218                  0.0212
+  item-kNN, last 5 likes                      0.0763                  0.0674                  0.0583
+  GenRec part1:last                           0.0702                  0.0480                  0.0376
+  GenRec full40k:best                         0.1077                  0.0747                  0.0581
+  GenRec full40k:last                         0.1117                  0.0768                  0.0604
+
+Wrote out/evaluate.json

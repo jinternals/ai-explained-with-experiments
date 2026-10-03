@@ -1,0 +1,195 @@
+{
+  "test_people": 6035,
+  "bootstrap": 2000,
+  "methods": {
+    "popular": {
+      "mrr": 0.0231,
+      "ndcg@10": 0.0222,
+      "recall@10": 0.0461,
+      "median_rank": 340.5,
+      "groups": {
+        "up to 50 past ratings": {
+          "mrr": 0.0265,
+          "ndcg@10": 0.0258,
+          "recall@10": 0.0552,
+          "median_rank": 286.0,
+          "n": 1865
+        },
+        "51 to 150": {
+          "mrr": 0.0218,
+          "ndcg@10": 0.0202,
+          "recall@10": 0.041,
+          "median_rank": 352.5,
+          "n": 2121
+        },
+        "over 150": {
+          "mrr": 0.0212,
+          "ndcg@10": 0.021,
+          "recall@10": 0.0429,
+          "median_rank": 397.0,
+          "n": 2049
+        }
+      },
+      "vs_item_knn": {
+        "mrr": -0.044,
+        "mrr_95": [
+          -0.0483,
+          -0.0394
+        ],
+        "ndcg@10_95": [
+          -0.0575,
+          -0.0468
+        ]
+      }
+    },
+    "item-kNN, last 5 likes": {
+      "mrr": 0.0671,
+      "ndcg@10": 0.0744,
+      "recall@10": 0.1374,
+      "median_rank": 141.0,
+      "groups": {
+        "up to 50 past ratings": {
+          "mrr": 0.0763,
+          "ndcg@10": 0.0845,
+          "recall@10": 0.156,
+          "median_rank": 100.0,
+          "n": 1865
+        },
+        "51 to 150": {
+          "mrr": 0.0674,
+          "ndcg@10": 0.0749,
+          "recall@10": 0.1386,
+          "median_rank": 132.0,
+          "n": 2121
+        },
+        "over 150": {
+          "mrr": 0.0583,
+          "ndcg@10": 0.0647,
+          "recall@10": 0.1191,
+          "median_rank": 186.0,
+          "n": 2049
+        }
+      }
+    },
+    "GenRec part1:last": {
+      "mrr": 0.0513,
+      "ndcg@10": 0.0566,
+      "recall@10": 0.1074,
+      "median_rank": 221.0,
+      "groups": {
+        "up to 50 past ratings": {
+          "mrr": 0.0702,
+          "ndcg@10": 0.0789,
+          "recall@10": 0.1464,
+          "median_rank": 136.0,
+          "n": 1865
+        },
+        "51 to 150": {
+          "mrr": 0.048,
+          "ndcg@10": 0.0523,
+          "recall@10": 0.1018,
+          "median_rank": 208.0,
+          "n": 2121
+        },
+        "over 150": {
+          "mrr": 0.0376,
+          "ndcg@10": 0.0409,
+          "recall@10": 0.0776,
+          "median_rank": 335.0,
+          "n": 2049
+        }
+      },
+      "vs_item_knn": {
+        "mrr": -0.0157,
+        "mrr_95": [
+          -0.021,
+          -0.0105
+        ],
+        "ndcg@10_95": [
+          -0.0238,
+          -0.0115
+        ]
+      }
+    },
+    "GenRec full40k:best": {
+      "mrr": 0.0793,
+      "ndcg@10": 0.0901,
+      "recall@10": 0.1657,
+      "median_rank": 118.0,
+      "groups": {
+        "up to 50 past ratings": {
+          "mrr": 0.1077,
+          "ndcg@10": 0.1236,
+          "recall@10": 0.2188,
+          "median_rank": 75.0,
+          "n": 1865
+        },
+        "51 to 150": {
+          "mrr": 0.0747,
+          "ndcg@10": 0.0848,
+          "recall@10": 0.1622,
+          "median_rank": 107.0,
+          "n": 2121
+        },
+        "over 150": {
+          "mrr": 0.0581,
+          "ndcg@10": 0.0649,
+          "recall@10": 0.121,
+          "median_rank": 204.0,
+          "n": 2049
+        }
+      },
+      "vs_item_knn": {
+        "mrr": 0.0122,
+        "mrr_95": [
+          0.0067,
+          0.0176
+        ],
+        "ndcg@10_95": [
+          0.0093,
+          0.0218
+        ]
+      }
+    },
+    "GenRec full40k:last": {
+      "mrr": 0.082,
+      "ndcg@10": 0.0926,
+      "recall@10": 0.1685,
+      "median_rank": 115.0,
+      "groups": {
+        "up to 50 past ratings": {
+          "mrr": 0.1117,
+          "ndcg@10": 0.1261,
+          "recall@10": 0.2182,
+          "median_rank": 72.0,
+          "n": 1865
+        },
+        "51 to 150": {
+          "mrr": 0.0768,
+          "ndcg@10": 0.0887,
+          "recall@10": 0.1716,
+          "median_rank": 106.0,
+          "n": 2121
+        },
+        "over 150": {
+          "mrr": 0.0604,
+          "ndcg@10": 0.0662,
+          "recall@10": 0.1201,
+          "median_rank": 205.0,
+          "n": 2049
+        }
+      },
+      "vs_item_knn": {
+        "mrr": 0.0149,
+        "mrr_95": [
+          0.0094,
+          0.0206
+        ],
+        "ndcg@10_95": [
+          0.012,
+          0.0246
+        ]
+      }
+    }
+  }
+}

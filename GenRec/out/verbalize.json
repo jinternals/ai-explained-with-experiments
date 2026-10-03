@@ -1,0 +1,76 @@
+{
+  "everything": {
+    "recent": null,
+    "summary": false,
+    "genres": "all",
+    "drop": [],
+    "p10": 574,
+    "p50": 1889,
+    "p90": 7724,
+    "max": 43190,
+    "mean": 3227
+  },
+  "everything, no genres": {
+    "recent": null,
+    "summary": false,
+    "genres": "none",
+    "drop": [],
+    "p10": 440,
+    "p50": 1391,
+    "p90": 5615,
+    "max": 32884,
+    "mean": 2376
+  },
+  "last 100 + summary": {
+    "recent": 100,
+    "summary": true,
+    "genres": "liked",
+    "drop": [],
+    "p10": 527,
+    "p50": 1606,
+    "p90": 1939,
+    "max": 2739,
+    "mean": 1365
+  },
+  "last 50 + summary": {
+    "recent": 50,
+    "summary": true,
+    "genres": "liked",
+    "drop": [],
+    "p10": 527,
+    "p50": 946,
+    "p90": 1063,
+    "max": 1478,
+    "mean": 881
+  },
+  "last 50, no 3\u2605": {
+    "recent": 50,
+    "summary": true,
+    "genres": "liked",
+    "drop": [
+      3
+    ],
+    "p10": 444,
+    "p50": 749,
+    "p90": 965,
+    "max": 1367,
+    "mean": 727
+  },
+  "last 20 + summary": {
+    "recent": 20,
+    "summary": true,
+    "genres": "liked",
+    "drop": [],
+    "p10": 422,
+    "p50": 466,
+    "p90": 513,
+    "max": 694,
+    "mean": 468
+  },
+  "answer_tokens": {
+    "p10": 8,
+    "p50": 9,
+    "p90": 13,
+    "max": 25
+  }
+}

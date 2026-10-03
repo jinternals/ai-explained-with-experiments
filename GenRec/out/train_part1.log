@@ -1,0 +1,56 @@
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 5481.16it/s]
+Scoring head from lab/probe.py: cosine weight 6.12
+Run 'part1': 20,000 examples (7,540 are 5★), 2,487 steps of up to 7,600 tokens (about 8.0 prompts), 12.1M trainable parameters, reward weighting off, language loss on all tokens, alpha 0.5
+step     0/2487    1.2 min  ranking nan  language nan  scale 6.12  valid MRR 0.0346  nDCG@10 0.0365  Recall@10 0.074  median rank 274  *best*
+step    50/2487    4.0 min  ranking 6.813  language 1.147  memory 1.2 GB (peak 25.4) + cache 2.1 GB
+step   100/2487    7.0 min  ranking 6.881  language 1.146  memory 1.2 GB (peak 25.4) + cache 2.1 GB
+step   150/2487   10.0 min  ranking 6.977  language 0.990  memory 1.2 GB (peak 25.4) + cache 2.1 GB
+step   200/2487   13.2 min  ranking 7.018  language 0.922  memory 1.2 GB (peak 25.5) + cache 2.1 GB
+step   250/2487   17.5 min  ranking 6.894  language 1.014  scale 9.04  valid MRR 0.0369  nDCG@10 0.0401  Recall@10 0.082  median rank 250  *best*
+step   300/2487   20.6 min  ranking 6.893  language 0.844  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step   350/2487   23.4 min  ranking 6.763  language 0.792  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step   400/2487   26.3 min  ranking 6.857  language 0.745  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step   450/2487   29.1 min  ranking 6.742  language 0.725  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step   500/2487   33.3 min  ranking 6.766  language 0.760  scale 11.94 valid MRR 0.0464  nDCG@10 0.0492  Recall@10 0.090  median rank 219  *best*
+step   550/2487   36.3 min  ranking 6.476  language 0.684  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step   600/2487   39.3 min  ranking 6.600  language 0.659  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step   650/2487   42.2 min  ranking 6.675  language 0.677  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step   700/2487   45.1 min  ranking 6.358  language 0.657  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step   750/2487   49.3 min  ranking 6.469  language 0.659  scale 15.05 valid MRR 0.0454  nDCG@10 0.0465  Recall@10 0.086  median rank 202
+step   800/2487   52.2 min  ranking 6.490  language 0.618  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step   850/2487   55.2 min  ranking 6.342  language 0.645  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step   900/2487   58.1 min  ranking 6.113  language 0.604  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step   950/2487   61.0 min  ranking 6.142  language 0.608  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1000/2487   65.2 min  ranking 6.226  language 0.616  scale 17.44 valid MRR 0.0555  nDCG@10 0.0572  Recall@10 0.096  median rank 257  *best*
+step  1050/2487   68.1 min  ranking 6.185  language 0.587  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step  1100/2487   71.0 min  ranking 6.021  language 0.575  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1150/2487   74.0 min  ranking 5.985  language 0.596  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1200/2487   76.8 min  ranking 5.883  language 0.576  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step  1250/2487   81.0 min  ranking 6.016  language 0.582  scale 19.29 valid MRR 0.0518  nDCG@10 0.0557  Recall@10 0.102  median rank 214
+step  1300/2487   83.9 min  ranking 6.175  language 0.596  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1350/2487   86.8 min  ranking 5.855  language 0.575  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step  1400/2487   89.8 min  ranking 5.968  language 0.581  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1450/2487   92.7 min  ranking 5.951  language 0.563  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1500/2487   96.9 min  ranking 5.955  language 0.575  scale 20.54 valid MRR 0.0600  nDCG@10 0.0647  Recall@10 0.116  median rank 194  *best*
+step  1550/2487   99.8 min  ranking 5.635  language 0.549  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step  1600/2487  102.8 min  ranking 5.647  language 0.546  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1650/2487  105.7 min  ranking 5.498  language 0.555  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1700/2487  108.6 min  ranking 5.513  language 0.542  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1750/2487  112.8 min  ranking 5.597  language 0.547  scale 21.59 valid MRR 0.0558  nDCG@10 0.0619  Recall@10 0.116  median rank 184
+step  1800/2487  115.8 min  ranking 5.410  language 0.535  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step  1850/2487  118.5 min  ranking 5.908  language 0.533  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  1900/2487  121.4 min  ranking 5.774  language 0.538  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step  1950/2487  124.3 min  ranking 5.661  language 0.561  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step  2000/2487  128.4 min  ranking 5.709  language 0.541  scale 22.04 valid MRR 0.0588  nDCG@10 0.0670  Recall@10 0.126  median rank 188
+step  2050/2487  131.3 min  ranking 5.754  language 0.527  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  2100/2487  134.2 min  ranking 5.553  language 0.549  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  2150/2487  137.0 min  ranking 5.733  language 0.537  memory 1.2 GB (peak 26.6) + cache 2.0 GB
+step  2200/2487  140.0 min  ranking 5.750  language 0.516  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  2250/2487  144.2 min  ranking 5.655  language 0.533  scale 22.34 valid MRR 0.0603  nDCG@10 0.0624  Recall@10 0.108  median rank 174  *best*
+step  2300/2487  147.2 min  ranking 5.480  language 0.520  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  2350/2487  150.1 min  ranking 5.385  language 0.521  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  2400/2487  153.0 min  ranking 5.506  language 0.543  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  2450/2487  155.9 min  ranking 5.611  language 0.538  memory 1.2 GB (peak 26.6) + cache 2.1 GB
+step  2487/2487  159.3 min  ranking 5.535  language 0.532  scale 22.55 valid MRR 0.0621  nDCG@10 0.0666  Recall@10 0.116  median rank 196  *best*
+
+Best valid MRR 0.0621 at step 2487. Weights in /Users/mradulpandey/Projects/AI/GenRec/cache/runs/part1/best.safetensors

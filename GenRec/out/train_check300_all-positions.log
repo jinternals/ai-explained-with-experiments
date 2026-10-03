@@ -1,0 +1,4 @@
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 3415.56it/s]
+Run 'check300': 2,400 examples (910 are 5★), 300 steps of 8, 12.1M trainable parameters, reward weighting off, language loss on all tokens, alpha 0.5
+step     0/300    0.5 min  ranking nan  language nan  scale 2.0   valid MRR 0.0253  nDCG@10 0.0261  Recall@10 0.055  median rank 316  *best*
+step    50/300    5.5 min  ranking 7.372  language 0.945  memory 1.2 GB (peak 52.0) + cache 0.1 GB

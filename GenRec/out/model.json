@@ -1,0 +1,33 @@
+{
+  "model": "mlx-community/Qwen2.5-0.5B-Instruct-bf16",
+  "style": {
+    "recent": 50,
+    "summary": true,
+    "genres": "liked",
+    "drop": []
+  },
+  "zero_shot": {
+    "mrr": 0.003151693785298113,
+    "ndcg@10": 0.0,
+    "recall@10": 0.0,
+    "median_rank": 1517.0,
+    "n": 300
+  },
+  "inference": {
+    "people": 300,
+    "tokens": 261080,
+    "seconds": 32.4,
+    "ms_per_person": 107.9,
+    "tokens_per_second": 8064,
+    "batch": 8,
+    "peak_memory_gb": 2.03
+  },
+  "training": {
+    "trainable_parameters": 12123387,
+    "total_parameters": 506156155,
+    "batch": 8,
+    "seconds_per_step": 2.37,
+    "tokens_per_second": 1943,
+    "peak_memory_gb": 24.22
+  }
+}

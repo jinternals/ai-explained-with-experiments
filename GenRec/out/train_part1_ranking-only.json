@@ -1,0 +1,78 @@
+{
+  "args": {
+    "name": "part1",
+    "examples": 20000,
+    "skip": 0,
+    "pool": 40000,
+    "init": null,
+    "recent": 3,
+    "batch": 8,
+    "lr": 0.0001,
+    "head_lr": 0.001,
+    "scale_lr": 0.01,
+    "rank": 16,
+    "reward": false,
+    "every": 250,
+    "valid": 500,
+    "seed": 0,
+    "memory_gb": 30
+  },
+  "examples": 20000,
+  "steps": 2500,
+  "trainable_parameters": 12123387,
+  "valid_people": 500,
+  "best": {
+    "step": 250,
+    "examples_seen": 2000,
+    "minutes": 18.2,
+    "train_loss": 7.3485,
+    "valid": {
+      "mrr": 0.0288,
+      "ndcg@10": 0.0281,
+      "recall@10": 0.056,
+      "median_rank": 328.5
+    },
+    "scale": 0.15
+  },
+  "curve": [
+    {
+      "step": 0,
+      "examples_seen": 0,
+      "minutes": 1.5,
+      "train_loss": null,
+      "valid": {
+        "mrr": 0.0279,
+        "ndcg@10": 0.0282,
+        "recall@10": 0.056,
+        "median_rank": 302.0
+      },
+      "scale": 2.0
+    },
+    {
+      "step": 250,
+      "examples_seen": 2000,
+      "minutes": 18.2,
+      "train_loss": 7.3485,
+      "valid": {
+        "mrr": 0.0288,
+        "ndcg@10": 0.0281,
+        "recall@10": 0.056,
+        "median_rank": 328.5
+      },
+      "scale": 0.15
+    },
+    {
+      "step": 500,
+      "examples_seen": 4000,
+      "minutes": 34.3,
+      "train_loss": 7.3537,
+      "valid": {
+        "mrr": 0.0276,
+        "ndcg@10": 0.0264,
+        "recall@10": 0.054,
+        "median_rank": 328.5
+      },
+      "scale": 0.08
+    }
+  ]
+}

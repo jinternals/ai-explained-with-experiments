@@ -1,0 +1,60 @@
+{
+  "args": {
+    "name": "part1",
+    "examples": 20000,
+    "skip": 0,
+    "pool": 40000,
+    "init": null,
+    "recent": 3,
+    "batch": 8,
+    "lr": 0.0001,
+    "head_lr": 0.001,
+    "rank": 16,
+    "reward": false,
+    "every": 250,
+    "valid": 500,
+    "seed": 0
+  },
+  "examples": 20000,
+  "steps": 2500,
+  "trainable_parameters": 12925307,
+  "valid_people": 500,
+  "best": {
+    "step": 250,
+    "examples_seen": 2000,
+    "minutes": 15.5,
+    "train_loss": 8.2236,
+    "valid": {
+      "mrr": 0.011,
+      "ndcg@10": 0.0094,
+      "recall@10": 0.02,
+      "median_rank": 638.0
+    }
+  },
+  "curve": [
+    {
+      "step": 0,
+      "examples_seen": 0,
+      "minutes": 1.1,
+      "train_loss": null,
+      "valid": {
+        "mrr": 0.0047,
+        "ndcg@10": 0.0027,
+        "recall@10": 0.004,
+        "median_rank": 1787.5
+      }
+    },
+    {
+      "step": 250,
+      "examples_seen": 2000,
+      "minutes": 15.5,
+      "train_loss": 8.2236,
+      "valid": {
+        "mrr": 0.011,
+        "ndcg@10": 0.0094,
+        "recall@10": 0.02,
+        "median_rank": 638.0
+      }
+    }
+  ]
+}

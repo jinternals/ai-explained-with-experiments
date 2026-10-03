@@ -1,0 +1,33 @@
+{
+  "people": 6040,
+  "movies_in_file": 3883,
+  "catalog": 3706,
+  "ratings": 1000209,
+  "stars": {
+    "1": 56174,
+    "2": 107557,
+    "3": 261197,
+    "4": 348971,
+    "5": 226310
+  },
+  "positive_share": 0.575,
+  "people_with_3_positives": 6035,
+  "examples": {
+    "train": 559906,
+    "valid": 6035,
+    "test": 6035
+  },
+  "ratings_per_person": {
+    "p10": 27,
+    "p50": 96,
+    "p90": 400
+  },
+  "past_ratings_at_test": {
+    "p10": 26,
+    "p50": 93,
+    "p90": 396
+  },
+  "same_second_share": 0.532,
+  "first_rating": 956703932,
+  "last_rating": 1046454590
+}

@@ -1,0 +1,4 @@
+data/
+cache/
+# The training logs are the record of each attempt the README describes; the root .gitignore drops *.log.
+!out/*.log

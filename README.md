@@ -14,7 +14,7 @@ The four search posts build on each other; the LLM post stands on its own.
 4. **[Cross-encoder re-ranking](CrossEncoder/)**: re-sorting the top results with a slower, more careful model.
 5. **[Nondeterminism in LLM inference](LLMs/nondeterminism/)**: why temperature 0 can still give different answers.
 
-Also in the repository: **[Apple Foundation Model server](apple-foundation-model/)**, a macOS app that lets Open WebUI and other chat apps use the language model built into macOS.
+Also in the repository: **[Apple Foundation Model server](apple-foundation-model/)**, a macOS app that lets Open WebUI and other chat apps use the language model built into macOS, and **[GenRec on a laptop](GenRec/)**, a work-in-progress lab that rebuilds Netflix's LLM recommendation ranker on a MacBook with MovieLens 1M. Trained on 40,000 examples, it beats a classic item-kNN recommender on the test set (MRR 0.0820 against 0.0671).
 
 **[Papers](papers/)**: research papers saved for reading, with an index of what each one is about.
 
@@ -175,6 +175,9 @@ AI/
 │       ├── blog/      index.html, page/ (source), build_page.py
 │       ├── lab/       rounding, batch_invariance, experiments, model_experiment, logit_gap
 │       └── out/       JSON results, named after the chip
+├── GenRec/
+│   ├── lab/           Python 3.12, MLX: data, baselines, verbalization, model, probe, training, evaluation
+│   └── out/           results as JSON, plus the training logs
 ├── apple-foundation-model/
 │   ├── Sources/       the server (FMServerCore) and the menu-bar app
 │   ├── Tests/         unit tests
@@ -194,6 +197,9 @@ Everything the labs download or rebuild is ignored by `.gitignore`, about 1.2 GB
 | `RRF/out/`: RRF's results JSON | under 1 MB | `docker compose run --rm lab benchmark` in `RRF/` |
 | `LLMs/nondeterminism/.venv/` | about 335 MB | `pip install -r lab/requirements.txt` |
 | `apple-foundation-model/.build/`, `build/` | about 225 MB | `scripts/build-app.sh` |
+| `GenRec/data/`: MovieLens 1M | about 24 MB | `python lab/data.py` |
+| `GenRec/cache/`: movie vectors, probe vectors, trained weights | about 380 MB | `lab/model.py`, `lab/probe.py`, `lab/train.py` |
+| `GenRec/.venv/` | about 325 MB | `uv pip install -r lab/requirements.txt` |
 
 To free space, delete any of these; the next run rebuilds them.
 

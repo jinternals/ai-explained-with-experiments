@@ -1,0 +1,56 @@
+{
+  "raw": {
+    "cosine_mean": 0.943,
+    "spread_across_movies": 0.007,
+    "popularity_plus": {
+      "20 x cosine": {
+        "mrr": 0.033,
+        "ndcg@10": 0.0316,
+        "recall@10": 0.055,
+        "median_rank": 327.5
+      }
+    }
+  },
+  "centred": {
+    "cosine_mean": 0.004,
+    "spread_across_movies": 0.091,
+    "popularity_plus": {
+      "0 x cosine": {
+        "mrr": 0.0336,
+        "ndcg@10": 0.0334,
+        "recall@10": 0.06,
+        "median_rank": 324.25
+      },
+      "1 x cosine": {
+        "mrr": 0.0275,
+        "ndcg@10": 0.0302,
+        "recall@10": 0.065,
+        "median_rank": 322.0
+      },
+      "2 x cosine": {
+        "mrr": 0.0253,
+        "ndcg@10": 0.0261,
+        "recall@10": 0.055,
+        "median_rank": 316.0
+      },
+      "5 x cosine": {
+        "mrr": 0.0155,
+        "ndcg@10": 0.0162,
+        "recall@10": 0.04,
+        "median_rank": 344.0
+      },
+      "10 x cosine": {
+        "mrr": 0.0097,
+        "ndcg@10": 0.0089,
+        "recall@10": 0.025,
+        "median_rank": 452.0
+      },
+      "20 x cosine": {
+        "mrr": 0.007,
+        "ndcg@10": 0.0047,
+        "recall@10": 0.01,
+        "median_rank": 614.5
+      }
+    }
+  }
+}

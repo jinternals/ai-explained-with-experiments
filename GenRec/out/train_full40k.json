@@ -1,0 +1,364 @@
+{
+  "args": {
+    "name": "full40k",
+    "examples": 40000,
+    "skip": 0,
+    "pool": 40000,
+    "init": null,
+    "head_from": "probe",
+    "save_at": [
+      20000
+    ],
+    "tokens": 7600,
+    "recent": 3,
+    "batch": 8,
+    "lr": 0.0001,
+    "head_lr": 0.0001,
+    "scale_lr": 0.001,
+    "rank": 16,
+    "reward": false,
+    "lm": "all",
+    "alpha": 0.5,
+    "lm_positions": 128,
+    "every": 250,
+    "valid": 500,
+    "seed": 0,
+    "memory_gb": 30
+  },
+  "examples": 40000,
+  "steps": 4976,
+  "trainable_parameters": 12123387,
+  "valid_people": 500,
+  "best": {
+    "step": 4500,
+    "examples_seen": 36288,
+    "minutes": 292.2,
+    "train_loss": 3.3279,
+    "ranking_loss": 6.1751,
+    "language_loss": 0.4807,
+    "valid": {
+      "mrr": 0.0952,
+      "ndcg@10": 0.1097,
+      "recall@10": 0.196,
+      "median_rank": 96.0
+    },
+    "scale": 16.51
+  },
+  "curve": [
+    {
+      "step": 0,
+      "examples_seen": 0,
+      "minutes": 1.1,
+      "train_loss": null,
+      "ranking_loss": null,
+      "language_loss": null,
+      "valid": {
+        "mrr": 0.0346,
+        "ndcg@10": 0.0365,
+        "recall@10": 0.074,
+        "median_rank": 273.5
+      },
+      "scale": 6.12
+    },
+    {
+      "step": 250,
+      "examples_seen": 2013,
+      "minutes": 16.4,
+      "train_loss": 4.0976,
+      "ranking_loss": 7.2489,
+      "language_loss": 0.9464,
+      "valid": {
+        "mrr": 0.0408,
+        "ndcg@10": 0.0421,
+        "recall@10": 0.08,
+        "median_rank": 250.5
+      },
+      "scale": 5.54
+    },
+    {
+      "step": 500,
+      "examples_seen": 4052,
+      "minutes": 32.0,
+      "train_loss": 4.0073,
+      "ranking_loss": 7.2932,
+      "language_loss": 0.7214,
+      "valid": {
+        "mrr": 0.0409,
+        "ndcg@10": 0.045,
+        "recall@10": 0.088,
+        "median_rank": 227.5
+      },
+      "scale": 5.78
+    },
+    {
+      "step": 750,
+      "examples_seen": 6035,
+      "minutes": 47.7,
+      "train_loss": 3.8993,
+      "ranking_loss": 7.1562,
+      "language_loss": 0.6424,
+      "valid": {
+        "mrr": 0.0489,
+        "ndcg@10": 0.0546,
+        "recall@10": 0.106,
+        "median_rank": 198.0
+      },
+      "scale": 6.76
+    },
+    {
+      "step": 1000,
+      "examples_seen": 8048,
+      "minutes": 63.8,
+      "train_loss": 3.7761,
+      "ranking_loss": 6.9548,
+      "language_loss": 0.5973,
+      "valid": {
+        "mrr": 0.0476,
+        "ndcg@10": 0.0525,
+        "recall@10": 0.106,
+        "median_rank": 178.0
+      },
+      "scale": 7.91
+    },
+    {
+      "step": 1250,
+      "examples_seen": 10000,
+      "minutes": 79.8,
+      "train_loss": 3.782,
+      "ranking_loss": 6.985,
+      "language_loss": 0.579,
+      "valid": {
+        "mrr": 0.0546,
+        "ndcg@10": 0.0613,
+        "recall@10": 0.118,
+        "median_rank": 190.0
+      },
+      "scale": 8.79
+    },
+    {
+      "step": 1500,
+      "examples_seen": 11998,
+      "minutes": 96.3,
+      "train_loss": 3.6997,
+      "ranking_loss": 6.837,
+      "language_loss": 0.5624,
+      "valid": {
+        "mrr": 0.0613,
+        "ndcg@10": 0.0699,
+        "recall@10": 0.134,
+        "median_rank": 155.5
+      },
+      "scale": 9.96
+    },
+    {
+      "step": 1750,
+      "examples_seen": 14020,
+      "minutes": 112.6,
+      "train_loss": 3.6852,
+      "ranking_loss": 6.8187,
+      "language_loss": 0.5517,
+      "valid": {
+        "mrr": 0.0585,
+        "ndcg@10": 0.0629,
+        "recall@10": 0.118,
+        "median_rank": 154.5
+      },
+      "scale": 10.94
+    },
+    {
+      "step": 2000,
+      "examples_seen": 16086,
+      "minutes": 129.8,
+      "train_loss": 3.6072,
+      "ranking_loss": 6.6738,
+      "language_loss": 0.5406,
+      "valid": {
+        "mrr": 0.0744,
+        "ndcg@10": 0.0848,
+        "recall@10": 0.154,
+        "median_rank": 139.5
+      },
+      "scale": 11.86
+    },
+    {
+      "step": 2250,
+      "examples_seen": 18142,
+      "minutes": 146.0,
+      "train_loss": 3.5656,
+      "ranking_loss": 6.5988,
+      "language_loss": 0.5325,
+      "valid": {
+        "mrr": 0.0662,
+        "ndcg@10": 0.0737,
+        "recall@10": 0.138,
+        "median_rank": 145.5
+      },
+      "scale": 12.54
+    },
+    {
+      "step": 2500,
+      "examples_seen": 20147,
+      "minutes": 161.7,
+      "train_loss": 3.5696,
+      "ranking_loss": 6.6175,
+      "language_loss": 0.5217,
+      "valid": {
+        "mrr": 0.0731,
+        "ndcg@10": 0.0819,
+        "recall@10": 0.15,
+        "median_rank": 132.0
+      },
+      "scale": 13.14
+    },
+    {
+      "step": 2750,
+      "examples_seen": 22185,
+      "minutes": 177.8,
+      "train_loss": 3.4983,
+      "ranking_loss": 6.4878,
+      "language_loss": 0.5088,
+      "valid": {
+        "mrr": 0.0707,
+        "ndcg@10": 0.0867,
+        "recall@10": 0.174,
+        "median_rank": 127.0
+      },
+      "scale": 13.77
+    },
+    {
+      "step": 3000,
+      "examples_seen": 24174,
+      "minutes": 193.9,
+      "train_loss": 3.4873,
+      "ranking_loss": 6.469,
+      "language_loss": 0.5056,
+      "valid": {
+        "mrr": 0.0836,
+        "ndcg@10": 0.0921,
+        "recall@10": 0.158,
+        "median_rank": 120.5
+      },
+      "scale": 14.41
+    },
+    {
+      "step": 3250,
+      "examples_seen": 26176,
+      "minutes": 210.5,
+      "train_loss": 3.5044,
+      "ranking_loss": 6.5099,
+      "language_loss": 0.499,
+      "valid": {
+        "mrr": 0.0799,
+        "ndcg@10": 0.0924,
+        "recall@10": 0.172,
+        "median_rank": 108.0
+      },
+      "scale": 14.84
+    },
+    {
+      "step": 3500,
+      "examples_seen": 28230,
+      "minutes": 226.2,
+      "train_loss": 3.4533,
+      "ranking_loss": 6.4011,
+      "language_loss": 0.5056,
+      "valid": {
+        "mrr": 0.0897,
+        "ndcg@10": 0.1019,
+        "recall@10": 0.18,
+        "median_rank": 113.5
+      },
+      "scale": 15.25
+    },
+    {
+      "step": 3750,
+      "examples_seen": 30246,
+      "minutes": 242.8,
+      "train_loss": 3.3939,
+      "ranking_loss": 6.2961,
+      "language_loss": 0.4918,
+      "valid": {
+        "mrr": 0.0852,
+        "ndcg@10": 0.1038,
+        "recall@10": 0.2,
+        "median_rank": 102.0
+      },
+      "scale": 15.71
+    },
+    {
+      "step": 4000,
+      "examples_seen": 32263,
+      "minutes": 259.3,
+      "train_loss": 3.3519,
+      "ranking_loss": 6.2192,
+      "language_loss": 0.4845,
+      "valid": {
+        "mrr": 0.0846,
+        "ndcg@10": 0.0986,
+        "recall@10": 0.182,
+        "median_rank": 95.5
+      },
+      "scale": 16.07
+    },
+    {
+      "step": 4250,
+      "examples_seen": 34254,
+      "minutes": 276.3,
+      "train_loss": 3.356,
+      "ranking_loss": 6.2314,
+      "language_loss": 0.4806,
+      "valid": {
+        "mrr": 0.0889,
+        "ndcg@10": 0.1015,
+        "recall@10": 0.182,
+        "median_rank": 94.0
+      },
+      "scale": 16.31
+    },
+    {
+      "step": 4500,
+      "examples_seen": 36288,
+      "minutes": 292.2,
+      "train_loss": 3.3279,
+      "ranking_loss": 6.1751,
+      "language_loss": 0.4807,
+      "valid": {
+        "mrr": 0.0952,
+        "ndcg@10": 0.1097,
+        "recall@10": 0.196,
+        "median_rank": 96.0
+      },
+      "scale": 16.51
+    },
+    {
+      "step": 4750,
+      "examples_seen": 38245,
+      "minutes": 307.9,
+      "train_loss": 3.3332,
+      "ranking_loss": 6.1916,
+      "language_loss": 0.4748,
+      "valid": {
+        "mrr": 0.0947,
+        "ndcg@10": 0.1068,
+        "recall@10": 0.186,
+        "median_rank": 94.0
+      },
+      "scale": 16.73
+    },
+    {
+      "step": 4976,
+      "examples_seen": 40000,
+      "minutes": 322.2,
+      "train_loss": 3.3845,
+      "ranking_loss": 6.291,
+      "language_loss": 0.4781,
+      "valid": {
+        "mrr": 0.0938,
+        "ndcg@10": 0.1087,
+        "recall@10": 0.196,
+        "median_rank": 95.0
+      },
+      "scale": 16.85
+    }
+  ]
+}

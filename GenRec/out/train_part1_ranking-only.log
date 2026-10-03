@@ -1,0 +1,16 @@
+Fetching 9 files:   0%|          | 0/9 [00:00<?, ?it/s]Fetching 9 files: 100%|██████████| 9/9 [00:00<00:00, 2481.51it/s]
+Run 'part1': 20,000 examples (7,540 are 5★), 2,500 steps of 8, 12.1M trainable parameters, reward weighting off
+step     0/2500    1.5 min  loss nan  scale 2.0   valid MRR 0.0279  nDCG@10 0.0282  Recall@10 0.056  median rank 302  *best*
+step    50/2500    4.6 min  loss 7.352  memory 1.2 GB + cache 2.1 GB
+step   100/2500    8.0 min  loss 7.477  memory 1.2 GB + cache 2.1 GB
+step   150/2500   10.9 min  loss 7.321  memory 1.2 GB + cache 2.1 GB
+step   200/2500   13.9 min  loss 7.216  memory 1.2 GB + cache 2.0 GB
+step   250/2500   18.2 min  loss 7.348  scale 0.15  valid MRR 0.0288  nDCG@10 0.0281  Recall@10 0.056  median rank 328  *best*
+step   300/2500   21.6 min  loss 7.300  memory 1.2 GB + cache 2.1 GB
+step   350/2500   24.4 min  loss 7.406  memory 1.2 GB + cache 2.1 GB
+step   400/2500   27.1 min  loss 7.301  memory 1.2 GB + cache 2.0 GB
+step   450/2500   30.0 min  loss 7.371  memory 1.2 GB + cache 2.1 GB
+step   500/2500   34.3 min  loss 7.354  scale 0.08  valid MRR 0.0276  nDCG@10 0.0264  Recall@10 0.054  median rank 328
+step   550/2500   37.1 min  loss 7.268  memory 1.2 GB + cache 2.1 GB
+step   600/2500   40.2 min  loss 7.445  memory 1.2 GB + cache 2.1 GB
+step   650/2500   43.2 min  loss 7.377  memory 1.2 GB + cache 2.0 GB
