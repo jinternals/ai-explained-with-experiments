@@ -9,3 +9,5 @@ Papers saved for reading. Each one is kept as its PDF, named `<ShortName>-<arXiv
 ## GenRec
 
 Netflix replaces a feature-engineered ranker with one built on its own foundation LLM. Phase 1 adapts an open-source LLM to Netflix data; this paper covers Phase 2, which post-trains that model for ranking. It covers turning user histories into text, building training data, adding rewards, the model architecture, and a prefill-only serving design that keeps costs down. The paper reports an A/B test against the production ranker.
+
+Plain-language walkthrough: [GenRec-explained.md](GenRec-explained.md).
