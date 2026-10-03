@@ -77,6 +77,7 @@ SemanticSearch/
 - **Word overlap** is measured without stemming and ignores Lucene's 33 English stop words, so "cataract" and "cataracts" count as different words.
 - **The HNSW animation in section 10 is an illustration**, not data. The measured HNSW numbers are in the table below it.
 - **Timings** are medians over 200 questions per dataset, inside Docker on an M4 Pro MacBook Pro's CPU.
+- **What nDCG@10 means.** Every score here is nDCG@10, a number from 0 to 1 for how good the first 10 results are. Each relevant result earns its label as points: NFCorpus grades papers 2 (very relevant) or 1 (somewhat relevant), while SciFact and FiQA mark every relevant document 1. Points are divided by log₂(position + 1), so a result counts in full at 1st, about 63% at 2nd, half at 3rd and about 29% at 10th. The total is then divided by the score of a perfect top 10, so 1 means the best possible order. Unlike MRR (mean reciprocal rank), it rewards every relevant result in the top 10, not only the first. The code is `ndcgAtK` in `lab/src/main/java/semantic/Metrics.java`.
 
 ## References
 

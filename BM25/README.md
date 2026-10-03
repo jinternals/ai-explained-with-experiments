@@ -90,6 +90,7 @@ BM25/
 - **k1 and b change without re-indexing.** Lucene stores each field's length at index time and applies k1 and b at search time, so the lab closes the index, updates `index.similarity.default` and reopens it.
 - **"Default Lucene parameters".** The BEIR paper describes k1 0.9, b 0.4 that way, but those are Anserini's defaults. Lucene's own defaults are 1.2 and 0.75, the same as OpenSearch's.
 - **Two tables are worked out from the formula, not measured:** how repeats add up for different k1 (section 05) and how length changes a word's weight for different b (section 06). The post labels them.
+- **What nDCG@10 means.** Every score here is nDCG@10, a number from 0 to 1 for how good the first 10 results are. Each relevant result earns its label as points: NFCorpus grades papers 2 (very relevant) or 1 (somewhat relevant), while SciFact and FiQA mark every relevant document 1. Points are divided by log₂(position + 1), so a result counts in full at 1st, about 63% at 2nd, half at 3rd and about 29% at 10th. The total is then divided by the score of a perfect top 10, so 1 means the best possible order. Unlike MRR (mean reciprocal rank), it rewards every relevant result in the top 10, not only the first. The code is `ndcgAtK` in `lab/src/main/java/bm25/Metrics.java`.
 
 ## References
 

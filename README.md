@@ -199,6 +199,7 @@ To free space, delete any of these; the next run rebuilds them.
 
 ## How the posts are made
 
+- **One score for search quality.** The search posts score results with nDCG@10: a number from 0 to 1 for how good the first 10 results are, where relevant results near the top count for more and 1 is a perfect top 10. Each project's README explains it under Notes.
 - **Real data only.** Examples use public datasets (BEIR) or real model output, never made-up numbers.
 - **Every figure is rebuilt from results.** The RRF images are rendered from `out/*.json` by `medium/build-images.mjs`. The nondeterminism, BM25, semantic search and cross-encoder pages fill their numbers from `out/*.json` when they are built.
 - **Sources are marked.** The nondeterminism post tags every number "ran on Mac" or "paper". The RRF post names the source under each figure, such as "Raw output from OpenSearch" or "Table 1 of Cormack et al. (2009)".

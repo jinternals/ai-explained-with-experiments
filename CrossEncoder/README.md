@@ -80,6 +80,7 @@ CrossEncoder/
 - **Timings are CPU numbers.** The lab runs ONNX Runtime inside Docker on the CPU. The model card's 1,800 documents per second was measured on an NVIDIA V100 GPU.
 - **Long documents are cut.** The cross-encoder reads at most 512 tokens per (question, document) pair.
 - **The model is pinned** to revision `233902d25c440f23af6f7d6e94d2946bac0bee0a`, so a re-run downloads exactly the same weights.
+- **What nDCG@10 means.** Every score here is nDCG@10, a number from 0 to 1 for how good the first 10 results are. Each relevant result earns its label as points: NFCorpus grades papers 2 (very relevant) or 1 (somewhat relevant), while SciFact and FiQA mark every relevant document 1. Points are divided by log₂(position + 1), so a result counts in full at 1st, about 63% at 2nd, half at 3rd and about 29% at 10th. The total is then divided by the score of a perfect top 10, so 1 means the best possible order. Unlike MRR (mean reciprocal rank), it rewards every relevant result in the top 10, not only the first. The code is `ndcgAtK` in `lab/src/main/java/ce/Metrics.java`.
 
 ## References
 
