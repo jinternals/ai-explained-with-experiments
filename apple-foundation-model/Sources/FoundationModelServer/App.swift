@@ -2,6 +2,10 @@ import AppKit
 import FMServerCore
 import SwiftUI
 
+// SwiftUI's State, spelled as a plain property wrapper. On the macOS 27 SDK `@State` is a macro whose plugin
+// ships only with Xcode, so going through this alias keeps the package building with just the Command Line Tools.
+private typealias ViewState = SwiftUI.State
+
 @main
 enum Entry {
     static func main() {
@@ -200,7 +204,7 @@ final class ServerController: ObservableObject {
 struct PanelView: View {
     @ObservedObject var controller: ServerController
     @Environment(\.openWindow) private var openWindow
-    @State private var copied = false
+    @ViewState private var copied = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -313,9 +317,9 @@ struct PanelView: View {
 
 struct LogsView: View {
     @ObservedObject var controller: ServerController
-    @State private var level: LevelFilter = .all
-    @State private var search = ""
-    @State private var follow = true
+    @ViewState private var level: LevelFilter = .all
+    @ViewState private var search = ""
+    @ViewState private var follow = true
 
     enum LevelFilter: String, CaseIterable, Identifiable {
         case all = "All", problems = "Warnings and errors", errors = "Errors"
