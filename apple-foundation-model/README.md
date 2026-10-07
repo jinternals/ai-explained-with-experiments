@@ -26,6 +26,10 @@ Tested on an M4 Pro MacBook Pro with macOS 27:
 
 ## Install
 
+**Prebuilt.** [`dist/FoundationModelServer.zip`](dist/FoundationModelServer.zip) holds the app, built for Apple silicon and signed ad hoc. Unzip it and move `Foundation Model Server.app` to your Applications folder. It isn't notarized, so macOS blocks a downloaded copy the first time you open it. Allow it under **System Settings → Privacy & Security → Open Anyway**.
+
+**Or build it yourself:**
+
 ```bash
 scripts/build-app.sh --install      # builds, signs, and copies it to ~/Applications
 open ~/Applications/"Foundation Model Server.app"
@@ -127,6 +131,7 @@ apple-foundation-model/
 ├── Tests/FMServerCoreTests/       unit tests (swift test)
 ├── docker-compose.yml             Open WebUI, connected to the app, for testing
 ├── Resources/                     the app icon (AppIcon.icns, and a 1024 px PNG)
+├── dist/                          the prebuilt app, zipped (FoundationModelServer.zip)
 └── scripts/                       build-app.sh builds and signs the .app; make-icon.swift draws the icon
 ```
 
@@ -139,7 +144,7 @@ apple-foundation-model/
 | `Sources/FMServerCore/LogStore.swift` | The log: the last 1,000 lines in memory for the log window, everything in `~/Library/Logs/FoundationModelServer/server.log` |
 | `Sources/FoundationModelServer/App.swift` | The menu-bar panel, the log window, settings, `--headless` and `--snapshot` modes |
 | `Sources/FoundationModelServer/MenuBarIcon.swift` | The menu-bar icon: the app icon's bubble and sparkles in one colour, dimmed when stopped |
-| `scripts/build-app.sh` | Builds `build/Foundation Model Server.app`; `--install` copies it to `~/Applications` |
+| `scripts/build-app.sh` | Builds `build/Foundation Model Server.app`; `--install` copies it to `~/Applications`, `--dist` zips it into `dist/FoundationModelServer.zip` |
 | `scripts/make-icon.swift` | Draws the app icon with Core Graphics and writes `Resources/AppIcon.icns` (`swift scripts/make-icon.swift`) |
 
 ## Notes

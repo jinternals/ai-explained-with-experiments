@@ -2,10 +2,8 @@
 .build/
 .swiftpm/
 
-# The built app, build/Foundation Model Server.app, is committed. The signing files that
-# scripts/build-app.sh writes next to it when given a provisioning profile are not.
-build/profile.plist
-build/entitlements.plist
+# The app bundle and signing files that scripts/build-app.sh writes
+build/
 
 # Xcode, if the package is opened there
 DerivedData/

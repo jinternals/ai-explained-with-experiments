@@ -3,6 +3,7 @@
 #
 #   scripts/build-app.sh             # build and sign
 #   scripts/build-app.sh --install   # also copy it to ~/Applications
+#   scripts/build-app.sh --dist      # also zip it into dist/FoundationModelServer.zip, the copy kept in git
 #
 # Signs with your "Apple Development" certificate if you have one (set SIGN_IDENTITY to choose another),
 # otherwise ad hoc, which is enough for the on-device model.
@@ -73,6 +74,11 @@ if [ "${1:-}" = "--install" ]; then
   rm -rf "$HOME/Applications/$APP_NAME.app"
   cp -R "$APP" "$HOME/Applications/"
   echo "Installed to ~/Applications/$APP_NAME.app"
+elif [ "${1:-}" = "--dist" ]; then
+  mkdir -p dist
+  rm -f dist/FoundationModelServer.zip
+  ditto -c -k --keepParent "$APP" dist/FoundationModelServer.zip
+  echo "Wrote dist/FoundationModelServer.zip"
 else
   echo "Built $APP"
 fi
